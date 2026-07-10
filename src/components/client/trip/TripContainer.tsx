@@ -91,9 +91,9 @@ export default function TripContainer() {
     });
   };
   const { data: filterOptions } = useTripFilterOptions({
-    origin: filters.originCityId,
-    destination: filters.destinationCityId,
-    date: filters.date,
+    origin: filters.originCityId ?? undefined,
+    destination: filters.destinationCityId ?? undefined,
+    date: filters.date || undefined,
   });
   // =========================
   // TRIP

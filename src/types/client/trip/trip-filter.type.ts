@@ -3,8 +3,8 @@ export type SortField = "price" | "departure" | "availableSeats";
 export type SortOrder = "asc" | "desc";
 
 export interface TripSearchFilters {
-  originCityId: number ;
-  destinationCityId: number ;
+  originCityId: number | null;
+  destinationCityId: number | null;
   date: string;
 
   page: number;
@@ -16,8 +16,8 @@ export interface TripSearchFilters {
   floors: string[];
 
   sort: {
-    field: "price" | "departure" | "availableSeats";
-    order: "asc" | "desc";
+    field: SortField;
+    order: SortOrder;
   };
 
   onlyAvailable: boolean;
