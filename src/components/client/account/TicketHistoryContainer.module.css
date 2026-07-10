@@ -1,0 +1,173 @@
+.container {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 16px;
+  background-color: #f8fafc;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.list {
+  width: 100%;
+  max-width: 680px; /* Rộng hơn để hiển thị giao diện vé thoáng đãng */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border-left: 5px solid #ef4444; /* Vệt màu thương hiệu phía lề trái */
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.05),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Khối thông tin chính bên trái */
+.mainInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.codeWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bookingCode {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+}
+
+/* Badge trạng thái linh hoạt */
+.statusBadge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 99s9px;
+  text-transform: capitalize;
+}
+
+/* Các class màu sắc động cho trạng thái */
+.status_success,
+.status_completed,
+.status_paid {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+.status_pending,
+.status_unpaid {
+  background-color: #fffbeb;
+  color: #d97706;
+}
+
+.status_cancelled,
+.status_failed {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.dateTime {
+  font-size: 14px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+}
+
+/* Khối giá tiền và hành động bên phải */
+.sideInfo {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.priceLabel {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: -4px;
+}
+
+.price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ef4444; /* Màu đỏ nổi bật giá tiền */
+}
+
+/* Giao diện khi danh sách trống */
+.emptyState {
+  text-align: center;
+  padding: 48px 24px;
+  color: #94a3b8;
+  font-size: 15px;
+}
+
+.emptyState p {
+  margin: 0;
+}
+
+/* Responsive cho thiết bị di động */
+@media (max-width: 576px) {
+  .card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .sideInfo {
+    text-align: left;
+    width: 100%;
+    padding-top: 12px;
+    border-top: 1px dashed #e2e8f0; /* Đường xé vé giả lập trên mobile */
+  }
+}
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0 20px;
+  flex-wrap: wrap;
+}
+
+.tab {
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #475569;
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tabActive {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}

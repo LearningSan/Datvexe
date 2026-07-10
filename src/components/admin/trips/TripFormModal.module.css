@@ -1,0 +1,320 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(
+    15,
+    23,
+    42,
+    0.6
+  ); /* Sắc xanh đen sâu đậm chất kỹ thuật */
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modalNode {
+  background: #ffffff;
+  width: 100%;
+  max-width: 680px;
+  border-radius: 16px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header dạng lệnh điều động */
+.dispatchHeader {
+  background: #1e293b; /* Đồng bộ nền tối với trung tâm điều độ */
+  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  color: #ffffff;
+  position: relative;
+}
+
+.brandingNode h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 6px 0 4px 0;
+  letter-spacing: 0.5px;
+  color: #f8fafc;
+}
+
+.brandingNode p {
+  margin: 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.badgeIndicator {
+  background: #ff6f20; /* Màu cam vận tải đặc trưng */
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  letter-spacing: 1px;
+}
+
+.closeConsoleBtn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #94a3b8;
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.closeConsoleBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+/* Cấu trúc Form chia khối rõ ràng */
+.dispatchForm {
+  padding: 24px 32px;
+  max-height: calc(100vh - 180px);
+  overflow-y: auto;
+  background-color: #f8fafc;
+}
+
+.formSection {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.formGroup {
+  margin-bottom: 14px;
+}
+
+.formGroup:last-child {
+  margin-bottom: 0;
+}
+
+.formGroup label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+/* Inputs & Selects thiết kế phẳng, tập trung dữ liệu */
+.dispatchForm input[type="text"],
+.dispatchForm input[type="number"],
+.dispatchForm input[type="datetime-local"],
+.dispatchForm select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #1e293b;
+  background-color: #ffffff;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.dispatchForm input:focus,
+.dispatchForm select:focus {
+  border-color: #ff6f20;
+  box-shadow: 0 0 0 3px rgba(255, 111, 32, 0.12);
+}
+
+.dispatchForm input:disabled,
+.dispatchForm select:disabled {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+}
+
+/* Grid xếp cạnh nhau */
+.gridConsole2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.gridConsole2:last-of-type {
+  margin-bottom: 0;
+}
+
+/* Hộp cảnh báo khóa nốt chạy */
+.criticalLockNotice {
+  background-color: #fff7ed;
+  border: 1px solid #ffedd5;
+  border-left: 4px solid #f97316;
+  padding: 14px 16px;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.lockIcon {
+  font-size: 18px;
+  margin-top: 2px;
+}
+
+.lockText {
+  font-size: 12px;
+  color: #c2410c;
+  line-height: 1.5;
+}
+
+.lockText strong {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+/* Thanh điều khiển dưới cùng */
+.controlFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.backBtn {
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.backBtn:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.dispatchConfirmBtn {
+  background: #ff6f20;
+  color: #ffffff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dispatchConfirmBtn:hover:not(:disabled) {
+  background: #e55e10;
+  transform: translateY(-1px);
+}
+
+.dispatchConfirmBtn:disabled,
+.backBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Hiệu ứng loading */
+.loadingFlex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Màu sắc động cho ô trạng thái chuyến xe */
+.statusSelect {
+  font-weight: 600 !important;
+}
+
+.statusSelect.open {
+  color: #16a34a;
+  background-color: #f0fdf4 !important;
+  border-color: #bbf7d0;
+}
+
+.statusSelect.full {
+  color: #dc2626;
+  background-color: #fef2f2 !important;
+  border-color: #fecaca;
+}
+
+.statusSelect.running {
+  color: #ca8a04;
+  background-color: #fefce8 !important;
+  border-color: #fef08a;
+}
+
+.statusSelect.completed {
+  color: #475569;
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1;
+}
+
+.statusSelect.cancelled {
+  color: #7f1d1d;
+  background-color: #fef2f2 !important;
+  border-color: #fca5a5;
+}

@@ -1,0 +1,36 @@
+.container {
+  display: flex;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column; /* Xếp dọc: Sidebar ở trên, danh sách chuyến ở dưới */
+    gap: 16px;
+    padding: 12px;
+  }
+
+  .sidebar {
+    width: 100%; /* Sidebar co giãn hết màn hình trên mobile */
+    /* Hoặc nếu muốn ẩn hẳn bộ lọc trên mobile: display: none; */
+  }
+  
+  .main {
+    width: 100%;
+  }
+}

@@ -1,0 +1,400 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 1150px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid #cbd5e1;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: 24px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background-color: #f8fafc;
+}
+
+.header span {
+  font-size: 12px;
+  font-weight: 800;
+  color: #2563eb;
+  letter-spacing: 1px;
+}
+
+.header h2 {
+  margin: 4px 0 2px 0;
+  font-size: 22px;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.header p {
+  margin: 0;
+  font-size: 13px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.closeTopBtn {
+  background: #e2e8f0;
+  border: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: 700;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.closeTopBtn:hover {
+  background: #cbd5e1;
+  color: #0f172a;
+}
+
+.body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.infoSection h3,
+.previewSection h3,
+.vehicleSection h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  border-left: 4px solid #2563eb;
+  padding-left: 10px;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  background: #f1f5f9;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.infoGrid div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.infoGrid span {
+  font-size: 12.5px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.infoGrid strong {
+  font-size: 14.5px;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.textLocked {
+  color: #dc2626 !important;
+}
+
+.textEditable {
+  color: #16a34a !important;
+}
+
+.warningBox {
+  margin-top: 12px;
+  background: #fff7ed;
+  border: 1px solid #ffedd5;
+  color: #9a3412;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.floorList {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.floorCard h4 {
+  margin: 0 0 12px 0;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.busCabin {
+  background: #f8fafc;
+  border: 3px solid #334155;
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  overflow-x: auto;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.05);
+}
+
+.busFront {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 85px;
+  border-right: 2px dashed #cbd5e1;
+  padding-right: 16px;
+  flex-shrink: 0;
+}
+
+.busDoor {
+  background: #e2e8f0;
+  border: 1px dashed #475569;
+  border-radius: 8px;
+  padding: 10px 4px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.busDoor span {
+  display: block;
+  font-size: 9px;
+  color: #2563eb;
+}
+
+.driverSeat {
+  background: #334155;
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 12px 6px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.steeringWheel {
+  width: 20px;
+  height: 20px;
+  border: 3px double #ffffff;
+  border-radius: 50%;
+}
+
+.seatGrid {
+  flex: 1;
+  display: grid;
+  gap: 14px 12px;
+  align-content: center;
+}
+
+.sleeperPreview {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  min-width: 920px;
+  padding: 4px 8px;
+}
+
+.sleeperRow {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.sleeperMiddleRow {
+  padding-left: 74px;
+}
+
+.sleeperPreview .seatWrapper {
+  width: 126px;
+  min-width: 126px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.seatWrapper {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  height: 52px;
+  width: 100%;
+  min-width: 90px;
+}
+
+.seatCap {
+  width: 6px;
+  height: 20px;
+  border-radius: 0 4px 4px 0;
+  flex-shrink: 0;
+}
+
+.seatBody {
+  flex: 1;
+  height: 100%;
+  border-radius: 10px 0 0 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  padding: 4px;
+}
+
+.seatBody strong {
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.seatBody small {
+  font-size: 8.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-top: 1px;
+  opacity: 0.85;
+}
+
+.normalSeat .seatCap {
+  background-color: #2563eb;
+}
+
+.normalSeat .seatBody {
+  background-color: #3b82f6;
+  border-color: #1d4ed8;
+  color: #ffffff;
+}
+
+.vipSeat .seatCap {
+  background-color: #1d4ed8;
+}
+
+.vipSeat .seatBody {
+  background-color: #1e40af;
+  border-color: #172554;
+  color: #ffffff;
+}
+
+.wcNode .seatCap {
+  display: none;
+}
+
+.wcNode .seatBody {
+  background-color: #ef4444;
+  border-color: #b91c1c;
+  color: #ffffff;
+  border-radius: 8px !important;
+}
+
+.vehicleList {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.vehicleItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.vehicleItem strong {
+  color: #0f172a;
+}
+
+.vStatus {
+  background: #cbd5e1;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  color: #334155;
+}
+
+.footer {
+  padding: 18px 24px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-radius: 0 0 24px 24px;
+}
+
+.cancelBtn,
+.duplicateBtn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cancelBtn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+
+.cancelBtn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.duplicateBtn {
+  background: #2563eb;
+  border: 0;
+  color: #ffffff;
+}
+
+.duplicateBtn:hover {
+  background: #1d4ed8;
+}
+
+.loading,
+.emptyText {
+  padding: 30px;
+  text-align: center;
+  color: #475569;
+  font-weight: 600;
+}

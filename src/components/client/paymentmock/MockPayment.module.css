@@ -1,0 +1,259 @@
+.main {
+  min-height: 100vh;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px; /* Giảm padding trên mobile để tăng khoảng trống */
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+/* Tận dụng màu nền nhẹ nhàng, dễ chịu cho mắt trên mobile */
+.main[data-method="MOMO"] {
+  background: #fff1f2;
+}
+.main[data-method="ZALOPAY"] {
+  background: #f0fdf4;
+}
+.main[data-method="VNPAY"] {
+  background: #eff6ff;
+}
+.main[data-method="VIETQR"] {
+  background: #fefce8;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px 20px; /* Responsive padding cho mobile */
+  box-shadow:
+    0 10px 25px -5px rgba(15, 23, 42, 0.05),
+    0 8px 16px -6px rgba(15, 23, 42, 0.03);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Thêm dải màu thương hiệu ở đỉnh Card để giao diện sinh động */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+}
+.main[data-method="MOMO"] .card::before {
+  background: #d21d6e;
+}
+.main[data-method="ZALOPAY"] .card::before {
+  background: #0084ff;
+}
+.main[data-method="VNPAY"] .card::before {
+  background: #005baa;
+}
+.main[data-method="VIETQR"] .card::before {
+  background: #ea580c;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: center;
+}
+
+/* Đổi màu chữ Title theo brand để tăng tính cá tính */
+.main[data-method="MOMO"] .title {
+  color: #d21d6e;
+}
+.main[data-method="ZALOPAY"] .title {
+  color: #0076e5;
+}
+.main[data-method="VNPAY"] .title {
+  color: #005baa;
+}
+.main[data-method="VIETQR"] .title {
+  color: #c2410c;
+}
+
+.subtitle {
+  color: #64748b;
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Khối hiển thị số tiền */
+.amountContainer {
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  text-align: center;
+}
+
+.amountLabel {
+  margin: 0 0 2px 0;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Giảm nhẹ size chữ xuống 26px giúp số tiền dài không bị nhảy hàng trên mobile */
+.amountValue {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+/* Khối nhập tiền */
+.inputGroup {
+  margin-top: 20px;
+}
+
+.inputLabel {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #475569;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  font-size: 16px; /* Đặt 16px để iOS không tự động phóng to (auto-zoom) input */
+  outline: none;
+  background: #ffffff;
+  color: #0f172a;
+  text-align: center; /* Cho user dễ đối chiếu số tiền */
+}
+
+.input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+}
+
+.errorMessage {
+  margin-top: 12px;
+  color: #b91c1c;
+  font-weight: 500;
+  font-size: 13px;
+  background: #fef2f2;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Nơi chứa 2 nút hành động */
+.actionGroup {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column; /* Đóng hàng dọc trên mobile để dễ bấm */
+  gap: 10px;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 14px;
+  border: 0;
+  border-radius: 10px;
+  background: #3b82f6;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+/* Đồng bộ màu nút bấm chính theo thương hiệu */
+.main[data-method="MOMO"] .submitBtn {
+  background: #d21d6e;
+}
+.main[data-method="ZALOPAY"] .submitBtn {
+  background: #0084ff;
+}
+.main[data-method="VNPAY"] .submitBtn {
+  background: #005baa;
+}
+.main[data-method="VIETQR"] .submitBtn {
+  background: #ea580c;
+}
+
+.submitBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Nút hủy giao dịch nhẹ nhàng, không gây rối */
+.cancelBtn {
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.cancelBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.metaText {
+  margin-top: 16px;
+  color: #94a3b8;
+  font-size: 11px;
+  text-align: center;
+  font-family: monospace;
+}
+
+/* Khi xem trên Tablet hoặc Desktop, nới rộng khoảng cách ra tí cho đẹp */
+@media (min-width: 480px) {
+  .card {
+    padding: 36px 32px;
+  }
+  .amountValue {
+    font-size: 30px;
+  }
+}

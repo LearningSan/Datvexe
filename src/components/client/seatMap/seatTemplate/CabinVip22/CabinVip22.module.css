@@ -1,0 +1,127 @@
+.cabinContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+  padding: 10px;
+}
+
+.floorSection {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+.floorTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2c3e50;
+  text-align: center;
+}
+
+/* ==========================================================================
+   MẶC ĐỊNH CHO MOBILE: XOAY DỌC XE (Đầu xe ở trên, đuôi xe ở dưới)
+   ========================================================================== */
+
+.cabinArea {
+  display: flex;
+  flex-direction: row; /* Đặt Hàng 1, Lối đi, Hàng 2 nằm song song theo chiều ngang */
+  justify-content: center;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  max-width: 360px; /* Vừa vặn chiều rộng màn hình mobile */
+  margin: 0 auto;
+}
+
+.seatsRowGroup {
+  display: grid;
+  /* Xoay dọc: 1 cột rộng 70px, có 6 hàng (mỗi hàng cao 50px hoặc tự động theo SeatItem) */
+  grid-template-columns: 70px;
+  grid-template-rows: repeat(6, minmax(50px, auto));
+  gap: 15px 0;
+  flex: 1;
+  justify-content: center;
+}
+
+.emptyCell {
+  width: 70px;
+  height: 50px;
+}
+
+/* Lối đi chung chạy dọc từ trên xuống */
+.aisleLane {
+  width: 35px; /* Đổi từ height sang width để làm lối đi dọc */
+  height: auto;
+  background: #e2e8f0;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-self: stretch;
+}
+
+/* Xoay chữ "LỐI ĐI CHUNG" chạy dọc dọc theo xe */
+.aisleLane span {
+  font-size: 10px;
+  color: #a6b8cd;
+  font-weight: 800;
+  letter-spacing: 10px;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  white-space: nowrap;
+}
+
+.wcItem {
+  width: 70px;
+  height: 50px;
+  background: #ef4444;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+}
+
+/* ==========================================================================
+   CHO DESKTOP (MÀN HÌNH RỘNG >= 768px): XOAY NGANG LẠI NHƯ CŨ
+   ========================================================================== */
+@media (min-width: 768px) {
+  .cabinContainer {
+    gap: 50px;
+  }
+
+  .floorTitle {
+    font-size: 20px;
+    text-align: left;
+  }
+
+  .cabinArea {
+    flex-direction: column; /* Trở lại xếp các hàng và lối đi từ trên xuống dưới */
+    max-width: none;
+    gap: 0;
+  }
+
+  .seatsRowGroup {
+    grid-template-columns: repeat(6, 70px); /* 6 cột nằm ngang */
+    grid-template-rows: auto;
+    gap: 15px 25px;
+    flex: none;
+    justify-content: flex-start;
+  }
+
+  /* Trả lối đi về dạng nằm ngang */
+  .aisleLane {
+    width: 100%;
+    height: 45px;
+    margin: 15px 0;
+  }
+
+  /* Trả chữ về nằm ngang */
+  .aisleLane span {
+    writing-mode: horizontal-tb;
+    letter-spacing: normal;
+  }
+}

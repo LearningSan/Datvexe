@@ -1,0 +1,88 @@
+.kpiCard {
+  position: relative;
+  overflow: hidden;
+  min-height: 118px;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: #fff;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.07);
+  transition: 0.18s ease;
+}
+.kpiCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 26px 60px rgba(15, 23, 42, 0.12);
+}
+.kpiCard::after {
+  content: "";
+  position: absolute;
+  right: -36px;
+  bottom: -42px;
+  width: 120px;
+  height: 120px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.08;
+}
+.kpiIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.kpiMain {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.kpiTitle {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+.kpiValue {
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 850;
+  letter-spacing: -0.6px;
+}
+.blue {
+  color: #0284c7;
+  background: linear-gradient(135deg, #fff, #e0f2fe);
+}
+.green {
+  color: #15803d;
+  background: linear-gradient(135deg, #fff, #dcfce7);
+}
+.yellow {
+  color: #a16207;
+  background: linear-gradient(135deg, #fff, #fef9c3);
+}
+.purple {
+  color: #7e22ce;
+  background: linear-gradient(135deg, #fff, #f3e8ff);
+}
+.red {
+  color: #b91c1c;
+  background: linear-gradient(135deg, #fff, #fee2e2);
+}
+.blue .kpiIcon {
+  background: #e0f2fe;
+}
+.green .kpiIcon {
+  background: #dcfce7;
+}
+.yellow .kpiIcon {
+  background: #fef9c3;
+}
+.purple .kpiIcon {
+  background: #f3e8ff;
+}
+.red .kpiIcon {
+  background: #fee2e2;
+}

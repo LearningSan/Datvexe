@@ -1,0 +1,577 @@
+/* Tổng quan layout trang quản trị */
+.dashboardPage {
+  padding: 24px;
+  background-color: #f8fafc; /* Nền xám xanh Slate nhạt giúp nổi bật các khối màu trắng */
+  min-height: 100vh;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* SECTION 1: Tiêu đề & Nút Tạo Vé */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.headerInfo h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a; /* Slate 900 siêu đậm */
+  margin: 0 0 6px 0;
+  letter-spacing: -0.5px;
+}
+
+.headerInfo p {
+  font-size: 0.9rem;
+  color: #475569; /* Chữ phụ đậm nét, rõ ràng */
+  margin: 0;
+  max-width: 800px;
+  line-height: 1.5;
+}
+
+.createBtn {
+  background-color: #2563eb; /* Royal Blue */
+  color: #ffffff;
+  border: 2px solid #1d4ed8;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+  transition: all 0.1s ease;
+}
+
+.createBtn:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px -2px rgba(29, 78, 216, 0.3);
+}
+
+.plusIcon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* SECTION 2: Chỉ số cảnh báo vận hành (Stats Board) */
+.dashboardStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.statCard {
+  background: #ffffff;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  transition: all 0.15s ease-in-out;
+}
+
+.statCard:hover {
+  border-color: #475569;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.06);
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statValue {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+/* Kích hoạt bộ lọc cảnh báo nhanh */
+.statCardActive {
+  border-color: #dc2626 !important; /* Đỏ rực */
+  background-color: #fef2f2 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+}
+.statCardActive .statLabel {
+  color: #991b1b;
+}
+.statCardActive .statValue {
+  color: #dc2626;
+}
+
+/* SECTION 3: Khối Bộ lọc Tìm kiếm nâng cao */
+.filterSection {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.filterFormGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.fieldGroup input,
+.fieldGroup select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #cbd5e1; /* Độ dày viền 2px chống mờ tốt */
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #0f172a;
+  font-weight: 500;
+  outline: none;
+  background-color: #ffffff;
+  transition: all 0.1s ease-in-out;
+}
+
+.fieldGroup input:focus,
+.fieldGroup select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Khối checkbox lọc khẩn cấp */
+.filterCheckboxes {
+  grid-column: 1 / -1; /* Trải dài hết hàng */
+  display: flex;
+  gap: 24px;
+  padding-top: 8px;
+  border-top: 1px dashed #e2e8f0;
+  margin-top: 8px;
+}
+
+.checkboxItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.checkboxItem input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #2563eb; /* Đổi màu tick xanh nổi bật */
+}
+
+/* Cụm nút bấm bộ lọc */
+.filterActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 2px solid #f1f5f9;
+}
+
+.executeBtn {
+  background-color: #0f172a;
+  color: #ffffff;
+  border: 2px solid #0f172a;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.executeBtn:hover {
+  background-color: #1e293b;
+  border-color: #1e293b;
+}
+
+.resetBtn {
+  background-color: #ffffff;
+  color: #475569;
+  border: 2px solid #cbd5e1;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.resetBtn:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+/* SECTION 4: Thanh Tabs Phân Loại Lớn */
+.statusTabsBar {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #cbd5e1;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.statusTabsBar button {
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #64748b;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.statusTabsBar button:hover {
+  color: #0f172a;
+}
+
+.tabActive {
+  color: #2563eb !important;
+  border-bottom-color: #2563eb !important;
+}
+
+/* SECTION 5: Khối Bảng Dữ Liệu Tập Trung */
+.mainTableCard {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.responsiveWrapper {
+  overflow-x: auto; /* Cuộn ngang mượt mà trên màn hình nhỏ */
+  width: 100%;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.dataTable th {
+  background-color: #f8fafc;
+  padding: 14px 16px;
+  font-weight: 700;
+  color: #334155;
+  border-bottom: 2px solid #cbd5e1;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.dataTable td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: middle;
+}
+
+.dataTable tbody tr:hover {
+  background-color: #f8fafc; /* Hiệu ứng hover dòng cực nhẹ nhàng */
+}
+
+/* Dòng chứa đơn hàng có cảnh báo khẩn cấp */
+.rowWarningHighlight {
+  background-color: #fffaf0; /* Nền cam nhạt báo động */
+}
+.rowWarningHighlight:hover {
+  background-color: #fff3e0 !important;
+}
+
+/* Định dạng nội dung chi tiết trong từng ô */
+.primaryCellText {
+  display: block;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 3px;
+}
+
+.secondaryCellText {
+  display: block;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.priceHighlight {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #1e3a8a; /* Xanh Navy đậm siêu tương phản */
+}
+
+/* Badge số ghế */
+.seatBadge {
+  display: inline-block;
+  background-color: #f1f5f9;
+  border: 2px solid #cbd5e1;
+  color: #0f172a;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+/* CHUẨN HÓA BADGES TRẠNG THÁI (ĐẬM - RÕ - KHÔNG MỜ) */
+.statusBadge {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.status_pending {
+  background-color: #fef3c7;
+  color: #d97706;
+  border: 1px solid #f59e0b;
+}
+.status_confirmed {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #22c55e;
+}
+.status_cancelled {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #ef4444;
+}
+.status_refunded {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #38bdf8;
+}
+
+.paymentSubStatus {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+/* Badge trạng thái giữ chỗ */
+.holdBadge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.hold_none {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+.hold_holding {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #3b82f6;
+}
+.hold_expired {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  border: 1px solid #cbd5e1;
+  text-decoration: line-through;
+}
+
+/* Cụm thẻ Cảnh báo vận hành */
+.warningTagsList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 200px;
+}
+
+.safeIndicator {
+  color: #16a34a;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.warningItemTag {
+  background-color: #dc2626;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* CỤM NÚT THAO TÁC HỆ THỐNG TRÊN DÒNG (DỄ BẤM - KHÔNG RỜI RẠC) */
+.actionsColumnHeader {
+  text-align: right !important;
+}
+
+.actionButtonsGroup {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 260px;
+}
+
+.actionButtonsGroup button {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.1s ease;
+}
+
+.btnView {
+  background-color: #ffffff;
+  border-color: #cbd5e1 !important;
+  color: #334155;
+}
+.btnView:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.btnApprove {
+  background-color: #16a34a;
+  color: #ffffff;
+}
+.btnApprove:hover {
+  background-color: #15803d;
+}
+
+.btnEditStatus {
+  background-color: #f1f5f9;
+  border-color: #e2e8f0 !important;
+  color: #334155;
+}
+.btnEditStatus:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.btnCancel {
+  background-color: #ffffff;
+  border-color: #f87171 !important;
+  color: #b91c1c;
+}
+.btnCancel:hover {
+  background-color: #fef2f2;
+}
+
+.btnCheckin {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+.btnCheckin:hover {
+  background-color: #1d4ed8;
+}
+
+.noDataCell {
+  text-align: center;
+  padding: 48px !important;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* SECTION 6: Thanh điều hướng phân trang (Pagination) */
+.paginationBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+}
+
+.pagiArrowBtn {
+  background-color: #ffffff;
+  border: 2px solid #cbd5e1;
+  color: #334155;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.pagiArrowBtn:hover:not(:disabled) {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+.pagiArrowBtn:disabled {
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.pagiCurrentReport {
+  font-size: 0.875rem;
+  color: #475569;
+}
+.pagiCurrentReport b {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* Trạng thái Loading xương cá & Lỗi kết nối */
+.loaderContainer {
+  padding: 24px;
+}
+
+.errorAlert {
+  margin: 24px;
+  padding: 16px 20px;
+  background-color: #fef2f2;
+  border: 2px solid #f87171;
+  border-radius: 8px;
+  color: #991b1b;
+  font-weight: 700;
+  font-size: 0.9rem;
+}

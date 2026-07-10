@@ -1,0 +1,570 @@
+/* ==========================================================================
+   1. OVERLAY & MODAL CONTAINER (Hiệu ứng mờ nền mượt mà)
+   ========================================================================== */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.modal {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  border-radius: 20px; /* Bo góc rộng hiện đại */
+  box-shadow:
+    0 25px 50px -12px rgba(15, 23, 42, 0.15),
+    0 10px 20px -6px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ==========================================================================
+   2. HEADER SECTION (Đậm chất dịch vụ)
+   ========================================================================== */
+.header {
+  padding: 24px 28px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+}
+
+.header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #064e3b; /* Xanh đậm quý phái */
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+}
+
+.subTitle {
+  font-size: 13.5px;
+  color: #059669; /* Thẻ định danh ngọc bích */
+  background-color: #e6f4ea;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+}
+
+.closeBtn:hover {
+  color: #475569;
+  background-color: #f1f5f9;
+}
+
+/* ==========================================================================
+   3. MODAL BODY & ALERTS
+   ========================================================================== */
+.body {
+  padding: 28px;
+  overflow-y: auto;
+  flex: 1;
+  background-color: #f8fafc; /* Màu nền xám dịu mắt ngăn cách rõ với Header */
+}
+
+.body::-webkit-scrollbar {
+  width: 6px;
+}
+.body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.infoBoxWarn {
+  background-color: #fff7ed;
+  border-left: 4px solid #ea580c;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #c2410c;
+  line-height: 1.5;
+  margin-bottom: 24px;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   4. SUMMARY BAR (Khối thống kê nhanh - Thành viên VIP)
+   ========================================================================== */
+.summaryBar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  background-color: #ffffff;
+  padding: 16px 20px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.summaryBar > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.summaryBar span {
+  font-size: 12px;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.summaryBar strong {
+  font-size: 18px;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.summaryBar > div:nth-child(2) strong {
+  color: #059669; /* Tô điểm giá tiền tổng chi tiêu */
+}
+
+/* ==========================================================================
+   5. AVATAR SECTION
+   ========================================================================== */
+.avatarSection {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.avatar {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.avatarPlaceholder {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  background-color: #d1fae5;
+  color: #065f46;
+  font-size: 32px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid #ffffff;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.15);
+}
+
+/* ==========================================================================
+   6. PROFILE GRID (Lưới thông tin cá nhân)
+   ========================================================================== */
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 600px) {
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.infoCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 14px 18px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01);
+}
+
+.infoCard label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.5px;
+}
+
+.infoCard strong {
+  font-size: 15px;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.textMuted {
+  color: #94a3b8 !important;
+  font-style: italic;
+  font-weight: 400 !important;
+}
+
+.highlightCount {
+  color: #0f172a !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}
+
+.priceAmount {
+  color: #059669 !important; /* Xanh ngọc đồng bộ */
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}
+
+.dateText {
+  font-size: 15px;
+  color: #334155;
+  font-weight: 500;
+}
+
+/* Trạng thái tài khoản */
+.statusText {
+  font-size: 15px;
+  font-weight: 600;
+}
+.textActive {
+  color: #16a34a;
+}
+.textBlocked {
+  color: #dc2626;
+}
+
+/* ==========================================================================
+   7. RESET PASSWORD SECTION (Đổi màu sang Tone Cam/Xám Thanh Lịch)
+   ========================================================================== */
+.resetSection {
+  margin-bottom: 28px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+/* Nút dạng dashed tinh tế */
+.resetToggleBtn {
+  background: none;
+  border: 1px dashed #cbd5e1;
+  color: #475569;
+  padding: 10px 16px;
+  width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.resetToggleBtn:hover {
+  background-color: #f1f5f9;
+  color: #1e293b;
+  border-color: #94a3b8;
+}
+
+/* Khối nội dung nhập mật khẩu */
+.resetBox {
+  margin-top: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  animation: slideDownFade 0.25s ease-out forwards;
+}
+
+@media (max-width: 576px) {
+  .resetBox {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.resetInput {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  background-color: #ffffff;
+  color: #1e293b;
+  transition: all 0.15s ease;
+}
+
+.resetInput:focus {
+  border-color: #ea580c; /* Focus chuyển sang cam cảnh báo bảo mật */
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.12);
+}
+
+.resetInput::placeholder {
+  color: #94a3b8;
+}
+
+/* Nút xác nhận đổi */
+.resetConfirmBtn {
+  background-color: #ea580c;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.resetConfirmBtn:hover:not(:disabled) {
+  background-color: #c2410c;
+}
+
+.resetConfirmBtn:disabled {
+  background-color: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   8. BOOKING HISTORY SECTION (Danh sách lịch sử mượt mà)
+   ========================================================================== */
+.historySection {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 24px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 16px 0;
+}
+
+.bookingList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 320px; /* Thêm cuộn nội bộ tránh modal quá dài */
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.bookingList::-webkit-scrollbar {
+  width: 5px;
+}
+.bookingList::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.bookingItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  padding: 16px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.15s ease;
+  gap: 16px;
+}
+
+.bookingItem:hover {
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.bookingMain,
+.bookingSide {
+  display: flex;
+  flex-direction: column;
+}
+
+.bookingMain {
+  gap: 5px;
+  flex: 1;
+}
+
+.bookingSide {
+  gap: 4px;
+  align-items: flex-end;
+  text-align: right;
+  min-width: 160px;
+  justify-content: space-between;
+}
+
+.bookingCode {
+  font-family: monospace;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0f172a;
+  background-color: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  align-self: flex-start;
+}
+
+.bookingRoute {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 2px 0;
+}
+
+.bookingDate {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.bookingPrice {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.paymentText {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.seatText {
+  font-size: 12.5px;
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* Badges trạng thái vé viên thuốc */
+.statusBadge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 9999px;
+}
+
+.statusPaid {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+.statusPending {
+  background-color: #fef9c3;
+  color: #a16207;
+}
+.statusCancelled {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+.statusDefault {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+/* Trạng thái trống */
+.emptyHistory {
+  text-align: center;
+  padding: 36px 16px;
+  background-color: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  color: #94a3b8;
+  font-size: 14.5px;
+}
+
+/* ==========================================================================
+   9. LOADING STATE (SPINNER)
+   ========================================================================== */
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  gap: 12px;
+  color: #64748b;
+  font-size: 14.5px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3.5px solid #e2e8f0;
+  border-top-color: #059669; /* Đổi spinner sang màu xanh ngọc chủ đạo */
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ==========================================================================
+   10. ANIMATIONS
+   ========================================================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,60 @@
+.segmentControl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.quickBtn,
+.activeBtn {
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+.quickBtn {
+  background: #e2e8f0;
+  color: #64748b;
+}
+.activeBtn {
+  background: #0f172a;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+}
+.compareLarge {
+  padding: 22px;
+  border-radius: 18px;
+}
+.compareLarge span {
+  font-size: 14px;
+  font-weight: 800;
+}
+.compareLarge strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 36px;
+  font-weight: 900;
+}
+.compareLarge p {
+  margin: 8px 0 0;
+  font-size: 13px;
+}
+.compareUp {
+  color: #166534;
+  background: #f0fdf4;
+}
+.compareDown {
+  color: #991b1b;
+  background: #fef2f2;
+}
+.emptyBox {
+  padding: 32px;
+  border-radius: 18px;
+  border: 1px dashed #cbd5e1;
+  background: linear-gradient(135deg, #fff, #f8fafc);
+  color: #64748b;
+  text-align: center;
+  font-weight: 700;
+}

@@ -1,0 +1,465 @@
+/* ==========================================================================
+   CONTAINER & LAYOUT
+   ========================================================================== */
+.container {
+  padding: 2rem;
+  background-color: #e2e8f0; /* Tăng độ đậm của nền để giật nổi các card trắng */
+  min-height: 100vh;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  color: #0f172a; /* Đảm bảo text chính là màu đen tối nhất */
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.75rem;
+  gap: 1.5rem;
+}
+
+.header h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.375rem 0;
+}
+
+.header p {
+  color: #334155; /* Đậm hơn (từ 475569 lên 334155) để đọc rõ hơn */
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* ==========================================================================
+   BUTTONS (Sắc nét, màu đặc cường độ cao)
+   ========================================================================== */
+.primaryBtn {
+  background: #2563eb; /* Đổi gradient thành màu đặc để khối vuông vức, rõ ràng */
+  color: #ffffff;
+  border: 1px solid #1d4ed8;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem; /* Giảm bo góc một chút cho sắc sảo */
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Bóng đổ gọn gàng, không loang mờ */
+  transition: all 0.1s ease;
+}
+
+.primaryBtn:hover {
+  background: #1d4ed8;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.primaryBtn:active {
+  transform: scale(0.97);
+}
+
+/* ==========================================================================
+   STATISTICS BAR (Gọn gàng, phân định biên rõ ràng)
+   ========================================================================== */
+.statsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0px; /* Ghép sát nhau để dùng border phân cách sắc nét */
+  margin-bottom: 1.25rem;
+  background: #ffffff;
+  border-radius: 0.5rem;
+  border: 2px solid #94a3b8; /* Viền khung dày và đậm hơn */
+  overflow: hidden;
+}
+
+.statCard {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 1.25rem;
+  flex: 1;
+  min-width: 180px;
+  background: #ffffff;
+  border-right: 1px solid #cbd5e1; /* Vạch ngăn cách rõ nét giữa các chỉ số */
+}
+
+.statCard:last-child {
+  border-right: none;
+}
+
+.statCard span {
+  font-size: 0.85rem;
+  color: #334155; /* Tăng độ đậm chữ tiêu đề phụ */
+  font-weight: 700;
+}
+
+.statCard strong {
+  font-size: 1.35rem;
+  font-weight: 850;
+  color: #2563eb; /* Số hiển thị xanh đậm nổi bật */
+  line-height: 1;
+}
+
+.statCard small {
+  font-size: 0.75rem;
+  color: #475569;
+  margin-left: 0.25rem;
+}
+
+/* ==========================================================================
+   FILTERS & CONTROLS (Tương phản cao)
+   ========================================================================== */
+.filters {
+  background: #ffffff;
+  padding: 1.25rem;
+  border-radius: 0.5rem;
+  border: 2px solid #94a3b8; /* Khung viền ngoài rõ ràng, bóp chết cảm giác mờ */
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.searchWrapper {
+  display: flex;
+  flex: 2;
+  min-width: 320px;
+  gap: 0.5rem;
+}
+
+.searchWrapper input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 2px solid #cbd5e1; /* Viền input dày 2px */
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #0f172a;
+  outline: none;
+  background-color: #ffffff; /* Trả về nền trắng tinh để tương phản chữ nhập vào */
+  transition: border-color 0.15s ease;
+}
+
+.searchWrapper input:focus {
+  border-color: #2563eb;
+}
+
+.searchBtn {
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.searchBtn:hover {
+  background: #1e293b;
+}
+
+.clearBtn {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 2px solid #fca5a5;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.clearBtn:hover {
+  background: #fca5a5;
+  color: #991b1b;
+}
+
+.filters select {
+  padding: 0.75rem 2rem 0.75rem 1rem;
+  border: 2px solid #cbd5e1;
+  border-radius: 0.5rem;
+  background-color: #ffffff;
+  font-size: 0.9rem;
+  color: #0f172a;
+  font-weight: 600; /* Chữ trong select dày lên */
+  cursor: pointer;
+  outline: none;
+  min-width: 200px;
+}
+
+.filters select:focus {
+  border-color: #2563eb;
+}
+
+.selectWarningActive {
+  border-color: #b45309 !important;
+  background-color: #fffbeb !important;
+  color: #78350f !important;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   TABLE CARD & DATA DATAGRID (Cực kỳ sắc nét)
+   ========================================================================== */
+.tableCard {
+  background: #ffffff;
+  border-radius: 0.5rem;
+  border: 2px solid #94a3b8; /* Tăng viền bảng */
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.table th {
+  background: #f1f5f9; /* Nền header bảng đậm hơn */
+  padding: 1rem 1.25rem;
+  font-weight: 800;
+  color: #1e293b;
+  border-bottom: 2px solid #cbd5e1;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+}
+
+.table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #cbd5e1; /* Đường gạch giữa các hàng rõ ràng hơn */
+  vertical-align: middle;
+  color: #0f172a;
+}
+
+.table tbody tr:hover {
+  background-color: #f8fafc; /* Rõ nét hành động hover */
+}
+
+/* Nhân sự bên trong ô */
+.driverMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.driverAvatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: #cbd5e1;
+  border: 1px solid #94a3b8;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.driverMeta strong {
+  display: block;
+  color: #0f172a;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.driverTagId {
+  display: inline-block;
+  color: #1e293b;
+  background: #e2e8f0;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+  border: 1px solid #cbd5e1;
+}
+
+.contactCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.contactCell span {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.contactCell small {
+  color: #334155;
+  font-size: 0.85rem;
+}
+
+/* Badges phân loại rõ ràng */
+.driverTypeBadge,
+.licenseBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.licenseBadge code {
+  font-family: monospace;
+  font-weight: 700;
+  margin-left: 0.25rem;
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 0.125rem 0.25rem;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.25rem;
+}
+
+/* Badge Trạng thái: Đậm màu, tương phản cực cao */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  border: 1.5px solid transparent;
+}
+
+.available {
+  background-color: #10b981; /* Chuyển hẳn sang mã màu đục */
+  color: #ffffff; /* Chữ trắng trên nền đậm để đọc rõ nhất */
+}
+
+.assigned {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.off {
+  background-color: #64748b;
+  color: #ffffff;
+}
+
+.tripCounter strong {
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.tripCounter span {
+  display: block;
+  color: #475569;
+  font-size: 0.8rem;
+}
+
+/* ==========================================================================
+   ROW ACTIONS (Nút hành động cứng cáp, tương phản rõ)
+   ========================================================================== */
+.actionGroup {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionGroup button {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: none; /* Bỏ animation làm mờ mắt khi tương tác nhanh */
+}
+
+.detailBtn {
+  background: #ffffff;
+  color: #1e293b;
+  border-color: #475569 !important;
+}
+
+.detailBtn:hover {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+.editBtn {
+  background: #ffffff;
+  color: #2563eb;
+  border-color: #2563eb !important;
+}
+
+.editBtn:hover {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.lockBtn {
+  background: #ffffff;
+  color: #dc2626;
+  border-color: #dc2626 !important;
+}
+
+.lockBtn:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.unlockBtn {
+  background: #ffffff;
+  color: #16a34a;
+  border-color: #16a34a !important;
+}
+
+.unlockBtn:hover {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   PAGINATION
+   ========================================================================== */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+
+.pagination button {
+  padding: 0.5rem 1.25rem;
+  border: 2px solid #475569;
+  background: #ffffff;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  cursor: pointer;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+.pagination button:disabled {
+  border-color: #cbd5e1;
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  font-size: 0.9rem;
+  color: #1e293b;
+  font-weight: 600;
+}

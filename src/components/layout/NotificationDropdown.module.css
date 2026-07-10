@@ -1,0 +1,250 @@
+/* Container bọc ngoài nút và menu dropdown */
+.notificationBox {
+  position: relative;
+  display: inline-block;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+/* Nút bấm chuông thông báo */
+.notificationBtn {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.notificationBtn:hover,
+.activeBtn {
+  background-color: #f1f5f9;
+}
+
+/* Badge số lượng thông báo chưa đọc */
+.notificationBadge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: #ef4444; /* Đỏ rực rỡ */
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Khung Menu Dropdown đổ xuống */
+.notificationMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 360px;
+  max-height: 480px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 100;
+}
+
+/* Phần Header của Dropdown */
+.notificationHeader {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+}
+
+.notificationHeader strong {
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+/* Nút Đọc tất cả */
+.markAllBtn {
+  background: none;
+  border: none;
+  color: #2563eb; /* Xanh dương */
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.markAllBtn:hover:not(:disabled) {
+  background-color: #eff6ff;
+  text-decoration: underline;
+}
+
+.markAllBtn:disabled {
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* Danh sách cuộn chứa các item */
+.notificationList {
+  overflow-y: auto;
+  flex: 1;
+  max-height: 420px;
+}
+
+/* Mỗi hàng thông báo (Gốc là thẻ button) */
+.notificationItem {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border: none;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.notificationItem:hover {
+  background-color: #f8fafc;
+}
+
+/* Trạng thái chưa đọc (Nền xanh nhạt hơn) */
+.notificationUnread {
+  background-color: #f0f7ff;
+}
+
+.notificationUnread:hover {
+  background-color: #e0f2fe;
+}
+
+/* Header bên trong từng Item (Chứa Badge phân loại + Chấm đỏ) */
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Thiết lập các nhãn phân loại (Badges) */
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.badgeBooking {
+  background-color: #fef3c7;
+  color: #d97706;
+} /* Vàng */
+.badgePayment {
+  background-color: #dcfce7;
+  color: #16a34a;
+} /* Xanh lá */
+.badgeTrip {
+  background-color: #e0f2fe;
+  color: #0369a1;
+} /* Xanh dương */
+.badgeSystem {
+  background-color: #f1f5f9;
+  color: #475569;
+} /* Xám mặc định */
+
+/* Chấm tròn báo hiệu chưa đọc */
+.unreadDot {
+  width: 8px;
+  height: 8px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Tiêu đề thông báo */
+.notificationTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.3;
+}
+
+/* Nội dung chi tiết thông báo */
+.notificationContent {
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* Thời gian tạo thông báo */
+.notificationTime {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* CSS cho vùng rỗng hoặc lúc đang tải dữ liệu */
+.notificationCenterState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: #64748b;
+  gap: 12px;
+}
+
+.notificationCenterState p {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.emptyIcon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+/* Spinner xoay tròn khi Loading */
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

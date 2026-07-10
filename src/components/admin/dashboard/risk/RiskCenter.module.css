@@ -1,0 +1,54 @@
+.riskList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.noRisk,
+.riskItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 20px;
+}
+.noRisk {
+  border: 1px solid #bbf7d0;
+  background: linear-gradient(135deg, #dcfce7, #fff);
+}
+.noRisk p,
+.riskItem p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.safeIcon {
+  color: #16a34a;
+}
+.riskIcon {
+  flex: 0 0 auto;
+}
+.riskItem {
+  border: 1px solid transparent;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
+}
+.riskLOW,
+.riskMEDIUM,
+.riskHIGH,
+.riskWARNING,
+.riskCRITICAL {
+  background: linear-gradient(135deg, #fff, #f8fafc);
+}
+.riskLOW {
+  border-color: #60a5fa;
+  color: #1e40af;
+}
+.riskMEDIUM,
+.riskWARNING {
+  border-color: #fbbf24;
+  color: #92400e;
+}
+.riskHIGH,
+.riskCRITICAL {
+  border-color: #f87171;
+  color: #991b1b;
+}

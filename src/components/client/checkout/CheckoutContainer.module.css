@@ -1,0 +1,70 @@
+.wrapper {
+  width: 100%;
+  max-width: 1400px;
+  margin: 32px auto;
+  display: grid;
+  grid-template-columns: 68% 32%; /* Tăng nhẹ chiều rộng bên trái để đủ chỗ chia 2 cột */
+  gap: 24px;
+  align-items: start;
+  padding: 0 16px;
+}
+
+/* Container bọc toàn bộ phần bên trái */
+.leftGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: stretch; /* Đảm bảo 2 cột luôn luôn cao bằng nhau */
+}
+
+.columnLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%; /* Căng hết chiều cao của cột */
+}
+
+/* Ép block bọc ngoài PassengerForm (bao gồm cả ErrorBoundary) phải lấp đầy khoảng trống */
+.columnLeft > div:first-child {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Chiếm toàn bộ không gian trống còn lại */
+}
+
+.columnRight {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+}
+
+.right {
+  position: sticky;
+  top: 24px;
+}
+.fullWidthRow {
+  grid-column: 1 / -1; /* Bắt đầu từ cột 1 đến hết cột cuối cùng */
+  width: 100%;
+}
+
+/* RESPONSIVE CHO MÀN HÌNH MÁY TÍNH BẢNG / LAPTOP NHỎ */
+@media (max-width: 1200px) {
+  .leftGrid {
+    grid-template-columns: 1fr; /* Gộp thành 1 cột dọc nếu màn hình hẹp */
+  }
+}
+
+/* RESPONSIVE CHO MOBILE */
+@media (max-width: 992px) {
+  .wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .leftGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .right {
+    position: static;
+  }
+}

@@ -1,0 +1,105 @@
+.wrapper {
+  background: #f8fafc; /* Màu nền xám xanh rất nhẹ tạo sự khác biệt với nền trắng */
+  border: 2px solid #2563eb; /* Viền màu xanh chủ đạo dày hơn hẳn để hút mắt */
+  border-radius: 20px;
+  padding: 24px;
+  /* Đổ bóng lớn và đậm hơn để tạo cảm giác Form nổi hẳn lên trên bề mặt */
+  box-shadow:
+    0 10px 25px -5px rgba(37, 99, 235, 0.15),
+    0 8px 10px -6px rgba(37, 99, 235, 0.15);
+  position: relative; /* Để làm điểm tựa cho Badge nếu cần */
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  height: 100%; /* Cao bằng khối cha bên ngoài */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Thêm hiệu ứng khi user rê chuột qua hoặc nhấn vào form sẽ càng nổi bật */
+.wrapper:focus-within {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 30px -10px rgba(37, 99, 235, 0.25);
+}
+
+.header {
+  font-size: 24px; /* Tăng từ 20px lên 24px cho to rõ ràng */
+  font-weight: 850; /* Tăng độ đậm nét */
+  color: #1e3a8a;
+  margin-bottom: 28px; /* Tăng khoảng cách dưới tiêu đề */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Tạo một cái chấm đỏ hoặc icon nhỏ kế bên tiêu đề để nhấn mạnh */
+.header::before {
+  content: "";
+  display: inline-block;
+  width: 10px; /* Tăng kích thước chấm đỏ một chút cho cân đối với chữ to */
+  height: 10px;
+  background-color: #dc2626;
+  border-radius: 50%;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Chiếm trọn không gian còn lại của thẻ wrapper */
+
+  /* Thay vì gom cụm ở giữa, dùng space-between hoặc space-around 
+     để tự động chia đều khoảng cách trống cho các ô input */
+  justify-content: space-between;
+
+  padding-bottom: 12px; /* Thêm chút đệm ở đáy form cho thoáng mắt */
+}
+
+/* Giữ nguyên chiều cao cố định của ô input để tránh bị méo font */
+.input {
+  width: 100%;
+  height: 50px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-size: 15px;
+  background-color: #ffffff;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+/* Các thuộc tính .group, .label, .error, .inputError giữ nguyên của bạn */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.input:focus {
+  border-color: #2563eb;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+}
+
+.input::placeholder {
+  color: #94a3b8;
+}
+
+/* ERROR */
+.error {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #dc2626;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* INVALID INPUT */
+.inputError {
+  border-color: #dc2626;
+  background: #fff5f5;
+}

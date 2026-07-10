@@ -1,0 +1,96 @@
+.wrapper {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.inputRow {
+  display: flex;
+  gap: 8px;
+}
+
+.input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #2563eb;
+}
+
+.button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.error {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #dc2626;
+}
+
+.success {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #16a34a;
+}
+
+.inputWrapper {
+  position: relative;
+  flex: 1;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 36px 10px 12px; /* chừa chỗ cho nút ✕ */
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #333;
+}
+
+.clearIcon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 20px;
+  height: 20px;
+
+  border: none;
+  background: transparent;
+
+  color: #999;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.clearIcon:hover {
+  color: #333;
+}

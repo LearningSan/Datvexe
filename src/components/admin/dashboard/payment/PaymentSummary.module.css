@@ -1,0 +1,74 @@
+.paymentList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.paymentItem {
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid #eef2f7;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.paymentHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+}
+.paymentProgress {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #f1f5f9;
+}
+.paidPart {
+  background: #10b981;
+}
+.pendingPart {
+  background: #f59e0b;
+}
+.failedPart {
+  background: #ef4444;
+}
+.refundedPart {
+  background: #64748b;
+}
+.paymentMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.metaPaid {
+  color: #10b981;
+}
+.metaPending {
+  color: #f59e0b;
+}
+.metaFailed {
+  color: #ef4444;
+}
+.metaRefund {
+  color: #64748b;
+}
+.transactionCount {
+  color: #64748b;
+  font-size: 12px;
+}
+.emptyBox {
+  padding: 32px;
+  border-radius: 18px;
+  border: 1px dashed #cbd5e1;
+  background: linear-gradient(135deg, #fff, #f8fafc);
+  color: #64748b;
+  text-align: center;
+  font-weight: 700;
+}

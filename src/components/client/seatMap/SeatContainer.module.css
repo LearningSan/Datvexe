@@ -1,0 +1,182 @@
+.wrapper {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    360px;
+
+  gap: 40px;
+
+  align-items: start;
+
+  padding: 24px;
+
+  max-width: 1400px;
+
+  margin: 0 auto;
+}
+
+/* =========================
+   LEFT CONTENT
+========================= */
+
+.main {
+  min-width: 0;
+
+  display: grid;
+
+  place-items: center;
+
+  min-height: 100vh;
+}
+/* =========================
+   RIGHT SIDEBAR
+========================= */
+
+.sidebar {
+  position: sticky;
+
+  top: 24px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 20px;
+}
+
+/* =========================
+   CARD STYLE
+========================= */
+
+.legendContainer {
+  background: white;
+
+  border-radius: 20px;
+
+  padding: 24px;
+
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+
+  border: 1px solid #e5e7eb;
+}
+
+.legendTitle {
+  font-size: 18px;
+
+  font-weight: 700;
+
+  margin-bottom: 24px;
+}
+
+.legendList {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 18px;
+}
+
+.legendItem {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+}
+
+.statusBox {
+  width: 42px;
+
+  height: 30px;
+
+  border-radius: 8px;
+
+  flex-shrink: 0;
+}
+
+/* =========================
+   STATUS COLORS
+========================= */
+
+.available {
+  background: #2563eb;
+}
+
+.selected {
+  background: #16a34a;
+}
+
+.holding {
+  background: #f97316;
+}
+
+.booked {
+  background: #cbd5e1;
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 1200px) {
+  .wrapper {
+    grid-template-columns: 1fr;
+
+    gap: 24px;
+  }
+
+  .sidebar {
+    position: static;
+
+    width: 100%;
+  }
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 16px;
+  }
+
+  .legendContainer {
+    padding: 20px;
+  }
+}
+.skeletonSeatGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 20px;
+}
+
+.skeletonSeat {
+  height: 40px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 37%, #2a2a2a 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.2s ease infinite;
+}
+
+.skeletonBox {
+  height: 120px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 37%, #2a2a2a 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.2s ease infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}

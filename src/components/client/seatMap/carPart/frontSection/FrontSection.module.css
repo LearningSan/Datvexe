@@ -1,0 +1,115 @@
+.front {
+  flex: 0 0 var(--front-width, 140px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.driver {
+  width: 100%;
+  background: #334155;
+  color: white;
+  padding: 10px;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 13px;
+}
+.driverIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #0f172a;
+  margin: 0 auto 6px;
+}
+.divider {
+  width: 60%;
+  height: 2px;
+  background: #cbd5e1;
+}
+.door {
+  width: 100%;
+  background: #e2e8f0;
+  padding: 10px;
+  text-align: center;
+  border-radius: 10px;
+  color: #334155;
+  font-weight: 600;
+  font-size: 13px;
+}
+.doorArrow {
+  transition: transform 0.2s ease;
+}
+/* ========================================================
+   MEDIA QUERY: ĐẢO VỊ TRÍ (CỬA LÊN BÊN TRÁI | TÀI XẾ BÊN PHẢI)
+   ======================================================== */
+/* ========================================================
+   MEDIA QUERY: TÀI XẾ BÊN TRÁI | CỬA LÊN BÊN PHẢI (Ở ĐÁY XE)
+   ======================================================== */
+@media (max-width: 600px) {
+  .front {
+    flex: none !important;
+    width: 100% !important;
+    height: auto !important;
+
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+
+    margin-top: 5px;
+  }
+
+  .driver {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    /* ngắn hơn */
+    flex: 0.66 !important;
+
+    /* cao hơn */
+    min-height: 54px;
+
+    padding: 10px 12px !important;
+    font-size: 11px !important;
+    width: auto !important;
+  }
+
+  .driverIcon {
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+  }
+
+  .divider {
+    display: none !important;
+  }
+
+  .door {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+
+    /* dài hơn tài xế */
+    flex: 1 !important;
+
+    min-height: 40px;
+
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+    width: auto !important;
+  }
+
+  .doorArrow {
+    font-size: 9px !important;
+    margin-left: 2px;
+    transform: rotate(-90deg) !important;
+  }
+}

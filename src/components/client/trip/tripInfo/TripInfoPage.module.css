@@ -1,0 +1,291 @@
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  background-color: #fcfcfd;
+}
+
+/* Nút quay lại tinh tế và mượt mà hơn */
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  color: #667085;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 24px;
+  padding: 6px 0;
+  transition: all 0.2s ease;
+}
+
+.backBtn:hover {
+  color: #ea580c;
+  transform: translateX(-4px);
+}
+
+/* Nâng cấp Hero UI với độ chuyển màu mượt và bo góc chuẩn hiện đại */
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+  padding: 32px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%);
+  border: 1px solid #ffedd5;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 20px rgba(251, 146, 60, 0.04);
+}
+
+.heroContent {
+  flex: 1;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #ffedd5;
+  color: #ea580c;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+}
+
+.hero h1 {
+  font-size: 30px;
+  font-weight: 700;
+  color: #101828;
+  margin: 0 0 12px;
+  letter-spacing: -0.5px;
+}
+
+.desc {
+  max-width: 720px;
+  color: #475467;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.heroIcon {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  background: #f97316;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
+}
+
+/* UI của Thanh Tabs điều hướng mới */
+.tabContainer {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #eaecf0;
+  margin-bottom: 32px;
+}
+
+.tabBtn {
+  background: transparent;
+  border: none;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #667085;
+  cursor: pointer;
+  position: relative;
+  bottom: -2px;
+  transition: all 0.2s ease;
+}
+
+.tabBtn:hover {
+  color: #f97316;
+}
+
+.tabActive {
+  color: #f97316;
+  border-bottom: 2px solid #f97316;
+}
+
+/* Bố cục Grid phân bổ tỷ lệ vàng (65% - 35%) */
+.grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+}
+
+/* Nâng cấp giao diện Thẻ (Card) */
+.card {
+  background: #ffffff;
+  border: 1px solid #f2f4f7;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow:
+    0 4px 24px rgba(16, 24, 40, 0.03),
+    0 1px 2px rgba(16, 24, 40, 0.02);
+}
+
+.card h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #101828;
+  margin: 0 0 24px;
+}
+
+.iconPrimary {
+  color: #f97316;
+}
+.iconOrange {
+  color: #ea580c;
+}
+
+/* Làm mượt Timeline bằng một đường Line thực sự nối các chặng */
+.timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.stop {
+  display: flex;
+  gap: 16px;
+}
+
+.timelineIndicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 16px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #f97316;
+}
+
+.dotStart {
+  border-color: #22c55e;
+} /* Điểm bắt đầu màu xanh lá */
+.dotMiddle {
+  border-color: #f97316;
+} /* Điểm giữa màu cam */
+.dotEnd {
+  border-color: #ef4444;
+} /* Điểm kết thúc màu đỏ */
+
+.line {
+  width: 2px;
+  flex-grow: 1;
+  background-color: #eaecf0;
+  margin: 4px 0;
+  min-height: 40px;
+}
+
+.stopContent {
+  padding-bottom: 24px;
+}
+
+.stopContent h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #101828;
+}
+
+.stopContent p {
+  margin: 0;
+  color: #475467;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Danh sách lưu ý bằng icon thay vì dấu chấm list tròn mặc định nhàm chán */
+.infoList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.infoItem {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.infoItem svg {
+  color: #98a2b3;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.infoItem p {
+  margin: 0;
+  font-size: 14px;
+  color: #475467;
+  line-height: 1.5;
+}
+
+.infoItem strong {
+  color: #101828;
+}
+
+/* Tối ưu hóa trên các thiết bị Di Động (Responsive) */
+@media (max-width: 768px) {
+  .page {
+    padding: 24px 16px;
+  }
+
+  .hero {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 24px;
+  }
+
+  .hero h1 {
+    font-size: 24px;
+  }
+
+  .heroIcon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .tabContainer {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tabBtn {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .card {
+    padding: 20px;
+  }
+}

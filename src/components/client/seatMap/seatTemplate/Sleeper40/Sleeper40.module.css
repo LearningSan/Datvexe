@@ -1,0 +1,139 @@
+.busContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+  padding: 10px;
+}
+
+.floorSection {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+.floorTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2c3e50;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+/* ==========================================================================
+   MẶC ĐỊNH CHO MOBILE: SƠ ĐỒ XẾP THEO CHIỀU DỌC (Đầu xe ở trên, đuôi ở dưới)
+   ========================================================================== */
+
+.busInner {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 480px; /* Giới hạn chiều rộng vừa vặn màn hình điện thoại */
+  margin: 0 auto;
+}
+
+.cabinArea {
+  display: flex;
+  flex-direction: row; /* Chuyển 3 dãy ghế nằm song song nhau theo chiều ngang */
+  justify-content: space-between;
+  width: 100%;
+  gap: 10px;
+}
+
+.seatsRow {
+  display: flex;
+  flex-direction: column; /* BẮT BUỘC: Ghế trong từng dãy xếp dọc từ trên xuống */
+  gap: 15px;
+  flex: 1;
+  align-items: center;
+}
+
+.middleRow {
+  width: auto;
+  padding: 0;
+}
+
+/* Lối đi chạy dọc từ trên xuống */
+.aisleLane {
+  width: 30px; /* Thay vì set height, mobile sẽ set width cho lối đi dọc */
+  height: auto;
+  min-height: 200px;
+  background-color: #e2e8f0;
+  align-self: stretch; /* Kéo dài lối đi bằng chiều dài dãy ghế */
+  border-top: 2px dashed #cbd5e1;
+  border-bottom: 2px dashed #cbd5e1;
+  border-left: none;
+  border-right: none;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Xoay dọc chữ "LỐI ĐI" để hiển thị đẹp trên mobile */
+.aisleLane span {
+  font-size: 10px;
+  color: #a6b8cd;
+  font-weight: 800;
+  letter-spacing: 14px;
+  writing-mode: vertical-rl; /* Xoay chữ chạy dọc */
+  text-orientation: mixed;
+}
+
+/* ==========================================================================
+   CHO DESKTOP (MÀN HÌNH RỘNG >= 768px): XOAY NGANG SƠ ĐỒ LẠI NHƯ CŨ
+   ========================================================================== */
+@media (min-width: 768px) {
+  .busContainer {
+    gap: 60px;
+  }
+
+  .floorTitle {
+    font-size: 20px;
+    text-align: left;
+  }
+
+  .busInner {
+    max-width: none;
+    display: flex;
+    align-items: center;
+  }
+
+  .cabinArea {
+    flex-direction: column; /* Quay về xếp các dãy ghế từ trên xuống dưới */
+    gap: 0;
+  }
+
+  .seatsRow {
+    flex-direction: row; /* Ghế chạy ngang từ trái qua phải (Đầu -> Đuôi xe) */
+    gap: 25px;
+    min-height: 60px;
+    flex: none;
+  }
+
+  .middleRow {
+    justify-content: space-around;
+    width: 100%;
+    padding: 0 20px;
+  }
+
+  /* Trả lối đi về lại dạng nằm ngang */
+  .aisleLane {
+    width: 100%;
+    height: 40px;
+    min-height: auto;
+    margin: 12px 0;
+    border-left: 2px dashed #cbd5e1;
+    border-right: 2px dashed #cbd5e1;
+    border-top: none;
+    border-bottom: none;
+  }
+
+  /* Trả chữ "LỐI ĐI" về nằm ngang bình thường */
+  .aisleLane span {
+    writing-mode: horizontal-tb;
+    letter-spacing: 14px;
+  }
+}

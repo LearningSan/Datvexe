@@ -1,0 +1,456 @@
+/* ==========================================================================
+   1. CẤU TRÚC KHUNG CHỨA CHÍNH (LAYOUT CONTAINER)
+   ========================================================================== */
+.container {
+  padding: 24px;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.header h1 {
+  font-size: 24px;
+  color: #0f172a; /* Đậm hơn (gần như đen hoàn toàn) để tăng tương phản rõ rệt */
+  margin: 0 0 6px 0;
+  font-weight: 700;
+}
+
+.header p {
+  font-size: 14px;
+  color: #334155; /* Thay #64748b cũ thành màu xám đậm sâu, đọc cực kỳ rõ */
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   2. KHỐI THỐNG KÊ TỔNG QUAN (KPI DASHBOARD)
+   ========================================================================== */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpiCard {
+  background: #ffffff;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1; /* Tăng độ đậm viền để phân khối rõ hơn */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kpiCard span {
+  font-size: 13px;
+  color: #475569; /* Thay #64748b nhạt bằng màu xám tiêu chuẩn rõ nét */
+  font-weight: 600; /* Tăng độ dày chữ một chút */
+}
+
+.kpiCard strong {
+  font-size: 28px;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+/* Nhấn mạnh trạng thái với độ bão hòa màu cao hơn để không bị mờ */
+.kpiActive {
+  color: #047857 !important; /* Xanh lá đậm chuẩn UI */
+}
+
+.kpiInactive {
+  color: #b91c1c !important; /* Đỏ sẫm rõ ràng */
+}
+
+/* ==========================================================================
+   3. KHU VỰC THAO TÁC HÀNG LOẠT (BULK TOOLS SECTION)
+   ========================================================================== */
+.bulkToolsSection {
+  background: #f1f5f9;
+  border: 1px dashed #94a3b8; /* Viền nét đứt đậm hơn */
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bulkToolsTitle {
+  font-size: 14px;
+  font-weight: 700; /* Đổi thành Bold */
+  color: #1e293b; /* Chữ tiêu đề bulk đậm đà */
+}
+
+.bulkActionButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ==========================================================================
+   4. BỘ LỌC VÀ TÌM KIẾM (FILTERS & TABS)
+   ========================================================================== */
+.quickTabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #cbd5e1; /* Đường gạch chân đậm hơn */
+  padding-bottom: 8px;
+}
+
+.quickTab {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600; /* Tăng độ dày text */
+  color: #475569; /* Chữ tab thường rõ hơn */
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.quickTab:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.quickTabActive {
+  background-color: #1e293b; /* Đổi màu nền active sang tối hẳn */
+  color: #ffffff; /* Chữ trắng tương phản tuyệt đối */
+  font-weight: 600;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  margin-bottom: 24px;
+  align-items: center;
+}
+
+.searchInput,
+.selectInput {
+  padding: 10px 14px;
+  border: 1px solid #94a3b8; /* Viền ô nhập liệu sẫm hơn */
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0f172a; /* Chữ nhập vào đen rõ */
+  background-color: #ffffff;
+  min-width: 200px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.searchInput::placeholder {
+  color: #64748b; /* Placeholder dễ nhìn thấy hơn */
+}
+
+.searchInput:focus,
+.selectInput:focus {
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
+}
+
+/* ==========================================================================
+   5. DANH SÁCH THEO TUYẾN & BẢNG DỮ LIỆU (GROUPS & TABLES)
+   ========================================================================== */
+.groupWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.routeGroup {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1; /* Tăng tương phản đường viền bọc ngoài */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.routeHeader {
+  background: #f1f5f9; /* Nền tiêu đề tuyến đậm hơn xíu */
+  padding: 16px 20px;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.routeHeader h2 {
+  font-size: 16px;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+  font-weight: 700;
+}
+
+.routeHeader p {
+  font-size: 13px;
+  color: #334155; /* Chữ phụ của header dễ đọc hơn */
+  font-weight: 500;
+}
+
+.tableCard {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.table th {
+  background: #f8fafc;
+  padding: 14px 20px;
+  font-weight: 700; /* Tăng độ dày tiêu đề cột */
+  color: #1e293b; /* Tiêu đề cột đen sẫm, không dùng xám nhạt nữa */
+  font-size: 13px;
+  border-bottom: 2px solid #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: middle;
+  color: #0f172a; /* Toàn bộ chữ trong ô đổi sang đen sẫm cực rõ */
+}
+
+.table tbody tr:hover {
+  background-color: #f1f5f9; /* Hiệu ứng hover rõ hơn */
+}
+
+/* Làm nổi bật dữ liệu cốt lõi bên trong ô dòng */
+.table td strong {
+  display: block;
+  font-size: 15px;
+  color: #0f172a;
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+
+.subTextHint {
+  display: block;
+  font-size: 12px;
+  color: #475569; /* Đổi từ màu bạc #94a3b8 sang xám đậm sâu */
+  font-weight: 500;
+}
+
+.departureTimeHighlight {
+  color: #1d4ed8 !important; /* Xanh Royal đậm sắc nét */
+  font-size: 16px !important;
+}
+
+.priceHighlight {
+  color: #c2410c !important; /* Màu cam đất sẫm hơn, tương phản cực tốt trên nền trắng */
+  font-weight: 700;
+}
+
+.upcomingHasData {
+  color: #047857 !important; /* Xanh lá đậm chuẩn */
+  font-weight: 700;
+}
+
+/* Nút trạng thái (Badge) */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700; /* Chữ trong badge dày lên để đọc rõ */
+}
+
+.active {
+  background-color: #d1fae5;
+  color: #065f46; /* Giữ nguyên vì cặp này tương phản tốt */
+}
+
+.inactive {
+  background-color: #fee2e2;
+  color: #991b1b; /* Giữ nguyên vì tương phản tốt */
+}
+
+/* ==========================================================================
+   6. HỆ THỐNG NÚT BẤM ĐIỀU KHIỂN (BUTTONS SYSTEM)
+   ========================================================================== */
+.primaryBtn,
+.secondaryBtn,
+.searchBtn,
+.clearBtn,
+.editBtn,
+.lockBtn,
+.unlockBtn,
+.pageBtn {
+  font-weight: 600; /* Đồng loạt chuyển nút bấm sang Semi-bold */
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.primaryBtn {
+  background-color: #2563eb;
+  color: #ffffff;
+  padding: 10px 18px;
+}
+
+.primaryBtn:hover {
+  background-color: #1d4ed8;
+}
+
+.secondaryBtn {
+  background-color: #ffffff;
+  border-color: #94a3b8; /* Viền nút phụ sẫm màu hơn */
+  color: #1e293b; /* Chữ nút phụ rõ ràng */
+  padding: 8px 14px;
+}
+
+.secondaryBtn:hover {
+  background-color: #f1f5f9;
+  border-color: #475569;
+}
+
+.searchBtn {
+  background-color: #0f172a; /* Nền đen sẫm màu */
+  color: #ffffff;
+  padding: 10px 20px;
+}
+
+.searchBtn:hover {
+  background-color: #000000;
+}
+
+.clearBtn {
+  background-color: transparent;
+  color: #334155; /* Đổi màu chữ xóa bộ lọc đậm lên */
+  padding: 10px 16px;
+}
+
+.clearBtn:hover {
+  color: #0f172a;
+  background-color: #e2e8f0;
+}
+
+/* Cụm nút trong bảng (Actions) */
+.actionGroup {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.editBtn {
+  background-color: #e2e8f0; /* Nền xám chỉnh sửa đậm hơn */
+  color: #0f172a; /* Chữ sẫm màu hẳn */
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.editBtn:hover {
+  background-color: #cbd5e1;
+}
+
+.lockBtn {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.lockBtn:hover {
+  background-color: #fca5a5;
+  color: #7f1d1d;
+}
+
+.unlockBtn {
+  background-color: #dcfce7;
+  color: #115e59;
+  border-color: #86efac;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.unlockBtn:hover {
+  background-color: #bbf7d0;
+  color: #14532d;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed !important;
+}
+
+/* ==========================================================================
+   7. PHÂN TRANG VÀ TRẠNG THÁI RỖNG (PAGINATION & STATES)
+   ========================================================================== */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+  font-size: 14px;
+  color: #1e293b; /* Chữ thông tin trang đậm đà */
+  font-weight: 500;
+}
+
+.pageBtn {
+  background-color: #ffffff;
+  border-color: #cbd5e1; /* Viền nút phân trang đậm nét */
+  color: #0f172a;
+  padding: 8px 16px;
+}
+
+.pageBtn:not(:disabled):hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.emptyState {
+  background: #ffffff;
+  border: 2px dashed #cbd5e1;
+  padding: 40px;
+  text-align: center;
+  border-radius: 12px;
+  color: #1e293b; /* Thông báo trống đổi sang màu chữ đậm */
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.errorWrapper {
+  padding: 40px;
+  text-align: center;
+  color: #991b1b; /* Màu đỏ lỗi sẫm tương phản cao */
+  background: #fef2f2;
+  border: 2px solid #fca5a5;
+  border-radius: 12px;
+  margin: 24px;
+  font-weight: 600;
+}

@@ -1,0 +1,238 @@
+.searchCard {
+  width: 100%;
+  position: relative;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 16px; /* Giảm padding trên mobile để tránh chật chội */
+  padding-bottom: 60px;
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.08),
+    0 2px 6px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+/* ================= RADIO ================= */
+.radioGroup {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  font-weight: 500;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.radioGroup label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.radioInput {
+  width: 16px;
+  height: 16px;
+  accent-color: #ea580c;
+}
+
+/* ================= ROW (Mặc định cho Mobile) ================= */
+.row {
+  display: flex;
+  flex-direction: column; /* Xếp chồng hàng dọc trên mobile để không vỡ */
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.inputBlock {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* label */
+.inputLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+/* ================= INPUT WRAPPER ================= */
+.inputFieldWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* input/select thông thường */
+.field {
+  width: 100%;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  height: 64px; /* Cố định chiều cao bằng ô date */
+  padding: 12px 12px 12px 40px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  outline: none;
+  transition: 0.2s ease;
+  box-sizing: border-box;
+}
+
+.field:focus {
+  border-color: #ea580c;
+  background: #ffffff;
+}
+
+/* ================= SWAP BUTTON ================= */
+.swapWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 4px 0; /* Thu hẹp khoảng cách trên mobile */
+}
+
+.swapButton {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff7ed;
+  border: 1px solid #ffedd5;
+  color: #ea580c;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.swapButton:hover {
+  transform: scale(1.05) rotate(90deg); /* Xoay nhẹ cho hợp mobile */
+}
+
+/* ================= DATE BLOCK (Đồng bộ) ================= */
+.dateField {
+  position: relative;
+  width: 100%;
+  height: 64px; /* Đồng bộ chiều cao */
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  transition: 0.2s;
+}
+
+.dateField:focus-within {
+  border-color: #ea580c;
+  background: #ffffff;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.dateContent {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4px 12px 4px 40px;
+}
+
+.dateInput {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  width: 100%;
+  cursor: pointer;
+}
+
+.weekday {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ea580c;
+}
+
+/* ================= HISTORY ================= */
+.historyScroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 10px 4px;
+  scroll-snap-type: x mandatory;
+}
+
+.historyScroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.historyScroll::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.historyCard {
+  min-width: 220px;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  background: #fff;
+  text-align: left;
+}
+
+/* ================= FLOAT BUTTON ================= */
+.searchButtonFloating {
+  position: absolute;
+  left: 50%;
+  bottom: -24px;
+  transform: translateX(-50%);
+  width: calc(100% - 48px); /* Nút to bản dễ bấm trên mobile */
+  max-width: 320px;
+}
+
+.searchButtonFloating button {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ================= RESPONSIVE (LAPTOP & DESKTOP) ================= */
+@media (min-width: 768px) {
+  .searchCard {
+    padding: 24px;
+    padding-bottom: 60px;
+  }
+
+  .row {
+    flex-direction: row; /* Trở lại hàng ngang trên laptop */
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .swapWrapper {
+    margin: 0 -8px;
+    padding-bottom: 12px;
+  }
+
+  .searchButtonFloating {
+    width: auto;
+  }
+}

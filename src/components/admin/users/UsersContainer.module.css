@@ -1,0 +1,623 @@
+/* ==========================================================================
+   1. LAYOUT CONTAINER & HEADER
+   ========================================================================== */
+.container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: #1e293b;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+}
+
+.header p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Nút thêm khách hàng mới */
+.primaryBtn {
+  background-color: #059669; /* Xanh ngọc bích */
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  font-size: 14.5px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.1);
+}
+
+.primaryBtn:hover {
+  background-color: #047857;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(4, 120, 87, 0.2);
+}
+
+.icon {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   2. STATS GRID (Khối thẻ thống kê số liệu)
+   ========================================================================== */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.statCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: transform 0.15s ease;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+}
+
+.statCard span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.statCard strong {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.statCard small {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Nhấn điểm đặc biệt cho ô tổng số lượng */
+.statsGrid .statCard:first-child {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+}
+.statsGrid .statCard:first-child strong {
+  color: #16a34a;
+}
+
+/* ==========================================================================
+   3. FILTERS & SEARCH BAR (Khu vực tìm kiếm & lọc trạng thái)
+   ========================================================================== */
+.filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 640px) {
+  .filters {
+    flex-direction: column;
+  }
+}
+
+.searchWrapper {
+  position: relative;
+  display: flex;
+  flex: 1;
+  gap: 8px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 10px 40px 10px 14px; /* Trừa khoảng trống phải cho nút clear x */
+  font-size: 14.5px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  background-color: #ffffff;
+  transition: all 0.15s ease;
+}
+
+.searchInput:focus {
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+/* Nút xóa nhanh từ khóa (x) */
+.clearBtn {
+  position: absolute;
+  right: 110px; /* Định vị đứng trước nút Tìm kiếm */
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clearBtn:hover {
+  color: #475569;
+  background-color: #f1f5f9;
+}
+
+.searchBtn {
+  background-color: #1e293b;
+  color: #ffffff;
+  border: none;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.searchBtn:hover {
+  background-color: #0f172a;
+}
+
+/* Dropdown select bộ lọc */
+.selectInput {
+  padding: 0 36px 0 14px;
+  font-size: 14.5px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  background-color: #ffffff;
+  cursor: pointer;
+  min-width: 180px;
+  transition: all 0.15s ease;
+}
+
+.selectInput:focus {
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+/* ==========================================================================
+   4. DATA TABLE CARD
+   ========================================================================== */
+.tableCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14.5px;
+}
+
+.table th {
+  background-color: #f8fafc;
+  padding: 14px 20px;
+  font-weight: 600;
+  color: #475569;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* Cột Khách hàng (Avatar + Tên) */
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatarPlaceholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #d1fae5;
+  color: #065f46;
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid #bbf7d0;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.userName {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.userId {
+  font-size: 12px;
+  color: #94a3b8;
+  display: block;
+  margin-top: 2px;
+}
+
+/* Cột Liên hệ (Email + SĐT) */
+.userContact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.userContact small {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.textMuted {
+  color: #cbd5e1;
+  font-style: italic;
+}
+
+/* Badges phân loại Role */
+.roleBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  display: inline-block;
+}
+
+.badgeRegistered {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.badgeGuest {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+/* Badges Trạng thái tài khoản */
+.statusBadge {
+  font-size: 12.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statusBadge::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.active {
+  color: #16a34a;
+}
+.active::before {
+  background-color: #16a34a;
+}
+
+.blocked {
+  color: #dc2626;
+}
+.blocked::before {
+  background-color: #dc2626;
+}
+
+/* Nhãn dòng trống / GUEST không thao tác sâu */
+.guestNote {
+  font-size: 13px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.emptyRow {
+  padding: 48px !important;
+}
+
+.emptyState {
+  text-align: center;
+  color: #64748b;
+}
+
+/* ==========================================================================
+   5. ACTION BUTTONS (Nhóm nút sửa, khóa, chi tiết)
+   ========================================================================== */
+.actionGroup {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.editBtn,
+.lockBtn,
+.unlockBtn,
+.detailBtn {
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.editBtn {
+  color: #2563eb;
+}
+.editBtn:hover {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.lockBtn {
+  color: #dc2626;
+}
+.lockBtn:hover {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
+
+.unlockBtn {
+  color: #16a34a;
+}
+.unlockBtn:hover {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.detailBtn {
+  color: #475569;
+  background-color: #f8fafc;
+}
+.detailBtn:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.editBtn:disabled,
+.lockBtn:disabled,
+.unlockBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f1f5f9;
+}
+
+/* ==========================================================================
+   6. PAGINATION SECTION
+   ========================================================================== */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 12px;
+}
+
+.pageBtn {
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #334155;
+  transition: all 0.15s ease;
+}
+
+.pageBtn:hover:not(:disabled) {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.pageBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageIndicator {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.pageIndicator strong {
+  color: #0f172a;
+}
+
+/* ==========================================================================
+   7. CUSTOM TOAST CONFIRM POPUP (Khóa / Mở khóa độc quyền)
+   ========================================================================== */
+.confirmPopup {
+  background-color: #ffffff;
+  border-radius: 14px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+  padding: 20px;
+  width: 100%;
+  max-width: 420px;
+  pointer-events: auto; /* Kích hoạt click trong toast custom */
+}
+
+.popupHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.popupIcon {
+  font-size: 20px;
+}
+
+.popupHeader h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.popupBody {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+}
+
+.popupBody strong {
+  color: #0f172a;
+}
+
+.popupActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.popupCancelBtn,
+.popupConfirmBtn {
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s ease;
+}
+
+.popupCancelBtn {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+.popupCancelBtn:hover {
+  background-color: #e2e8f0;
+}
+
+.popupConfirmBtn {
+  color: #ffffff;
+}
+.popupConfirmBtn:hover {
+  opacity: 0.9;
+}
+
+/* Hiệu ứng chuyển động Animation cho Toast */
+.popupEnter {
+  animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.popupLeave {
+  animation: toastOut 0.2s ease-in forwards;
+}
+
+/* Lỗi hệ thống toàn cục wrapper */
+.errorWrapper {
+  padding: 40px;
+  text-align: center;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+@keyframes toastIn {
+  from {
+    transform: scale(0.9) translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toastOut {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}

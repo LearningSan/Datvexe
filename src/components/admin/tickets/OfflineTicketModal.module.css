@@ -1,0 +1,698 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* Modal kích thước lớn chuyên dùng cho màn bán vé tại quầy */
+.largeModal {
+  background: #ffffff;
+  width: min(1200px, 100%);
+  max-height: 92vh;
+  border-radius: 12px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.15),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Header UI Component */
+.header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8fafc;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.header p {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.closeBtn {
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.closeBtn:hover {
+  color: #475569;
+  background-color: #e2e8f0;
+}
+
+/* Form Layout Elements */
+.body {
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: #f8fafc;
+}
+
+.workflowRowSplit {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 8px;
+}
+
+.stepIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background-color: #4f46e5;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 50%;
+}
+
+.panelHeader h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.filterFieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 10px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.fullWidth {
+  grid-column: span 2;
+}
+
+.formLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.formLabel input,
+.formLabel select,
+.searchInput {
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #0f172a;
+  background-color: #ffffff;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+  width: 100%;
+}
+
+.formLabel input:focus,
+.formLabel select:focus,
+.searchInput:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Danh sách cuộn chọn chuyến và điểm đón trả */
+.tripList,
+.pointList {
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tripOption,
+.pointOption {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  width: 100%;
+}
+
+.tripOption:last-child,
+.pointOption:last-child {
+  border-bottom: none;
+}
+
+.tripOption:hover,
+.pointOption:hover {
+  background-color: #f8fafc;
+}
+
+.tripOptionActive,
+.pointOptionActive {
+  background-color: #eff6ff !important;
+  border-left: 3px solid #3b82f6;
+  padding-left: 9px;
+}
+
+.tripMeta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.tripIdTag {
+  font-size: 11px;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.vehicleTypeTag {
+  font-size: 11px;
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.tripNameText {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.tripVehicleLine {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #64748b;
+  display: flex;
+  gap: 12px;
+}
+
+.pointOption strong {
+  font-size: 13px;
+  color: #1e293b;
+}
+
+.pointOption span {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Thông tin chuyến tổng quan */
+.vehicleSummaryBox {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summaryItem span {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.summaryItem strong {
+  font-size: 13px;
+  color: #0f172a;
+}
+
+/* ==========================================================================
+   XỬ LÝ ĐỒ HỌA SƠ ĐỒ XE (CHẠY NGANG THEO CHIỀU DỌC XE THỰC TẾ)
+   ========================================================================== */
+.floorList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.floorCard {
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 16px;
+  background-color: #ffffff;
+}
+
+.floorTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+.busCabin {
+  display: flex;
+  background-color: #ffffff;
+  border: 3px solid #94a3b8;
+  border-radius: 24px 10px 10px 24px; /* Bo tròn mạnh phía đầu xe */
+  padding: 16px;
+  align-items: center;
+  gap: 16px;
+  overflow-x: auto; /* Tạo thanh cuộn ngang mượt mà khi xe dài */
+}
+
+.busFront {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  min-height: 160px;
+  border-right: 2px dashed #cbd5e1;
+  padding-right: 16px;
+  min-width: 75px;
+}
+
+.busDoor {
+  font-size: 9px;
+  font-weight: 700;
+  color: #16a34a;
+  background-color: #f0fdf4;
+  padding: 3px 6px;
+  border: 1px solid #bbf7d0;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.driverSeat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.steeringWheel {
+  width: 26px;
+  height: 26px;
+  border: 4px dashed #64748b;
+  border-radius: 50%;
+}
+
+.gridContainer {
+  flex: 1;
+}
+
+.seatGrid {
+  display: grid;
+  gap: 10px 14px;
+  min-width: max-content;
+  padding: 4px;
+}
+
+.gridCell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Định hình nút Ghế / Giường nằm */
+.changeSeatButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 76px;
+  height: 52px;
+  padding: 4px;
+  border: 2px solid #cbd5e1;
+  border-radius: 6px;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.changeSeatButton:hover:not(:disabled) {
+  border-color: #4f46e5;
+  background-color: #f5f3ff;
+  transform: translateY(-1px);
+}
+
+/* Các trạng thái màu của ghế */
+.selectedSeat {
+  border-color: #22c55e !important;
+  background-color: #f0fdf4 !important;
+  color: #15803d !important;
+}
+
+.bookedSeat {
+  border-color: #cbd5e1 !important;
+  background-color: #f1f5f9 !important;
+  color: #94a3b8 !important;
+}
+
+.holdingSeat {
+  border-color: #f59e0b !important;
+  background-color: #fffbeb !important;
+  color: #b45309 !important;
+}
+
+.disabledSeat {
+  cursor: not-allowed !important;
+}
+
+/* Gối kê đầu trên ghế */
+.seatCap {
+  width: 36px;
+  height: 5px;
+  background-color: #e2e8f0;
+  border-radius: 2px;
+}
+
+.selectedSeat .seatCap {
+  background-color: #22c55e;
+}
+.bookedSeat .seatCap {
+  background-color: #cbd5e1;
+}
+.holdingSeat .seatCap {
+  background-color: #f59e0b;
+}
+
+.seatBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.seatBody strong {
+  font-size: 13px;
+  line-height: 1.1;
+}
+
+.seatBody small {
+  font-size: 9px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* Chú thích sơ đồ */
+.seatLegendBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 12px;
+  color: #475569;
+  margin-bottom: 4px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendBox {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.bgAvailable {
+  background-color: #ffffff;
+  border: 2px solid #cbd5e1;
+}
+.bgSelected {
+  background-color: #f0fdf4;
+  border: 2px solid #22c55e;
+}
+.bgBooked {
+  background-color: #f1f5f9;
+  border: 2px solid #cbd5e1;
+}
+.bgHolding {
+  background-color: #fffbeb;
+  border: 2px solid #f59e0b;
+}
+
+/* Các khung thông tin tóm tắt text */
+.selectionSummary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f1f5f9;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #334155;
+}
+
+.seatsHighlight {
+  color: #4f46e5;
+  font-size: 14px;
+}
+.priceHighlight {
+  color: #0f172a;
+  font-size: 14px;
+}
+
+/* KPI Preview Box */
+.previewGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.kpiCard {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+
+.kpiCard span {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 2px;
+}
+
+.kpiCard strong {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.totalPriceHighlight {
+  color: #ef4444 !important;
+}
+
+/* Trạng thái hộp kiểm thu tiền */
+.statusBox {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.checkLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.checkLine input[type="checkbox"] {
+  margin-top: 3px;
+  width: 15px;
+  height: 15px;
+  accent-color: #16a34a;
+  cursor: pointer;
+}
+
+.checkText strong {
+  display: block;
+  font-size: 13px;
+  color: #14532d;
+  font-weight: 600;
+}
+
+.checkText p {
+  margin: 2px 0 0 0;
+  font-size: 11px;
+  color: #166534;
+  line-height: 1.4;
+}
+
+/* Loading & Empty States */
+.loadingState,
+.emptyState {
+  padding: 24px;
+  text-align: center;
+  font-size: 13px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.smallSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  border-top-color: #4f46e5;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Actions Footer Rows */
+.footerActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 16px;
+}
+
+.cancelBtn,
+.submitBtn {
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.cancelBtn {
+  background-color: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.cancelBtn:hover {
+  background-color: #f8fafc;
+}
+
+.submitBtn {
+  background-color: #4f46e5;
+  color: #ffffff;
+  border: none;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: #4338ca;
+}
+
+.submitBtn:disabled {
+  background-color: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 992px) {
+  .workflowRowSplit {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 540px) {
+  .filterFieldsGrid,
+  .previewGrid {
+    grid-template-columns: 1fr;
+  }
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  .fullWidth {
+    grid-column: span 1;
+  }
+}

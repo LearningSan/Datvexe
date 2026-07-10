@@ -1,0 +1,334 @@
+/* --- Overlay & Cửa sổ Modal chính --- */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  border-radius: 16px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- Tiêu đề & Nút Close --- */
+.title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1e293b;
+  padding: 18px 24px;
+  margin: 0;
+  border-bottom: 1px solid #f1f5f9;
+  text-align: center;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: #f1f5f9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 22px;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.closeBtn:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+/* --- Khung cuộn nội dung --- */
+.scrollContainer {
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Khung dùng để html2canvas chụp ảnh (Phải có nền cố định và padding đẹp mắt) */
+.ticketCaptureArea {
+  background-color: #ffffff;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.emptyContent {
+  padding: 40px;
+  text-align: center;
+  color: #64748b;
+}
+
+/* --- Sections định dạng Card --- */
+.section {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #f1f5f9;
+}
+
+.section h3 {
+  font-size: 0.9rem;
+  color: #475569;
+  margin-top: 0;
+  margin-bottom: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-left: 3px solid #2563eb;
+  padding-left: 8px;
+}
+
+/* --- Hệ thống Grid linh hoạt --- */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+}
+
+.twoColumnGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* --- Các dòng dữ liệu --- */
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  min-height: 28px;
+}
+
+.row span {
+  color: #64748b;
+}
+
+.row strong {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+/* --- Các điểm nhấn dữ liệu (UI Highlight) --- */
+.bookingCode {
+  color: #2563eb !important;
+  font-family: monospace;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+}
+
+.timeHighlight {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+.seatHighlight {
+  background: #eff6ff;
+  color: #2563eb !important;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.codeText {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+/* --- Route Timeline (Điểm đón / trả) --- */
+.routeTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  padding-left: 18px;
+  margin-top: 12px;
+}
+
+.routeTimeline::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: #cbd5e1;
+  border-style: dashed;
+}
+
+.timelineItem {
+  position: relative;
+}
+
+.timelineDot {
+  position: absolute;
+  left: -18px;
+  top: 5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #10b981;
+}
+
+.dotEnd {
+  background: #ef4444;
+  box-shadow: 0 0 0 2px #ef4444;
+}
+
+.timelineContent span {
+  font-size: 0.9rem;
+  color: #334155;
+}
+
+.timelineContent p {
+  margin: 4px 0 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* --- Badge Trạng thái màu sắc linh hoạt --- */
+.badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.statusPaid {
+  color: #10b981 !important;
+}
+.statusFailed {
+  color: #ef4444 !important;
+}
+.statusPending {
+  color: #f59e0b !important;
+}
+.discountText {
+  color: #ef4444 !important;
+}
+
+/* --- Dòng Tổng tiền cuối cùng --- */
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.totalRow span {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.totalPrice {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+/* --- Chân Modal cố định nút Action --- */
+.actionRow {
+  padding: 16px 24px;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.printBtn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.printBtn:hover {
+  background: #1d4ed8;
+}
+
+/* --- Keyframes Animations --- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(15px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 640px) {
+  .grid,
+  .twoColumnGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .modal {
+    max-height: 95vh;
+  }
+  .ticketCaptureArea {
+    padding: 16px;
+  }
+  .truncate {
+    max-width: 140px;
+  }
+}

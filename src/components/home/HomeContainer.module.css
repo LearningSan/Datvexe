@@ -1,0 +1,642 @@
+@keyframes sway1 {
+  0%,
+  100% {
+    transform: rotate(-4deg) translateY(0);
+  }
+  50% {
+    transform: rotate(4deg) translateY(-6px);
+  }
+}
+
+@keyframes sway2 {
+  0%,
+  100% {
+    transform: rotate(3deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-5deg) translateY(-8px);
+  }
+}
+
+@keyframes sway3 {
+  0%,
+  100% {
+    transform: rotate(-2deg) translateY(0);
+  }
+  50% {
+    transform: rotate(5deg) translateY(-5px);
+  }
+}
+
+@keyframes wave {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-18px);
+  }
+}
+
+@keyframes wave2 {
+  0%,
+  100% {
+    transform: translateX(-18px);
+  }
+  50% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fishSwim {
+  0% {
+    transform: translateX(0) scaleX(1);
+  }
+  49% {
+    transform: translateX(28px) scaleX(1);
+  }
+  50% {
+    transform: translateX(28px) scaleX(-1);
+  }
+  100% {
+    transform: translateX(0) scaleX(-1);
+  }
+}
+
+@keyframes fishSwim2 {
+  0% {
+    transform: translateX(0) scaleX(-1);
+  }
+  49% {
+    transform: translateX(-22px) scaleX(-1);
+  }
+  50% {
+    transform: translateX(-22px) scaleX(1);
+  }
+  100% {
+    transform: translateX(0) scaleX(1);
+  }
+}
+
+@keyframes bubble {
+  0% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-38px);
+    opacity: 0;
+  }
+}
+
+@keyframes leafFall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(30px) rotate(40deg);
+    opacity: 0;
+  }
+}
+
+@keyframes cloudDrift {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes monkeyClimb {
+  0% {
+    transform: translate3d(0, 0px, 0) scaleY(1);
+  }
+  50% {
+    transform: translate3d(0, 160px, 0) scaleY(0.95);
+  }
+  100% {
+    transform: translate3d(0, 0px, 0) scaleY(1);
+  }
+}
+
+@keyframes birdFlyAcross {
+  from {
+    transform: translate3d(-10%, 0, 0);
+  }
+  to {
+    transform: translate3d(115%, 0, 0);
+  }
+}
+
+@keyframes butterflyDrift1 {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate3d(18px, -22px, 0) rotate(8deg);
+  }
+  50% {
+    transform: translate3d(-10px, -38px, 0) rotate(-5deg);
+  }
+  75% {
+    transform: translate3d(14px, -18px, 0) rotate(6deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes butterflyDrift2 {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate3d(-20px, -15px, 0) rotate(-7deg);
+  }
+  50% {
+    transform: translate3d(12px, -30px, 0) rotate(5deg);
+  }
+  75% {
+    transform: translate3d(-8px, -10px, 0) rotate(-4deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+/* ================= Layout tổng ================= */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+.heroScene {
+  width: 100vw;
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(520px, 900px) minmax(
+      120px,
+      1fr
+    );
+  align-items: stretch;
+}
+
+.heroCenter {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sceneSide {
+  position: relative;
+  overflow: hidden;
+  min-height: 100%;
+}
+
+.sceneLeft {
+  background: #1c4a28;
+}
+
+.sceneRight {
+  background: #0d3a5c;
+}
+
+.searchFormCol {
+  background: #f7f9f8;
+  padding: 18px;
+}
+
+.plant {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ================= Ảnh xe ================= */
+
+.busImageWrapper {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.busImage {
+  width: 100%;
+  max-width: 1000px;
+  height: auto;
+  object-fit: cover;
+  position: relative;
+  z-index: 1;
+}
+
+.vineLeft,
+.vineRight {
+  position: absolute;
+  top: 0;
+  width: 18%;
+  max-width: 130px;
+  height: auto;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.vineLeft {
+  left: 0;
+}
+
+.vineRight {
+  right: 0;
+  transform: scaleX(-1);
+}
+
+.monkey {
+  position: absolute;
+  top: 0;
+  left: 1.5%;
+  width: 8%;
+  max-width: 55px;
+  height: auto;
+  pointer-events: none;
+  z-index: 3;
+  transform-origin: top center;
+  animation: monkeyClimb 6s ease-in-out infinite;
+}
+
+.bird {
+  position: absolute;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.bird1 {
+  top: 8%;
+  left: 0;
+  width: 7%;
+  max-width: 50px;
+  animation: birdFlyAcross 10s linear infinite;
+}
+
+.bird2 {
+  top: 18%;
+  left: 0;
+  width: 5%;
+  max-width: 36px;
+  animation: birdFlyAcross 15s linear infinite;
+  animation-delay: 4s;
+}
+
+.bird3 {
+  top: 4%;
+  left: 0;
+  width: 4%;
+  max-width: 28px;
+  animation: birdFlyAcross 18s linear infinite;
+  animation-delay: 9s;
+}
+
+.butterfly {
+  position: absolute;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.butterfly1 {
+  bottom: 28%;
+  left: 18%;
+  width: 6%;
+  max-width: 42px;
+  animation: butterflyDrift1 5s ease-in-out infinite;
+}
+
+.butterfly2 {
+  bottom: 38%;
+  right: 22%;
+  width: 5%;
+  max-width: 34px;
+  animation: butterflyDrift2 6.5s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+/* ================= Jungle bên trái ================= */
+
+.vineL {
+  top: 0;
+  left: 30px;
+  width: 40px;
+  opacity: 0.7;
+}
+
+.vineL2 {
+  top: -18px;
+  left: 68px;
+  width: 38px;
+  opacity: 0.55;
+}
+
+.leafBigL {
+  bottom: 0;
+  left: -10px;
+  width: 90px;
+  transform-origin: bottom center;
+  animation: sway1 4s ease-in-out infinite;
+}
+
+.leafMidL {
+  bottom: 35px;
+  left: 22px;
+  width: 72px;
+  transform-origin: bottom center;
+  animation: sway2 5s ease-in-out infinite 0.8s;
+}
+
+.leafTopL {
+  bottom: 105px;
+  left: 6px;
+  width: 58px;
+  transform-origin: bottom center;
+  animation: sway3 6s ease-in-out infinite 1.5s;
+}
+
+.leafBottomL {
+  bottom: -12px;
+  left: 55px;
+  width: 82px;
+  transform-origin: bottom center;
+  animation: sway1 6s ease-in-out infinite 1.2s;
+}
+
+.leafUpperL {
+  top: 80px;
+  left: 16px;
+  width: 52px;
+  transform-origin: bottom center;
+  animation: sway3 7s ease-in-out infinite;
+}
+
+.leafFarL {
+  top: 170px;
+  left: 72px;
+  width: 45px;
+  opacity: 0.8;
+  transform-origin: bottom center;
+  animation: sway2 6.8s ease-in-out infinite 1.8s;
+}
+
+.fallingLeaf {
+  top: 60px;
+  left: 45px;
+  width: 16px;
+  animation: leafFall 3.5s ease-in infinite 2s;
+}
+
+.fallingLeaf2 {
+  top: 120px;
+  left: 76px;
+  width: 12px;
+  animation: leafFall 4.5s ease-in infinite;
+}
+
+.fallingLeaf3 {
+  top: 35px;
+  left: 18px;
+  width: 10px;
+  animation: leafFall 5.5s ease-in infinite 2s;
+}
+
+.fallingLeaf4 {
+  top: 200px;
+  left: 52px;
+  width: 13px;
+  animation: leafFall 4.8s ease-in infinite 1s;
+}
+
+.jungleHill {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+/* ================= Ocean bên phải ================= */
+
+.waveTop {
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.waveBot {
+  bottom: 50px;
+  left: 0;
+  width: 100%;
+  animation: wave 4s ease-in-out infinite;
+}
+
+.waveBot2 {
+  bottom: 30px;
+  left: 0;
+  width: 100%;
+  animation: wave2 5s ease-in-out infinite 1s;
+}
+
+.cloud {
+  top: 14px;
+  right: 8px;
+  width: 55px;
+  opacity: 0.5;
+  animation: cloudDrift 7s ease-in-out infinite;
+}
+
+.cloud2 {
+  top: 58px;
+  right: 35px;
+  width: 44px;
+  opacity: 0.35;
+  animation: cloudDrift 9s ease-in-out infinite 1s;
+}
+
+.fish1 {
+  bottom: 90px;
+  right: 10px;
+  width: 44px;
+  animation: fishSwim 4s ease-in-out infinite;
+}
+
+.fish2 {
+  bottom: 125px;
+  right: 32px;
+  width: 32px;
+  animation: fishSwim2 5.5s ease-in-out infinite 1.2s;
+}
+
+.fish3 {
+  bottom: 165px;
+  right: 52px;
+  width: 28px;
+  animation: fishSwim 6s ease-in-out infinite 0.6s;
+}
+
+.fish4 {
+  bottom: 220px;
+  right: 18px;
+  width: 24px;
+  animation: fishSwim2 7s ease-in-out infinite 1.5s;
+}
+
+.fish5 {
+  bottom: 65px;
+  right: 70px;
+  width: 22px;
+  animation: fishSwim 5s ease-in-out infinite 2s;
+}
+
+.bubble1 {
+  bottom: 80px;
+  right: 24px;
+  width: 8px;
+  animation: bubble 2.5s ease-out infinite 0.5s;
+}
+
+.bubble2 {
+  bottom: 85px;
+  right: 36px;
+  width: 5px;
+  animation: bubble 3s ease-out infinite 1.4s;
+}
+
+.bubble3 {
+  bottom: 112px;
+  right: 18px;
+  width: 7px;
+  animation: bubble 2.2s ease-out infinite;
+}
+
+.bubble4 {
+  bottom: 135px;
+  right: 42px;
+  width: 5px;
+  animation: bubble 3.4s ease-out infinite 0.7s;
+}
+
+.bubble5 {
+  bottom: 95px;
+  right: 58px;
+  width: 4px;
+  animation: bubble 2.8s ease-out infinite 1.6s;
+}
+
+.bubble6 {
+  bottom: 175px;
+  right: 28px;
+  width: 6px;
+  animation: bubble 3.8s ease-out infinite 0.3s;
+}
+
+.seaweed {
+  bottom: 0;
+  right: 12px;
+  width: 35px;
+  transform-origin: bottom center;
+  animation: sway2 4.5s ease-in-out infinite;
+}
+
+.seaweed2 {
+  bottom: 0;
+  right: 52px;
+  width: 30px;
+  transform-origin: bottom center;
+  animation: sway1 5.5s ease-in-out infinite;
+}
+
+.seaweed3 {
+  bottom: 0;
+  right: 86px;
+  width: 24px;
+  transform-origin: bottom center;
+  animation: sway2 6.5s ease-in-out infinite 1s;
+}
+
+.coralR {
+  bottom: 0;
+  right: 0;
+  width: 80px;
+}
+
+.coralR2 {
+  bottom: 0;
+  right: 26px;
+  width: 55px;
+}
+
+/* ================= Block phía dưới ================= */
+
+.container > :nth-child(2) {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.15s;
+}
+
+.container > :nth-child(3) {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.3s;
+}
+
+.container > :nth-child(4) {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.45s;
+}
+
+/* ================= Responsive ================= */
+
+@media (max-width: 768px) {
+  .heroScene {
+    grid-template-columns: 1fr;
+  }
+
+  .sceneSide {
+    display: none;
+  }
+
+  .searchFormCol {
+    padding: 14px;
+  }
+
+  .bird2,
+  .bird3 {
+    display: none;
+  }
+
+  .butterfly1,
+  .butterfly2 {
+    transform: scale(0.5);
+    transform-origin: bottom left;
+  }
+
+  .vineLeft,
+  .vineRight {
+    width: 14%;
+    max-width: 80px;
+  }
+
+  .monkey {
+    width: 7%;
+    max-width: 40px;
+  }
+}

@@ -1,0 +1,75 @@
+.wrapper {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1f1f1f;
+}
+
+.card {
+  text-align: center;
+  padding: 40px;
+  border-radius: 16px;
+  background: #2a2a2a;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 420px;
+  width: 100%;
+}
+
+.title {
+  font-size: 80px;
+  color: #ffb74b;
+  margin: 0;
+}
+
+.subtitle {
+  color: #fff;
+  margin-top: 10px;
+  font-size: 20px;
+}
+
+.desc {
+  color: #aaa;
+  margin: 15px 0 25px;
+  line-height: 1.5;
+}
+
+/* ACTIONS WRAPPER (quan trọng để layout đẹp hơn) */
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* PRIMARY BUTTON */
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #ff4b4b;
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.btn:hover {
+  background: #ff2e2e;
+}
+
+/* SECONDARY BUTTON */
+.secondaryBtn {
+  display: inline-block;
+  padding: 10px 20px;
+  background: transparent;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.secondaryBtn:hover {
+  border-color: #888;
+}

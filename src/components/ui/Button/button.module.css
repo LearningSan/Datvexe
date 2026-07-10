@@ -1,0 +1,96 @@
+.button {
+  border: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+
+  font-weight: 700;
+}
+
+/* =========================
+   VARIANTS
+========================= */
+
+.primary {
+  background: linear-gradient(
+    to right,
+    #ea580c,
+    #f97316
+  );
+
+  color: white;
+
+  box-shadow:
+    0 12px 24px rgba(234, 88, 12, 0.35);
+}
+
+.primary:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 16px 30px rgba(234, 88, 12, 0.4);
+}
+
+.outline {
+  background: white;
+
+  border: 1px solid #e2e8f0;
+
+  color: #334155;
+}
+
+.outline:hover {
+  background: #f8fafc;
+}
+
+.ghost {
+  background: transparent;
+
+  color: #334155;
+}
+
+.success {
+  background: #10b981;
+
+  color: white;
+}
+
+/* =========================
+   SIZE
+========================= */
+
+.sm {
+  height: 38px;
+  padding: 0 14px;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
+.md {
+  height: 48px;
+  padding: 0 20px;
+  font-size: 14px;
+  border-radius: 14px;
+}
+
+.lg {
+  height: 56px;
+  padding: 0 28px;
+  font-size: 15px;
+  border-radius: 999px;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+}

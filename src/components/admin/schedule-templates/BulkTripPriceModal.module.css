@@ -1,0 +1,248 @@
+/* ==========================================================================
+   1. KHUNG PHỦ NỀN & HIỆU ỨNG ANIMATION HẬU CẢNH
+   ========================================================================== */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal {
+  background-color: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 580px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  animation: modalScaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalScaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ==========================================================================
+   2. TIÊU ĐỀ ĐẦU TRANG MODAL (HEADER)
+   ========================================================================== */
+.header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  background-color: #f8fafc;
+}
+
+.header h2 {
+  font-size: 18px;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+  font-weight: 700;
+}
+
+.header p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #94a3b8;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeBtn:hover {
+  color: #475569;
+  background-color: #e2e8f0;
+}
+
+/* ==========================================================================
+   3. CẤU TRÚC ĐỊNH DẠNG FORM & CÁC Ô NHẬP LIỆU GỐC
+   ========================================================================== */
+.form {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.inputField,
+.selectInput {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0f172a;
+  background-color: #ffffff;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.inputField:focus,
+.selectInput:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Tích hợp Badge linh hoạt (VNĐ hoặc %) vào cuối ô Input */
+.inputUnitWrapper {
+  display: flex;
+  position: relative;
+  align-items: center;
+}
+
+.inputUnitWrapper .inputField {
+  padding-right: 64px;
+}
+
+.inputUnitBadge {
+  position: absolute;
+  right: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  background-color: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   4. HỘP CẢNH BÁO AN TOÀN TÀI CHÍNH (WARNING BOX)
+   ========================================================================== */
+.warningBox {
+  background-color: #fff7ed;
+  border: 1px solid #ffedd5;
+  border-left: 4px solid #ea580c; /* Cam hổ phách đậm báo hiệu quy tắc nghiêm ngặt */
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #9a3412;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   5. THANH ĐIỀU KHIỂN NÚT BẤM (FOOTER ACTIONS)
+   ========================================================================== */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.cancelBtn,
+.submitBtn {
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.cancelBtn {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background-color: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+.submitBtn {
+  background-color: #ea580c; /* Dùng màu cam đậm nhấn mạnh hành động thay đổi giá tiền diện rộng */
+  color: #ffffff;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: #c2410c;
+}
+
+.cancelBtn:disabled,
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Hiệu ứng loading spinner xoay tròn */
+.loadingFlex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: bulkModalSpin 0.8s linear infinite;
+}
+
+@keyframes bulkModalSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

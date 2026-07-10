@@ -1,0 +1,59 @@
+/* Bản CSS cho cả PC (Nằm ngang) và Mobile (Xoay đứng) */
+
+.wheel {
+  position: absolute;
+  background: #1e293b;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+/* --- CẤU HÌNH TRÊN PC (XE NẰM NGANG) --- */
+@media (min-width: 601px) {
+  .wheel {
+    width: 35px;
+    height: 16px;
+  }
+  .topLeft {
+    top: -8px;
+    left: 50px;
+  }
+  .topRight {
+    top: -8px;
+    right: 50px;
+  }
+  .bottomLeft {
+    bottom: -8px;
+    left: 50px;
+  }
+  .bottomRight {
+    bottom: -8px;
+    right: 50px;
+  }
+}
+
+/* --- CẤU HÌNH TRÊN MOBILE (XE ĐỨNG THẲNG) --- */
+@media (max-width: 600px) {
+  .wheel {
+    /* Đảo chiều Width và Height để bánh xe dọc theo thân xe */
+    width: 12px;
+    height: 28px;
+    border-radius: 3px;
+  }
+  /* Định vị lại 4 góc theo dáng đứng đứng */
+  .topLeft {
+    top: 60px;
+    left: -6px;
+  } /* Bánh trước trái */
+  .topRight {
+    top: 60px;
+    right: -6px;
+  } /* Bánh trước phải */
+  .bottomLeft {
+    bottom: 40px;
+    left: -6px;
+  } /* Bánh sau trái */
+  .bottomRight {
+    bottom: 40px;
+    right: -6px;
+  } /* Bánh sau phải */
+}

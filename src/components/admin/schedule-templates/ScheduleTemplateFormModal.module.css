@@ -1,0 +1,274 @@
+/* ==========================================================================
+   1. LỚP PHỦ NỀN & KHUNG CHỨA MODAL (OVERLAY & WINDOW)
+   ========================================================================== */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.6); /* Phủ mờ tối đậm chuẩn hiện đại */
+  backdrop-filter: blur(4px); /* Làm mờ hậu cảnh */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal {
+  background-color: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 580px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  animation: modalFadeIn 0.25s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================================================
+   2. TIÊU ĐỀ ĐẦU TRANG MODAL (HEADER)
+   ========================================================================== */
+.header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  background-color: #f8fafc;
+}
+
+.header h2 {
+  font-size: 18px;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+  font-weight: 700;
+}
+
+.header p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #94a3b8;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeBtn:hover {
+  color: #475569;
+  background-color: #e2e8f0;
+}
+
+/* ==========================================================================
+   3. CẤU TRÚC FORM VÀ CÁC Ô NHẬP LIỆU (FIELDS & GRIDS)
+   ========================================================================== */
+.form {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Base style cho các ô input và select */
+.inputField,
+.selectInput {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0f172a;
+  background-color: #ffffff;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.inputField:focus,
+.selectInput:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.inputField:disabled,
+.selectInput:disabled {
+  background-color: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+}
+
+/* Wrapper chuyên biệt tạo huy hiệu đơn vị (ví dụ: phút, VNĐ) */
+.inputUnitWrapper {
+  display: flex;
+  position: relative;
+  align-items: center;
+}
+
+.inputUnitWrapper .inputField {
+  padding-right: 60px; /* Nhường chỗ hiển thị huy hiệu */
+}
+
+.inputUnitBadge {
+  position: absolute;
+  right: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  background-color: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+  border: 1px solid #cbd5e1;
+}
+
+/* ==========================================================================
+   4. THÔNG TIN TRỢ GIÚP & CẢNH BÁO (HELPER & WARNING BOXES)
+   ========================================================================== */
+.helperText {
+  background-color: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+  color: #1e40af;
+}
+
+.durationHint {
+  font-size: 12px;
+  color: #059669; /* Xanh lá dễ chịu giúp kiểm tra nhanh */
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.warningBox {
+  background-color: #fff7ed;
+  border: 1px solid #ffedd5;
+  border-left: 4px solid #ea580c; /* Màu cam cảnh báo khóa dữ liệu */
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #9a3412;
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   5. KHU VỰC NÚT ĐIỀU KHIỂN HOÀN TẤT (FOOTER ACTIONS)
+   ========================================================================== */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.cancelBtn,
+.submitBtn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.cancelBtn {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background-color: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+.submitBtn {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.cancelBtn:disabled,
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Trạng thái Loading Spinner */
+.loadingFlex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

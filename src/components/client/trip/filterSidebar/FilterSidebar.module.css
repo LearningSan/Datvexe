@@ -1,0 +1,205 @@
+.box {
+  font-family: "Inter", sans-serif;
+  max-width: 360px; /* Thu nhỏ chiều rộng một chút cho cân đối với sidebar */
+  background: #ffffff;
+  border-radius: 16px; /* Bo góc hiện đại hơn */
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Đổ bóng mịn */
+  border: 1px solid #f0f0f0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #f5f5f5;
+  padding-bottom: 12px;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f1f1f;
+}
+
+.resetBtn {
+  background: none;
+  border: none;
+  color: #ff4d4f;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.resetBtn:hover {
+  color: #ff7875;
+  opacity: 0.8;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.title {
+  font-weight: 600;
+  color: #262626;
+  display: block;
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+/* ⚡️ KHẮC PHỤC GIỜ ĐI: Giới hạn chiều cao + thêm scrollbar mượt */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Tùy biến thanh cuộn cho đẹp */
+.group::-webkit-scrollbar {
+  width: 5px;
+}
+.group::-webkit-scrollbar-thumb {
+  background: #e8e8e8;
+  border-radius: 4px;
+}
+.group::-webkit-scrollbar-thumb:hover {
+  background: #d9d9d9;
+}
+
+.group label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #595959;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.2s ease;
+}
+
+.group label:hover {
+  color: #1677ff;
+}
+
+/* ⚡️ TỐI ƯU CÁC NÚT BẤM (TAG BUTTONS) */
+.buttonGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tagBtn {
+  flex: 1;
+  min-width: 90px;
+  padding: 10px 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #434343;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.tagBtn:hover {
+  border-color: #4096ff;
+  color: #4096ff;
+  background: #f6ffed; /* Một chút tint màu nền nhẹ khi hover */
+}
+
+/* Trạng thái Active nổi bật hẳn */
+.active {
+  background: #e6f4ff !important;
+  color: #1677ff !important;
+  border-color: #1677ff !important;
+  font-weight: 600;
+}
+
+.input {
+  accent-color: #1677ff;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #262626;
+  cursor: pointer;
+}
+
+/* ⚡️ SẮP XẾP KẾT QUẢ (SORT DROPDOWN) */
+.sortRow {
+  display: flex;
+  gap: 12px;
+}
+
+.sortBox {
+  position: relative;
+  flex: 1;
+}
+
+.sortBox .tagBtn {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.sortMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  min-width: 140px;
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+  overflow: hidden;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sortItem {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #595959;
+  transition: background 0.2s;
+}
+
+.sortItem:hover {
+  background: #f5f5f5;
+  color: #1677ff;
+}

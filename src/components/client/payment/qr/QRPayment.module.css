@@ -1,0 +1,339 @@
+.loadingBox {
+  margin: 24px auto;
+  padding: 20px;
+  border-radius: 14px;
+  background: #fff7ed;
+  color: #c2410c;
+  font-weight: 700;
+  text-align: center;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 12px;
+  border: 4px solid #fed7aa;
+  border-top-color: #f97316;
+  border-radius: 50%;
+  animation: paymentSpin 0.8s linear infinite;
+}
+
+@keyframes paymentSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.qrTitle {
+  margin: 16px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #047857;
+}
+
+.errorBox {
+  margin: 18px auto;
+  padding: 14px;
+  max-width: 460px;
+  border-radius: 12px;
+  background: #fff1f2;
+  color: #be123c;
+  line-height: 1.5;
+}
+.redirectCard,
+.walletCard,
+.cashCard {
+  padding: 24px;
+  margin-top: 18px;
+  border: 1px solid #e6e8eb;
+  border-radius: 16px;
+  background: #fff;
+  text-align: center;
+}
+
+.redirectCard h3,
+.walletCard h3,
+.cashCard h3 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
+.providerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 14px;
+  padding: 11px 18px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primaryBtn {
+  border: 0;
+  background: #ef5222;
+  color: #fff;
+}
+
+.primaryBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.secondaryBtn {
+  border: 1px solid #ef5222;
+  background: #fff;
+  color: #ef5222;
+}
+
+.primaryBtn:disabled,
+.secondaryBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.noteText,
+.securityText {
+  color: #667085;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.securityText {
+  margin-top: 14px;
+}
+
+.walletRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 10px 0;
+  text-align: left;
+}
+
+.walletDivider {
+  height: 1px;
+  margin: 6px 0;
+  background: #eaecf0;
+}
+
+.processingBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f5f8ff;
+}
+
+.warningBox {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fffaeb;
+  color: #93370d;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.instruction {
+  line-height: 1.6;
+}
+
+.infoBox > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 0;
+}
+
+.statusSuccess {
+  color: #067647;
+}
+
+.statusProcessing {
+  color: #175cd3;
+}
+
+.statusPending {
+  color: #b54708;
+}
+
+.statusError {
+  color: #b42318;
+}
+/* Container bọc toàn bộ vùng QR */
+.qrCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 30px 24px;
+  margin-top: 18px;
+  border: 1px solid #f1f5f9;
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+/* Phần hiển thị ảnh QR */
+.qrVisualSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.qrImageWrap {
+  position: relative;
+  padding: 32px; /* Tăng padding rộng ra giống ảnh mẫu */
+  border: 2px solid #ff4d15; /* Màu cam VietQR */
+  border-radius: 24px; /* Bo góc tròn nhiều hơn */
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 280px;
+  height: 280px;
+}
+
+.qr {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Biến mất logo đè chính giữa nếu VietQR đã tự sinh logo ở giữa */
+.logoBadge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  font-size: 14px;
+  font-weight: 800;
+  color: #ff4d15;
+  border: 1px solid #f1f5f9;
+}
+
+.qrCaption {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #57606a;
+  text-align: center;
+}
+
+/* Phần hướng dẫn các bước bên dưới */
+.qrGuideSection {
+  width: 100%;
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 24px;
+}
+
+.qrGuideTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 20px;
+  text-align: left; /* Căn lề trái theo ảnh mẫu */
+}
+
+.qrGuideTitle span {
+  color: #ff4d15;
+}
+
+.guideList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.guideList li {
+  display: flex;
+  align-items: flex-start; /* Để text dài xuống dòng không lệch số */
+  gap: 14px;
+}
+
+.stepNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff5f2; /* Màu nền cam hồng nhạt */
+  color: #ff4d15;
+  border: 1px solid #ffe4dc;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.stepText {
+  font-size: 15px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.stepText strong {
+  color: #111827;
+  font-weight: 700;
+}
+.qrImageWrap {
+  position: relative;
+  padding: 24px; /* Giảm padding mặc định một chút cho cân bằng */
+  border: 2px solid #ff4d15;
+  border-radius: 24px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 280px;
+  height: 280px;
+  overflow: hidden; /* Đảm bảo ảnh phóng to không tràn ra ngoài góc bo */
+}
+
+/* Custom riêng cho Khung chứa VietQR */
+.qrImageWrapVietQR {
+  padding: 12px 8px;
+}
+
+.qr {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+/* Custom riêng cho Ảnh VietQR để bù trừ kích thước */
+.qrVietQR {
+  transform: scale(1.12);
+}

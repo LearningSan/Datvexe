@@ -1,0 +1,195 @@
+/* SeatLayoutsContainer.module.css */
+.page {
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  color: #1e293b;
+  background-color: #f1f5f9; /* Nền xám sáng để làm nổi bật các khối trắng */
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  margin-bottom: 32px;
+  border-left: 5px solid #4f46e5; /* Vạch màu tím xanh đậm chất Tech */
+  padding-left: 16px;
+}
+
+.header h1 {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+}
+
+.header p {
+  font-size: 14px;
+  color: #475569;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Table Card */
+.tableCard {
+  background: #ffffff;
+  border-radius: 16px;
+  border: none;
+  box-shadow:
+    0 10px 25px -5px rgba(15, 23, 42, 0.08),
+    0 8px 10px -6px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.tableCard table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.tableCard th {
+  background-color: #1e293b; /* Thanh tiêu đề màu tối rất quyền lực */
+  color: #f8fafc;
+  font-weight: 700;
+  padding: 18px 20px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tableCard td {
+  padding: 18px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+  font-weight: 500; /* Chữ đậm đà hơn, không bị nhạt nhòa */
+  vertical-align: middle;
+}
+
+.tableCard tbody tr {
+  transition: all 0.2s ease;
+}
+
+.tableCard tbody tr:hover {
+  background-color: #f8fafc;
+  transform: scale(1.002); /* Hiệu ứng nổi nhẹ khi di chuột */
+}
+
+.tableCard strong {
+  color: #ffffff;
+  font-weight: 700;
+  font-family: "SF Mono", Monaco, Consolas, monospace;
+  background: #4f46e5; /* Mã layout nổi bần bật với màu tím xanh */
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+}
+
+/* Warnings Tag List - Sắc nét, rực rỡ */
+.warningList {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.warningList span {
+  font-size: 12px;
+  background-color: #fef2f2;
+  color: #ef4444; /* Đỏ rực cảnh báo */
+  border: 1px solid #fca5a5;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* Trạng thái Ổn định */
+.warningList:not(:has(span)) {
+  color: #10b981; /* Xanh lá tươi tắn */
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Status Badges */
+.status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.active {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.inactive {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+/* Actions Button Group */
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actions button {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #ffffff;
+  border: 2px solid #e2e8f0;
+  color: #475569;
+  transition: all 0.2s ease;
+}
+
+.actions button:hover {
+  background-color: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+
+/* Nút Tạm ngưng/Kích hoạt nổi bật */
+.actions button:last-child {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+/* Hệ thống State */
+.loading,
+.error,
+.empty {
+  text-align: center;
+  padding: 60px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 16px;
+}
+
+.loading {
+  color: #4f46e5;
+  background: #ffffff;
+}
+
+.error {
+  color: #dc2626;
+  background-color: #fef2f2;
+  border: 2px dashed #fca5a5;
+}

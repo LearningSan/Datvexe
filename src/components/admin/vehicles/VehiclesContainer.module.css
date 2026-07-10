@@ -1,0 +1,372 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1; /* Tăng độ đậm viền khung header */
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #0f172a; /* Đen đậm hẳn */
+  font-weight: 800; /* Tăng độ dày chữ */
+}
+
+.header p {
+  margin: 6px 0 0;
+  color: #334155; /* Chuyển từ xám nhạt sang xám đậm sâu chữ rõ hơn */
+  font-size: 14.5px;
+  font-weight: 500;
+}
+
+/* Các button điều khiển chung hệ thống */
+.primaryBtn,
+.filterBar button,
+.pagination button {
+  border: 0;
+  border-radius: 12px;
+  padding: 11px 16px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  background: #2563eb;
+  color: white;
+  transition: background 0.15s ease;
+}
+
+.primaryBtn:hover,
+.filterBar button:hover {
+  background: #1d4ed8;
+}
+
+.secondaryBtn {
+  background: #cbd5e1 !important; /* Tăng tương phản nút xóa bộ lọc */
+  color: #0f172a !important;
+}
+
+.secondaryBtn:hover {
+  background: #94a3b8 !important;
+}
+
+.filterBar {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr auto auto;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1; /* Tăng độ đậm viền khung lọc */
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.08);
+}
+
+.filterBar input,
+.filterBar select {
+  border: 1px solid #94a3b8; /* Tăng viền input cho rõ ràng */
+  border-radius: 12px;
+  padding: 11px 12px;
+  font-size: 14px;
+  color: #0f172a; /* Chữ gõ vào hiển thị đen đậm sắc nét */
+  font-weight: 600;
+  outline: none;
+  background-color: #ffffff;
+}
+
+.filterBar input::placeholder {
+  color: #64748b; /* Giữ chữ placeholder vừa phải nhưng vẫn dễ nhìn hơn */
+}
+
+.filterBar input:focus,
+.filterBar select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* ==========================================================================
+   BẢNG HIỂN THỊ DỮ LIỆU ĐƯỢC LÀM NÉT CĂNG (HIGH CONTRAST TABLE)
+   ========================================================================== */
+.tableCard {
+  overflow: hidden;
+  border-radius: 22px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1; /* Tăng viền bảng */
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
+}
+
+.tableCard table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableCard th,
+.tableCard td {
+  padding: 16px 16px; /* Tăng nhẹ padding cho thoáng chữ */
+  border-bottom: 1px solid #cbd5e1; /* Đường gạch ngang giữa các hàng rõ hơn */
+  text-align: left;
+}
+
+.tableCard th {
+  background: #e2e8f0; /* Làm nền tiêu đề cột đậm hơn (Slate-200) để nổi chữ */
+  color: #0f172a; /* Đổi chữ tiêu đề cột thành đen đậm */
+  font-size: 14px;
+  font-weight: 700; /* Chữ header table dứt khoát */
+}
+
+.tableCard td {
+  color: #1e293b; /* Màu chữ nội dung chuyển sang Slate-800 rất sắc nét */
+  font-size: 14px;
+  font-weight: 600; /* Tăng độ dày chữ của nội dung bảng lên 600 */
+}
+
+.tableCard strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.tableCard small {
+  display: block;
+  color: #475569; /* Đổi màu chữ phụ (Layout xe) đậm lên để không bị mờ */
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Các Badge trạng thái xe */
+.status {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 800; /* Giữ độ đậm cực cao cho trạng thái */
+}
+
+.available {
+  background: #dcfce7;
+  color: #14532d; /* Đậm màu xanh lá hơn */
+}
+
+.assigned {
+  background: #dbeafe;
+  color: #1e40af; /* Đậm màu xanh dương hơn */
+}
+
+.maintenance {
+  background: #fef3c7;
+  color: #78350f; /* Đậm màu vàng cam hơn */
+}
+
+.inactive {
+  background: #e2e8f0;
+  color: #1e293b; /* Ngưng dùng nhìn rõ chữ xám đen */
+}
+
+/* ==========================================================================
+   HÀNG NÚT THAO TÁC (ACTIONS)
+   ========================================================================== */
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.editBtn,
+.inactiveBtn {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700; /* Tăng độ đậm chữ cho nút */
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+/* Nút sửa phối màu có viền tương phản */
+.editBtn {
+  background-color: #ffffff;
+  border-color: #94a3b8; /* Viền xám đậm rõ khối */
+  color: #1e293b;
+}
+
+.editBtn:hover {
+  background-color: #f1f5f9;
+  border-color: #475569;
+  color: #0f172a;
+}
+
+/* Nút Ngưng dùng sắc nét */
+.inactiveBtn {
+  background-color: #fef2f2;
+  border-color: #fca5a5;
+  color: #b91c1c; /* Chữ đỏ đậm */
+}
+
+.inactiveBtn:hover:not(:disabled) {
+  background-color: #fee2e2;
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+/* Trạng thái disabled hẳn */
+.inactiveBtn:disabled,
+.pagination button:disabled {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* Phân trang */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.pagination span {
+  font-size: 14.5px;
+  font-weight: 700; /* Số trang đậm rõ */
+  color: #1e293b;
+}
+
+.empty,
+.loading,
+.error {
+  padding: 40px;
+  text-align: center;
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* ==========================================================================
+   MODAL XÁC NHẬN (CONFIRM MODAL UX)
+   ========================================================================== */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.5); /* Tối nền xung quanh hơn */
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.confirmModal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  animation: modalScaleUp 0.15s ease-out;
+}
+
+.confirmHeader {
+  padding: 20px 20px 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.warnIcon {
+  font-size: 20px;
+  background: #fff7ed;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.confirmHeader h3 {
+  margin: 0;
+  font-size: 17px;
+  color: #0f172a;
+  font-weight: 800; /* Tiêu đề modal rõ ràng */
+}
+
+.confirmBody {
+  padding: 0 20px 20px 20px;
+  font-size: 14.5px;
+  color: #1e293b; /* Chữ thông báo đậm nét */
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.confirmActions {
+  padding: 14px 20px;
+  background-color: #f1f5f9; /* Làm nền footer modal đậm hơn chút */
+  border-top: 1px solid #cbd5e1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cancelModalBtn,
+.executeModalBtn {
+  padding: 9px 18px;
+  font-size: 14px;
+  font-weight: 700; /* Chữ nút modal dứt khoát */
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.cancelModalBtn {
+  background-color: #ffffff;
+  border-color: #94a3b8;
+  color: #334155;
+}
+
+.cancelModalBtn:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border-color: #475569;
+}
+
+.executeModalBtn {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+.executeModalBtn:hover {
+  background-color: #b91c1c;
+}
+
+@keyframes modalScaleUp {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.activateBtn {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 700;
+  cursor: pointer;
+}

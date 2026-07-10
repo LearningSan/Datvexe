@@ -1,0 +1,447 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px); /* Tăng độ mờ nền phía sau */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: overlayFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.modal {
+  width: 440px;
+  max-width: calc(100vw - 24px);
+  background: #ffffff;
+  border-radius: 24px; /* Bo tròn mượt mà quyến rũ hơn */
+  padding: 36px;
+  position: relative;
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.03);
+  transform: translateY(20px) scale(0.96);
+  opacity: 0;
+  animation: modalScaleUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.05s forwards;
+}
+
+/* Thao tác bọc khối form giúp chuyển tab mượt */
+.formView {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header h2 {
+  margin: 0 0 6px 0;
+  font-size: 26px;
+  color: #0f172a;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.header p {
+  margin: 0;
+  font-size: 14.5px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+/* Biểu mẫu Inputs */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inputGroup label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #334155;
+  padding-left: 2px;
+}
+
+.modal input {
+  height: 48px;
+  padding: 0 16px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  font-size: 14.5px;
+  color: #0f172a;
+  outline: none;
+  background: #f8fafc;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal input:focus {
+  border-color: #6366f1;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+/* Khối Password Wrapper */
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  width: 100%;
+}
+
+.passwordWrapper input {
+  width: 100%;
+  padding-right: 56px;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f1f5f9;
+  border: none;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.eyeBtn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* NÚT BẤM CHÍNH GRADIENT SINH ĐỘNG CÓ HIỆU ỨNG ÁNH SÁNG CHẠY QUA */
+.primaryBtn {
+  position: relative;
+  overflow: hidden;
+  height: 50px;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 15.5px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  transition: all 0.25s ease;
+}
+
+.primaryBtn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100
+  );
+  transform: skewX(-25deg);
+}
+
+.primaryBtn:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+}
+
+.primaryBtn:hover::before {
+  animation: shimmerEffect 1.5s infinite;
+}
+
+.primaryBtn:active {
+  transform: translateY(0);
+}
+
+.primaryBtn:disabled {
+  background: #cbd5e1;
+  color: #94a3b8;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Nút phụ cấu trúc rõ ràng */
+.secondaryBtn {
+  height: 48px;
+  background: #ffffff;
+  color: #475569;
+  border: 1.5px solid #e2e8f0;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.secondaryBtn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+/* Thanh đo độ mạnh mật khẩu cao cấp */
+.strengthContainer {
+  margin-top: 10px;
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+}
+
+.strengthBarBackground {
+  height: 5px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.strengthBarFill {
+  height: 100%;
+  width: 0;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.score1,
+.score2 {
+  background: #ef4444;
+}
+.score3,
+.score4 {
+  background: #f59e0b;
+}
+.score5 {
+  background: #10b981;
+}
+
+.strengthText {
+  font-size: 12px;
+  color: #475569;
+}
+
+.strengthText strong {
+  color: #0f172a;
+}
+
+.criteriaList {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+}
+
+.criteriaList li {
+  font-size: 11.5px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+
+.criteriaList li::before {
+  content: "●";
+  font-size: 8px;
+  color: #cbd5e1;
+}
+
+.criteriaList li.checked {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.criteriaList li.checked::before {
+  content: "✓";
+  font-size: 11px;
+  font-weight: 800;
+  color: #10b981;
+}
+
+/* Khu vực liên kết mạng xã hội đẳng cấp */
+.divider {
+  text-align: center;
+  position: relative;
+  margin: 8px 0;
+}
+
+.divider::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  background: #f1f5f9;
+}
+
+.divider span {
+  background: #ffffff;
+  padding: 0 14px;
+  font-size: 12.5px;
+  color: #94a3b8;
+  font-weight: 500;
+  position: relative;
+  z-index: 2;
+}
+
+.socialGroup {
+  display: flex;
+  gap: 12px;
+}
+
+.socialBtn {
+  flex: 1;
+  height: 46px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.socialBtn.google {
+  color: #ea4335;
+}
+.socialBtn.google:hover {
+  background: #fff5f5;
+  border-color: #fca5a5;
+}
+
+.socialBtn.facebook {
+  color: #1877f2;
+}
+.socialBtn.facebook:hover {
+  background: #f0f7ff;
+  border-color: #93c5fd;
+}
+
+/* Nút đóng Modal tiêu chuẩn cao */
+.closeBtn {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  width: 34px;
+  height: 34px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 50%;
+  font-size: 22px;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  z-index: 10;
+}
+
+.closeBtn:hover {
+  background: #ef4444;
+  color: #ffffff;
+  transform: rotate(90deg);
+  border-color: #ef4444;
+}
+
+/* Banner lỗi động thái mượt */
+.errorBanner {
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #ef4444;
+  padding: 14px;
+  border-radius: 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  animation: bannerShake 0.35s ease-in-out;
+}
+
+.footerText {
+  text-align: center;
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 5px;
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  color: #4f46e5;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 0 0 4px;
+  font-size: 14px;
+  transition: color 0.15s;
+}
+
+.linkBtn:hover {
+  color: #7c3aed;
+  text-decoration: underline;
+}
+
+.otpInput {
+  text-align: center;
+  font-size: 24px !important;
+  letter-spacing: 8px;
+  font-weight: 800;
+  color: #4f46e5;
+  background: #f0fdf4 !important;
+  border-color: #bbf7d0 !important;
+}
+
+.otpInput:focus {
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2) !important;
+}
+
+/* ====================================================================
+   HỆ THỐNG HIỆU ỨNG CHUYỂN ĐỘNG ANIMATIONS
+   ==================================================================== */
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalScaleUp {
+  from {
+    transform: translateY(25px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shimmerEffect {
+  100% {
+    left: 200%;
+  }
+}
+
+@keyframes bannerShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-4px);
+  }
+  40%,
+  80% {
+    transform: translateX(4px);
+  }
+}

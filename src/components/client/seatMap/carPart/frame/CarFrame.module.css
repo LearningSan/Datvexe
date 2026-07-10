@@ -1,0 +1,44 @@
+.busFrame {
+  --frame-padding: 30px 40px;
+  --front-width: 140px;
+
+  position: relative;
+  background: #f4f7fa;
+  border: 3px solid #2c3e50;
+  border-radius: 40px;
+  padding: var(--frame-padding);
+  width: fit-content;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.inner {
+  display: flex;
+  align-items: stretch;
+  gap: 15px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================================
+   MEDIA QUERY: ĐẨY ĐẦU XE XUỐNG DƯỚI ĐÁY SƠ ĐỒ
+   ======================================================== */
+@media (max-width: 600px) {
+  .busFrame {
+    --frame-padding: 15px 15px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .inner {
+    /* Đổi sang column để FrontSection tự động nhảy xuống dưới content */
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center;
+    gap: 20px;
+  }
+}

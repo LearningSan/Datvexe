@@ -1,0 +1,41 @@
+.wrapper {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #0b1220;
+  color: white;
+  text-align: center;
+}
+
+.title {
+  font-size: 80px;
+  color: #ef4444;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 22px;
+  margin-top: 10px;
+}
+
+.desc {
+  margin-top: 10px;
+  opacity: 0.8;
+}
+
+.btn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: #ef4444;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn:hover {
+  background: #dc2626;
+}

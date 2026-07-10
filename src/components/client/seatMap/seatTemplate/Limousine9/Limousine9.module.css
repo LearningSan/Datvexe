@@ -1,0 +1,157 @@
+/* Khai báo biến global cho component này */
+.busFrame {
+  --seat-width: 70px;
+  --seat-height: 50px;
+  --row-gap: 40px;
+  --cabin-gap: 25px;
+  --frame-padding: 30px 40px;
+  --front-width: 140px;
+
+  position: relative;
+  background: #f4f7fa;
+  border: 3px solid #2c3e50;
+  border-radius: 40px;
+  padding: var(--frame-padding);
+  width: fit-content;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+/* ==============================================
+   MEDIA QUERY: Tự động giảm kích thước trên Mobile
+   ============================================== */
+@media (max-width: 600px) {
+  .busFrame {
+    --seat-width: 48px;
+    --seat-height: 38px;
+    --row-gap: 16px;
+    --cabin-gap: 16px;
+    --frame-padding: 15px 20px;
+    --front-width: 90px;
+
+    border-radius: 24px; /* Giảm bo góc cho đỡ thô trên màn nhỏ */
+  }
+}
+
+.limoCabin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cabin-gap);
+}
+
+.limoRow {
+  display: flex;
+  gap: var(--row-gap);
+}
+
+.aisleSpace {
+  width: var(--seat-width);
+  height: var(--seat-height);
+  background: #e2e8f0;
+  border-left: 2px dashed #cbd5e1;
+  border-right: 2px dashed #cbd5e1;
+}
+
+.inner {
+  display: flex;
+  align-items: stretch;
+  gap: 15px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+/* FRONT */
+.front {
+  flex: 0 0 var(--front-width);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.driver {
+  width: 100%;
+  background: #334155;
+  color: white;
+  padding: 10px 5px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .driver {
+    font-size: 11px;
+    padding: 6px 3px;
+  }
+}
+
+.driverIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #0f172a;
+  margin: 0 auto 6px;
+}
+
+@media (max-width: 600px) {
+  .driverIcon {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.divider {
+  width: 60%;
+  height: 2px;
+  background: #cbd5e1;
+}
+
+.frontSeats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cabin-gap);
+}
+
+/* CỬA TỰ ĐỘNG: Tính toán động ăn theo Front Width */
+.autoDoorStrip {
+  position: absolute;
+
+  /* Đặt sát dưới đáy của .busFrame */
+  bottom: -2px;
+
+  /* CĂN GIỮA TUYỆT ĐỐI THEO FRAME CHÍNH */
+  left: 50%;
+  transform: translateX(-50%);
+
+  /* Chiều rộng cố định hoặc theo tỉ lệ để không bị đẩy bung khung */
+  width: 200px;
+  height: 20px;
+
+  background: #e2e8f0;
+  border: 2px dashed #94a3b8;
+  border-bottom-left-radius: 30px;
+  border-bottom-right-radius: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 600;
+  font-size: 11px;
+  color: #334155;
+  z-index: 5;
+  box-sizing: border-box;
+}
+
+/* Khi sang màn hình điện thoại nhỏ */
+@media (max-width: 600px) {
+  .autoDoorStrip {
+    width: 130px; /* Thu hẹp chiều dài thanh cửa lại */
+    height: 16px; /* Giảm chiều cao */
+    font-size: 9px; /* Hạ cỡ chữ xuống */
+    bottom: -1px; /* Ép sát hơn tránh hở viền */
+  }
+}

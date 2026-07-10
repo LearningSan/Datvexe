@@ -1,0 +1,134 @@
+.promoSection {
+  width: 100%;
+  max-width: 900px;
+  margin: 40px 0;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.header {
+  font-size: 22px; /* Tăng kích thước chữ để tạo sự chú ý */
+  font-weight: 800; /* Tăng độ dày chữ lên mức tối đa */
+  text-align: center;
+  margin-bottom: 20px; /* Tạo khoảng cách thông thoáng với các thẻ slide bên dưới */
+  letter-spacing: -0.02em; /* Thu hẹp khoảng cách chữ một chút nhìn sẽ giống tạp chí/banner hơn */
+
+  /* Tạo hiệu ứng chữ chuyển màu (Gradient Text) từ Cam sang Hồng/Đỏ Đậm */
+  background: linear-gradient(135deg, #f97316 0%, #d21d6e 50%, #b91c1c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* Tạo chiều sâu cho chữ */
+  filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.05));
+
+  /* Cấu hình vị trí để làm đường line trang trí bên dưới */
+  position: relative;
+  display: table; /* Giúp khối border dưới vừa khít với độ dài của chữ */
+  margin-left: auto;
+  margin-right: auto;
+  padding-bottom: 8px;
+}
+
+/* Thêm một đường gạch chân nhỏ tinh tế phía dưới tiêu đề */
+.header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px; /* Độ dài đường gạch */
+  height: 4px; /* Độ dày */
+  background: linear-gradient(90deg, #f97316, #d21d6e);
+  border-radius: 99px; /* Bo tròn 2 đầu đường gạch */
+}
+@media (min-width: 768px) {
+  .header {
+    font-size: 26px;
+    margin-bottom: 24px;
+  }
+  .header::after {
+    width: 70px;
+  }
+}
+.promoWrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+
+  width: 38px;
+  height: 38px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.95);
+
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+
+  cursor: pointer;
+
+  font-size: 24px;
+  font-weight: bold;
+
+  transition: all 0.2s ease;
+}
+
+.navBtn:hover {
+  transform: translateY(-50%) scale(1.05);
+}
+
+.prevBtn {
+  left: 8px;
+}
+
+.nextBtn {
+  right: 8px;
+}
+
+.promoTrack {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  width: 100%;
+}
+
+.promoItem {
+  padding: 0 6px;
+  box-sizing: border-box;
+}
+
+.promoCard {
+  width: 100%;
+  height: 120px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f8fafc;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.bannerImage {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+@media (min-width: 768px) {
+  .header {
+    font-size: 26px;
+    margin-bottom: 24px;
+  }
+
+  .header::after {
+    width: 70px;
+  }
+
+  .promoCard {
+    height: 130px;
+  }
+}

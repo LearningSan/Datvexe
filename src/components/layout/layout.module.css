@@ -1,0 +1,498 @@
+/* ================= HEADER SYSTEM (NO LOGO) ================= */
+.header {
+  width: 100%;
+  background-color: #f98242; /* Màu cam đặc trưng */
+  color: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.headerInner {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 0 16px;
+  height: 64px;
+  display: flex;
+  align-items: center; /* Đảm bảo tất cả chữ và nút nằm trên 1 đường thẳng */
+  justify-content: space-between;
+}
+
+/* Các khối chứa menu */
+.leftNav,
+.rightNav {
+  flex: 1;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.leftNav {
+  justify-content: flex-start;
+}
+
+.rightNav {
+  justify-content: flex-end;
+}
+
+/* KHỐI CHỮ THƯƠNG HIỆU TRUNG TÂM */
+.brandBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+}
+
+.brandText {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  text-decoration: none;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+}
+
+.brandHighlight {
+  color: #fef08a; /* Điểm nhấn chữ PT màu vàng sáng */
+}
+
+/* Các nút menu điều hướng */
+.navLink {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  color: #fef08a;
+}
+
+/* Nút đăng nhập */
+.btnLogin {
+  background-color: #ffffff;
+  color: #ea580c;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.btnLogin:hover {
+  background-color: #fff7ed;
+  transform: translateY(-1px);
+}
+
+/* ================= RESPONSIVE (MOBILE) ================= */
+/* ================= RESPONSIVE (MOBILE) ================= */
+@media (max-width: 768px) {
+  .headerInner {
+    height: 56px;
+    padding: 0 8px;
+  }
+
+  .leftNav,
+  .rightNav {
+    gap: 8px;
+  }
+
+  /* Ẩn bớt text điều hướng rườm rà trên mobile để dồn chỗ cho Logo (CSS của bạn đã có ở đoạn dưới) */
+  .navLink {
+    display: none;
+  }
+
+  /* Co nhỏ khung chứa logo trên điện thoại */
+  .logoWrapper {
+    width: 100px; /* Thu nhỏ lại vừa vặn màn hình mobile */
+    height: 32px;
+  }
+
+  .btnLogin {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+}
+/* ================= 2. FOOTER SYSTEM ================= */
+.footer {
+  width: 100%;
+  background-color: #0b1220;
+  color: #94a3b8;
+  padding: 40px 0 20px;
+  border-top: 1px solid #1e293b;
+}
+
+.footerInner {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Gốc 3 cột */
+  gap: 32px;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.text,
+.link,
+.contactItem {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #94a3b8;
+}
+
+.link {
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.link:hover {
+  color: #fbbf24;
+}
+
+.contactItem {
+  color: #cbd5e1;
+}
+
+/* Mạng xã hội */
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.icon {
+  font-size: 12px;
+  padding: 6px 12px;
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #cbd5e1;
+  transition: 0.2s;
+}
+
+.icon:hover {
+  background: #1f2937;
+  color: #fff;
+}
+
+.bottom {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid #1e293b;
+  text-align: center;
+  font-size: 12px;
+  color: #64748b;
+}
+/* Thêm mới style cho thẻ bọc logo */
+.logoWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;        /* 1. Tăng lại chiều rộng lên 140px để logo dàn đều theo chiều ngang */
+  height: 64px;        /* Giữ nguyên chiều cao bằng Header */
+  overflow: hidden;    
+  position: relative;
+}
+
+/* Thẻ img bên trong */
+.logoImg {
+  width: 100%;         /* 2. Cho ảnh chiếm 100% chiều rộng của khung 140px */
+  height: 100%;        
+  object-fit: contain; 
+  clip-path: inset(2% 10% 2% 10%); 
+  transform: scale(1.3); 
+}
+/* ================= 3. RESPONSIVE MEDIA QUERIES (MOBILE) ================= */
+@media (max-width: 768px) {
+  /* --- Khắc phục Header To/Nát trên Mobile --- */
+  .headerInner {
+    height: 56px; /* Hạ độ cao header trên phone */
+  }
+
+  /* Ẩn bớt các chữ điều hướng rườm rà trên mobile để dồn chỗ cho Logo */
+  .navLink {
+    display: none;
+  }
+  .logoWrapper {
+    width: 110px; /* Thu nhỏ lại vừa vặn màn hình điện thoại */
+    height: 36px; /* Thu nhỏ chiều cao tương ứng */
+  }
+
+  .btnLogin {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+
+  /* --- Khắc phục Footer To/Vỡ trên Mobile --- */
+  .footer {
+    padding: 30px 0 16px;
+  }
+
+  .footerInner {
+    grid-template-columns: 1fr; /* Chuyển từ 3 cột thành 1 cột dọc duy nhất */
+    gap: 24px;
+  }
+
+  .col {
+    align-items: center; /* Căn giữa nội dung footer cho đẹp mắt khi ở dạng dọc */
+    text-align: center;
+  }
+
+  .socials {
+    justify-content: center;
+  }
+}
+.userDropdown {
+  position: relative;
+}
+
+.userButton {
+  border: none;
+  background: #0f766e;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dropdownMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 220px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  z-index: 100;
+}
+
+.dropdownMenu button {
+  width: 100%;
+  border: none;
+  background: white;
+  padding: 12px 16px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dropdownMenu button:hover {
+  background: #f1f5f9;
+}
+
+.logoutItem {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.notificationBox {
+  position: relative;
+}
+
+.notificationBtn {
+  position: relative;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 8px;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #ef4444;
+  color: white;
+  font-size: 11px;
+  min-width: 17px;
+  height: 17px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notificationMenu {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  width: 340px;
+  max-height: 420px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+  z-index: 1000;
+  padding: 8px;
+}
+
+.notificationHeader {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.notificationItem {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: white;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.notificationItem:hover {
+  background: #f5f5f5;
+}
+
+.notificationUnread {
+  background: #eef6ff;
+}
+
+.notificationTitle {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.notificationContent {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.4;
+}
+
+.notificationTime {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999;
+}
+
+.notificationEmpty {
+  padding: 20px;
+  text-align: center;
+  color: #777;
+}
+/* Container danh sách có scroll nếu quá nhiều thông báo */
+.notificationList {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Thanh header thông báo */
+.notificationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.markAllBtn {
+  background: none;
+  border: none;
+  color: #0070f3;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.markAllBtn:hover {
+  text-decoration: underline;
+}
+
+/* Các trạng thái trống/đang tải nằm giữa */
+.notificationCenterState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #666;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+/* Badge phân biệt Loại thông báo */
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.typeBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.badgeSuccess {
+  color: #2e7d32;
+  background-color: #e8f5e9;
+}
+
+.badgeDanger {
+  color: #c62828;
+  background-color: #ffebee;
+}
+
+/* Chấm xanh báo hiệu chưa đọc */
+.unreadDot {
+  width: 8px;
+  height: 8px;
+  background-color: #0070f3;
+  border-radius: 50%;
+}
+
+/* Thao tác hover mượt mà */
+.notificationItem {
+  width: 100%;
+  text-align: left;
+  padding: 12px 16px;
+  border: none;
+  background: #fff;
+  border-bottom: 1px solid #f5f5f5;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.notificationItem:hover {
+  background-color: #f9f9f9;
+}
+
+.notificationUnread {
+  background-color: #f0f7ff;
+}
+
+.notificationUnread:hover {
+  background-color: #e1f0ff;
+}

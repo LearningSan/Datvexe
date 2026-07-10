@@ -1,0 +1,48 @@
+.wrapper {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111827;
+  color: white;
+}
+
+.box {
+  text-align: center;
+  padding: 40px;
+}
+
+.icon {
+  font-size: 50px;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: 80px;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 22px;
+  margin-top: 10px;
+}
+
+.desc {
+  margin-top: 10px;
+  opacity: 0.8;
+}
+
+.btn {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: #f97316;
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.btn:hover {
+  background: #ea580c;
+}

@@ -1,0 +1,162 @@
+.resultCard {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 64px 48px;
+  text-align: center;
+  box-shadow:
+    0 20px 25px -5px rgba(15, 23, 42, 0.04),
+    0 10px 10px -5px rgba(15, 23, 42, 0.02);
+  border: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 480px;
+  width: 100%;
+  box-sizing: border-box;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.iconBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  font-size: 44px;
+  margin-bottom: 24px;
+  font-weight: bold;
+}
+
+.successBadge {
+  background: #d1fae5;
+  color: #059669;
+  box-shadow: 0 0 0 12px #f0fdf4;
+}
+
+.failedBadge {
+  background: #fee2e2;
+  color: #dc2626;
+  box-shadow: 0 0 0 12px #fef2f2;
+}
+
+.expiredBadge {
+  background: #fef3c7;
+  color: #d97706;
+  box-shadow: 0 0 0 12px #fffbeb;
+}
+
+.title {
+  font-size: 36px;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px 0;
+}
+
+.successTitle {
+  color: #047857;
+}
+.failedTitle {
+  color: #b91c1c;
+}
+.expiredTitle {
+  color: #b45309;
+}
+
+/* Tăng bề rộng tối đa lên 680px để chữ trải dài thoải mái, không bị gãy dòng gây ức chế */
+.subText {
+  color: #475569;
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 36px 0;
+  max-width: 680px;
+}
+
+.quickInfo {
+  width: 100%;
+  max-width: 520px;
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 16px 24px;
+  margin-bottom: 36px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.quickInfo span:first-child {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.quickInfo .bookingCodeHighlight {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  font-family: monospace;
+  background: #e2e8f0;
+  padding: 6px 14px;
+  border-radius: 8px;
+}
+
+.btnGroup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 520px;
+}
+
+.btn {
+  flex: 1 1 auto;
+  min-width: 140px;
+  padding: 16px 24px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease-in-out;
+  text-align: center;
+}
+
+.btnPrimary {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.2);
+}
+
+.btnPrimary:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.btnSecondary {
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.btnSecondary:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+}
