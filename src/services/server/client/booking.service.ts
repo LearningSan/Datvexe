@@ -29,7 +29,7 @@ import { createShuttleRequest } from "@/repositories/client/shuttle.repo";
 
 import type { BookingPaymentSummary } from "@/types/client/payment/payment.type";
 
-import { HoldSeatsPayload } from "@/types/client/booking/hold-seat.type";
+import { HoldSeatsPayload } from "@/types/client/payment/hold-seat.type";
 import { CreateBookingInput } from "@/validators/client/booking.validator";
 import { formatDateTimeVN } from "@/lib/client/helpers";
 export async function holdSeats(

@@ -10,7 +10,7 @@ import {
 import type {
   HoldSeatsPayload,
   HoldSeatsResponse,
-} from "@/types/client/booking/hold-seat.type";
+} from "@/types/client/payment/hold-seat.type";
 
 interface BookingPreviewPayload {
   tripId: number;
