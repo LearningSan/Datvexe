@@ -1,5 +1,7 @@
 import type mysql from "mysql2/promise";
 
+import { withTransaction } from "@/lib/server/mysql";
+
 import {
   findPaymentByTransactionCode,
   updatePaymentByWebhook,
@@ -13,6 +15,8 @@ import {
 import { createNotification } from "@/repositories/client/notification.repo";
 import { sendPaymentSuccessEmail } from "@/lib/server/mail";
 
+import type { PaymentWebhookPayload } from "@/types/client/payment/payment.type";
+
 export async function confirmPaymentByTransactionCode(params: {
   conn: mysql.PoolConnection;
   transactionCode: string;
@@ -21,10 +25,6 @@ export async function confirmPaymentByTransactionCode(params: {
   gatewayTransactionId: string;
   gatewayResponse: unknown;
 }) {
-  /*
-   * Truyền cùng connection để SELECT nằm trong transaction
-   * và khóa payment bằng FOR UPDATE.
-   */
   const existing = await findPaymentByTransactionCode(
     params.conn,
     params.transactionCode,
@@ -35,7 +35,7 @@ export async function confirmPaymentByTransactionCode(params: {
   }
 
   /*
-   * Webhook có thể được PayOS gửi lại nhiều lần.
+   * Webhook có thể được gửi lại nhiều lần.
    */
   if (existing.status === "PAID" || existing.status === "FAILED") {
     return {
@@ -137,4 +137,40 @@ export async function sendPaymentResultSideEffects(params: {
       seatNumbers: bookingInfo.seatNumbers,
     });
   }
+}
+
+/**
+ * Hàm xử lý webhook dùng chung hiện có.
+ *
+ * Route /api/client/payments/webhook đang import hàm này.
+ */
+export async function handlePaymentWebhook(payload: PaymentWebhookPayload) {
+  const result = await withTransaction(async (conn) => {
+    return confirmPaymentByTransactionCode({
+      conn,
+      transactionCode: payload.transactionCode,
+      status: payload.status,
+      amount: payload.amount,
+      gatewayTransactionId:
+        payload.gatewayTransactionId ?? payload.transactionCode,
+      gatewayResponse: payload.gatewayResponse ?? payload,
+    });
+  });
+
+  /*
+   * Transaction đã commit xong mới gửi mail
+   * và notification.
+   */
+  if (!result.alreadyProcessed) {
+    try {
+      await sendPaymentResultSideEffects({
+        bookingId: result.bookingId,
+        isPaid: payload.status === "SUCCESS",
+      });
+    } catch (error) {
+      console.error("[PAYMENT WEBHOOK SIDE EFFECT ERROR]", error);
+    }
+  }
+
+  return result;
 }
