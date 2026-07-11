@@ -9,7 +9,8 @@ import { usePopularRoutes } from "@/hooks/client/useRoute";
 import { usePromotions } from "@/hooks/client/usePromotion";
 import { useSearchStore, RecentSearch } from "@/store/search.store";
 import { useTripFilterStore } from "@/store/filter.store";
-
+import BlockQueryState from "@/components/common/BlockQueryState";
+import BlockErrorState from "@/components/common/BlockErrorState";
 import { SelectedLocation } from "@/types/client/route/location-search.type";
 
 import SearchForm from "./Search/SearchForm";
@@ -36,9 +37,21 @@ export default function HomeContainer() {
 
   const [origin, setOrigin] = useState<SelectedLocation | null>(null);
   const [destination, setDestination] = useState<SelectedLocation | null>(null);
+  const {
+    data: popularRoutes,
+    isPending: routesPending,
+    isError: routesIsError,
+    error: routesError,
+    refetch: refetchPopularRoutes,
+  } = usePopularRoutes();
 
-  const { data: popularRoutes, isLoading: routesLoading } = usePopularRoutes();
-  const { data: promotions, isLoading: promotionsLoading } = usePromotions();
+  const {
+    data: promotions,
+    isPending: promotionsPending,
+    isError: promotionsIsError,
+    error: promotionsError,
+    refetch: refetchPromotions,
+  } = usePromotions();
 
   const handleSwap = () => {
     setOrigin(destination);
@@ -77,10 +90,25 @@ export default function HomeContainer() {
     router.push("/trips");
   };
 
+  function getTodayLocal() {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  }
+
   const handleSelectHistory = (item: RecentSearch) => {
+    const today = getTodayLocal();
+
+    const validDepartureDate =
+      item.departureDate < today ? today : item.departureDate;
+
     setOrigin(item.origin);
     setDestination(item.destination);
-    setDepartureDate(item.departureDate);
+    setDepartureDate(validDepartureDate);
     setTicketCount(item.ticketCount);
   };
 
@@ -181,23 +209,69 @@ export default function HomeContainer() {
         </div>
       </div>
 
-      <BlockErrorBoundary fallback={<BlockSkeleton height={180} />}>
-        {promotionsLoading ? (
-          <BlockSkeleton height={180} />
-        ) : (
+      <BlockErrorBoundary
+        fallback={
+          <BlockErrorState
+            height={180}
+            title="Khu vực khuyến mãi gặp lỗi"
+            message="Không thể hiển thị khu vực khuyến mãi."
+          />
+        }
+      >
+        <BlockQueryState
+          isPending={promotionsPending}
+          isError={promotionsIsError}
+          hasData={promotions !== undefined}
+          height={180}
+          errorTitle="Không thể tải khuyến mãi"
+          errorMessage={
+            (promotionsError as any)?.response?.data?.message ||
+            (promotionsError as any)?.message ||
+            "Khu vực khuyến mãi tạm thời không khả dụng."
+          }
+          onRetry={() => {
+            void refetchPromotions();
+          }}
+        >
           <PromoSection promotionsList={promotions ?? []} />
-        )}
+        </BlockQueryState>
       </BlockErrorBoundary>
 
-      <BlockErrorBoundary fallback={<BlockSkeleton height={220} />}>
-        {routesLoading ? (
-          <BlockSkeleton height={220} />
-        ) : (
+      <BlockErrorBoundary
+        fallback={
+          <BlockErrorState
+            height={220}
+            title="Khu vực tuyến phổ biến gặp lỗi"
+            message="Không thể hiển thị khu vực tuyến phổ biến."
+          />
+        }
+      >
+        <BlockQueryState
+          isPending={routesPending}
+          isError={routesIsError}
+          hasData={popularRoutes !== undefined}
+          height={220}
+          errorTitle="Không thể tải tuyến phổ biến"
+          errorMessage={
+            (routesError as any)?.response?.data?.message ||
+            (routesError as any)?.message ||
+            "Danh sách tuyến phổ biến tạm thời không khả dụng."
+          }
+          onRetry={() => {
+            void refetchPopularRoutes();
+          }}
+        >
           <PopularRoutes data={popularRoutes ?? []} />
-        )}
+        </BlockQueryState>
       </BlockErrorBoundary>
 
-      <HomeStatistics />
+      <BlockErrorBoundary
+        fallback={
+          <BlockErrorState height={180} title="Không thể hiển thị thống kê" />
+        }
+      >
+        <HomeStatistics />
+      </BlockErrorBoundary>
     </div>
   );
 }

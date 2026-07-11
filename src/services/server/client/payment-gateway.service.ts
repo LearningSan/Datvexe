@@ -30,7 +30,23 @@ export type GatewayResult = {
   actionText: string | null;
   gatewayResponse: unknown;
 };
+function requireEnv(name: string): string {
+  const value = process.env[name];
 
+  if (!value) {
+    throw new Error(`Thiếu biến môi trường ${name}`);
+  }
+
+  return value;
+}
+
+export function getPayosClient(): PayOS {
+  return new PayOS({
+    clientId: requireEnv("PAYOS_CLIENT_ID"),
+    apiKey: requireEnv("PAYOS_API_KEY"),
+    checksumKey: requireEnv("PAYOS_CHECKSUM_KEY"),
+  });
+}
 function appHost() {
   return (
     process.env.NEXT_PUBLIC_APP_URL ||
@@ -71,11 +87,7 @@ export async function createGatewayPayment(
 }
 
 async function createPayos(input: Input): Promise<GatewayResult> {
-  const payOS = new PayOS({
-    clientId: process.env.PAYOS_CLIENT_ID!,
-    apiKey: process.env.PAYOS_API_KEY!,
-    checksumKey: process.env.PAYOS_CHECKSUM_KEY!,
-  });
+  const payOS = getPayosClient();
 
   const orderCode = Number(String(Date.now()).slice(-10));
 

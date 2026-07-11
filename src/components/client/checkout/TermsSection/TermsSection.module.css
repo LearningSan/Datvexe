@@ -94,12 +94,13 @@
 .content {
   font-size: 13.5px;
   color: #334155;
-  line-height: 1.5;
+  line-height: 1.6;        /* Tăng nhẹ line-height lên 1.6 đọc cho thoáng */
   overflow-y: auto;
   flex: 1;
   padding-right: 8px;
+  white-space: pre-line;   /* Chốt hạ: Giúp giữ nguyên các dòng text xuống hàng */
+  text-align: justify;     /* Giúp căn đều hai bên nhìn chuyên nghiệp hơn */
 }
-
 .closeBtn {
   height: 40px;
   background: #0f172a;

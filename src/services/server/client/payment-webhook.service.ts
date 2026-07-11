@@ -1,4 +1,4 @@
-import { withTransaction } from "@/lib/server/mysql";
+import type mysql from "mysql2/promise";
 
 import {
   findPaymentByTransactionCode,
@@ -13,100 +13,128 @@ import {
 import { createNotification } from "@/repositories/client/notification.repo";
 import { sendPaymentSuccessEmail } from "@/lib/server/mail";
 
-import type { PaymentWebhookInput } from "@/validators/client/payment.validator";
-
-export async function handlePaymentWebhook(
-  payload: PaymentWebhookInput,
-): Promise<{ success: boolean }> {
-  const existing = await findPaymentByTransactionCode(payload.transactionCode);
+export async function confirmPaymentByTransactionCode(params: {
+  conn: mysql.PoolConnection;
+  transactionCode: string;
+  status: "SUCCESS" | "FAILED";
+  amount?: number;
+  gatewayTransactionId: string;
+  gatewayResponse: unknown;
+}) {
+  /*
+   * Truyền cùng connection để SELECT nằm trong transaction
+   * và khóa payment bằng FOR UPDATE.
+   */
+  const existing = await findPaymentByTransactionCode(
+    params.conn,
+    params.transactionCode,
+  );
 
   if (!existing) {
     throw new Error("Transaction không tồn tại");
   }
 
+  /*
+   * Webhook có thể được PayOS gửi lại nhiều lần.
+   */
   if (existing.status === "PAID" || existing.status === "FAILED") {
-    return { success: true };
+    return {
+      success: true,
+      bookingId: existing.bookingId,
+      alreadyProcessed: true,
+    };
   }
 
-  const isPaid = payload.status === "SUCCESS";
+  if (
+    typeof params.amount === "number" &&
+    Math.round(Number(existing.amount)) !== Math.round(Number(params.amount))
+  ) {
+    throw new Error("Số tiền thanh toán không khớp");
+  }
 
-  await withTransaction(async (conn) => {
-    await updatePaymentByWebhook(conn, existing.paymentId, {
-      status: isPaid ? "PAID" : "FAILED",
-      paidAt: isPaid ? new Date() : null,
-      gatewayTransactionId: payload.gatewayTransactionId,
-      gatewayResponse:
-        typeof payload.gatewayResponse === "string"
-          ? payload.gatewayResponse
-          : JSON.stringify(payload.gatewayResponse ?? {}),
-    });
+  const isPaid = params.status === "SUCCESS";
 
-    await updateBookingStatus(
-      conn,
-      existing.bookingId,
-      isPaid ? "CONFIRMED" : "CANCELLED",
-    );
-
-    if (isPaid) {
-      const holds = await findSeatHoldsByBooking(existing.bookingId);
-
-      if (!holds.length) {
-        throw new Error("Không tìm thấy ghế đang giữ");
-      }
-
-      await insertBookingSeatsWebhook(
-        conn,
-        existing.bookingId,
-        holds[0].tripId,
-        holds.map((s) => ({
-          seatLayoutDetailId: s.seatLayoutDetailId,
-          seatPrice: s.seatPrice,
-        })),
-      );
-
-      await deleteSeatHoldsByBooking(conn, existing.bookingId);
-    }
-
-    const bookingInfo = await findBookingByIdForNotification(
-      existing.bookingId,
-    );
-
-    if (bookingInfo?.userId) {
-      await createNotification(conn, {
-        userId: bookingInfo.userId,
-        type: isPaid ? "PAYMENT" : "BOOKING",
-        title: isPaid ? "Thanh toán thành công" : "Thanh toán thất bại",
-        content: isPaid
-          ? `Thanh toán thành công! Mã vé của bạn là ${bookingInfo.bookingCode}.`
-          : `Giao dịch thất bại. Vé ${bookingInfo.bookingCode} đã bị hủy.`,
-      });
-    }
+  await updatePaymentByWebhook(params.conn, existing.paymentId, {
+    status: isPaid ? "PAID" : "FAILED",
+    paidAt: isPaid ? new Date() : null,
+    gatewayTransactionId: params.gatewayTransactionId,
+    gatewayResponse:
+      typeof params.gatewayResponse === "string"
+        ? params.gatewayResponse
+        : JSON.stringify(params.gatewayResponse ?? {}),
   });
 
-  const bookingInfo = await findBookingByIdForNotification(existing.bookingId);
+  if (!isPaid) {
+    await updateBookingStatus(params.conn, existing.bookingId, "CANCELLED");
 
-  if (isPaid && bookingInfo?.contactEmail) {
+    return {
+      success: true,
+      bookingId: existing.bookingId,
+      alreadyProcessed: false,
+    };
+  }
+
+  await updateBookingStatus(params.conn, existing.bookingId, "CONFIRMED");
+
+  const holds = await findSeatHoldsByBooking(params.conn, existing.bookingId);
+
+  if (!holds.length) {
+    throw new Error("Không tìm thấy ghế đang giữ");
+  }
+
+  await insertBookingSeatsWebhook(
+    params.conn,
+    existing.bookingId,
+    holds[0].tripId,
+    holds.map((seat) => ({
+      seatLayoutDetailId: seat.seatLayoutDetailId,
+      seatPrice: Number(seat.seatPrice),
+    })),
+  );
+
+  await deleteSeatHoldsByBooking(params.conn, existing.bookingId);
+
+  return {
+    success: true,
+    bookingId: existing.bookingId,
+    alreadyProcessed: false,
+  };
+}
+
+export async function sendPaymentResultSideEffects(params: {
+  bookingId: number;
+  isPaid: boolean;
+}) {
+  const bookingInfo = await findBookingByIdForNotification(params.bookingId);
+
+  if (bookingInfo?.userId) {
+    await createNotification(null as any, {
+      userId: bookingInfo.userId,
+      type: params.isPaid ? "PAYMENT" : "BOOKING",
+      title: params.isPaid ? "Thanh toán thành công" : "Thanh toán thất bại",
+      content: params.isPaid
+        ? `Thanh toán thành công! Mã vé của bạn là ${bookingInfo.bookingCode}.`
+        : `Giao dịch thất bại. Vé ${bookingInfo.bookingCode} đã bị hủy.`,
+    });
+  }
+
+  if (params.isPaid && bookingInfo?.contactEmail) {
     await sendPaymentSuccessEmail({
       to: bookingInfo.contactEmail,
       customerName: bookingInfo.contactName,
       customerPhone: bookingInfo.contactPhone,
       bookingCode: bookingInfo.bookingCode,
       amount: bookingInfo.totalAmount,
-
       routeName: bookingInfo.routeName,
       departureDatetime: bookingInfo.departureDatetime,
       arrivalDatetime: bookingInfo.arrivalDatetime,
-
       pickupPointName: bookingInfo.pickupPointName,
       pickupPointAddress: bookingInfo.pickupPointAddress,
       dropoffPointName: bookingInfo.dropoffPointName,
       dropoffPointAddress: bookingInfo.dropoffPointAddress,
-
       vehicleName: bookingInfo.vehicleName,
       licensePlate: bookingInfo.licensePlate,
       seatNumbers: bookingInfo.seatNumbers,
     });
   }
-
-  return { success: true };
 }

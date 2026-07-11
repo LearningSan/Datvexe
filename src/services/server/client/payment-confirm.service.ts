@@ -21,7 +21,10 @@ export async function confirmPaymentByTransactionCode(params: {
   gatewayTransactionId: string;
   gatewayResponse: unknown;
 }) {
-  const existing = await findPaymentByTransactionCode(params.transactionCode);
+  const existing = await findPaymentByTransactionCode(
+    params.conn,
+    params.transactionCode,
+  );
 
   if (!existing) {
     throw new Error("Transaction không tồn tại");
@@ -66,7 +69,7 @@ export async function confirmPaymentByTransactionCode(params: {
 
   await updateBookingStatus(params.conn, existing.bookingId, "CONFIRMED");
 
-  const holds = await findSeatHoldsByBooking(existing.bookingId);
+  const holds = await findSeatHoldsByBooking(params.conn, existing.bookingId);
 
   if (!holds.length) {
     throw new Error("Không tìm thấy ghế đang giữ");

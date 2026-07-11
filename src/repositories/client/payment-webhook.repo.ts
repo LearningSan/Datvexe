@@ -1,36 +1,35 @@
 import type mysql from "mysql2/promise";
-
+import type { PaymentStatus } from "@/types/client/payment/payment.type";
 import { query, connQuery } from "@/lib/server/mysql";
-
-// ============================================================
-// FIND PAYMENT
-// ============================================================
-
-export async function findPaymentByTransactionCode(transactionCode: string) {
-  const sql = `
+export async function findPaymentByTransactionCode(
+  conn: mysql.PoolConnection,
+  transactionCode: string,
+) {
+  const rows = await connQuery<{
+    paymentId: number;
+    bookingId: number;
+    amount: string | number;
+    status: PaymentStatus;
+    transactionCode: string;
+  }>(
+    conn,
+    `
     SELECT
       payment_id AS paymentId,
       booking_id AS bookingId,
       amount,
-      status
+      status,
+      transaction_code AS transactionCode
     FROM payments
     WHERE transaction_code = ?
     LIMIT 1
-  `;
-
-  const rows = await query<{
-    paymentId: number;
-    bookingId: number;
-    amount: number;
-    status: string;
-  }>(sql, [transactionCode]);
+    FOR UPDATE
+    `,
+    [transactionCode],
+  );
 
   return rows[0] ?? null;
 }
-
-// ============================================================
-// UPDATE PAYMENT
-// ============================================================
 
 export async function updatePaymentByWebhook(
   conn: mysql.PoolConnection,
@@ -61,10 +60,6 @@ export async function updatePaymentByWebhook(
   ]);
 }
 
-// ============================================================
-// UPDATE BOOKING STATUS
-// ============================================================
-
 export async function updateBookingStatus(
   conn: mysql.PoolConnection,
   bookingId: number,
@@ -81,10 +76,6 @@ export async function updateBookingStatus(
   );
 }
 
-// ============================================================
-// GET BOOKING SEATS
-// ============================================================
-
 export async function findBookingSeats(bookingId: number) {
   const sql = `
     SELECT
@@ -99,10 +90,6 @@ export async function findBookingSeats(bookingId: number) {
     tripId: number;
   }>(sql, [bookingId]);
 }
-
-// ============================================================
-// RETURN AVAILABLE SEATS
-// ============================================================
 
 export async function incrementAvailableSeats(
   conn: mysql.PoolConnection,
@@ -125,24 +112,28 @@ export async function incrementAvailableSeats(
 
   await connQuery(conn, sql, [count, tripId]);
 }
-export async function findSeatHoldsByBooking(bookingId: number) {
-  return await query<{
-    seatLayoutDetailId: number;
-    seatPrice: number;
+export async function findSeatHoldsByBooking(
+  conn: mysql.PoolConnection,
+  bookingId: number,
+) {
+  return connQuery<{
     tripId: number;
+    seatLayoutDetailId: number;
+    seatPrice: string | number;
   }>(
+    conn,
     `
     SELECT
+      sh.trip_id AS tripId,
       sh.seat_layout_detail_id AS seatLayoutDetailId,
-      COALESCE(t.ticket_price, st.base_price) AS seatPrice,
-      sh.trip_id AS tripId
+      COALESCE(t.ticket_price, st.base_price) AS seatPrice
     FROM seat_holds sh
     INNER JOIN trips t
       ON t.trip_id = sh.trip_id
     INNER JOIN schedule_templates st
       ON st.schedule_template_id = t.schedule_template_id
     WHERE sh.booking_id = ?
-      AND sh.expired_at > NOW()
+    FOR UPDATE
     `,
     [bookingId],
   );

@@ -3,8 +3,6 @@ Khi sử dụng dịch vụ đặt vé xe, bạn đồng ý cung cấp thông ti
 `;
 
 export const TERMS_FULL = `
-ĐIỀU KHOẢN DỊCH VỤ ĐẶT VÉ XE
-
 1. Chấp nhận điều khoản
 Khi truy cập và sử dụng hệ thống đặt vé xe của chúng tôi, người dùng đồng ý tuân thủ toàn bộ các điều khoản được quy định trong văn bản này. Nếu không đồng ý, vui lòng không sử dụng dịch vụ.
 

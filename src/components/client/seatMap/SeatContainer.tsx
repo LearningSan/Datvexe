@@ -1,9 +1,11 @@
 "use client";
+
 import { toast } from "sonner";
+
 import { useTripSeats } from "@/hooks/client/useSeat";
 
-import { TripSeatResponse } from "@/types/client/seat/seat-response.type";
-import { Seat } from "@/types/client/seat/seat.type";
+import type { TripSeatResponse } from "@/types/client/seat/seat-response.type";
+import type { Seat } from "@/types/client/seat/seat.type";
 
 import Sleeper40 from "../seatMap/seatTemplate/Sleeper40/Sleeper40";
 import Limousine19 from "../seatMap/seatTemplate/Limousine19/Limousine19";
@@ -18,6 +20,8 @@ import { useBookingStore } from "@/store/booking.store";
 import BlockErrorBoundary from "@/components/common/BlockErrorBoundary";
 import BlockSkeleton from "@/components/common/BlockSkeleton";
 
+import ErrorRenderer from "@/lib/error/error.renderer";
+
 import styles from "./SeatContainer.module.css";
 
 interface Props {
@@ -26,20 +30,36 @@ interface Props {
 }
 
 export default function SeatContainer({ tripId, initialData }: Props) {
-  const { data, isLoading, error } = useTripSeats(tripId, initialData);
+  const query = useTripSeats(tripId, initialData);
+
+  const { data, isPending, isFetching, isError, error } = query;
+
+  const handleRetry = () => {
+    void query.refetch();
+  };
 
   const { selectedSeats, toggleSeat, selectedTrip } = useBookingStore();
+
   const MAX_SEATS = 5;
 
-  if (isLoading) {
+  if (isPending && !data) {
     return <BlockSkeleton height={500} />;
   }
 
-  if (error || !data) {
+  if (isError && !data) {
+    return <ErrorRenderer error={error} onRetry={handleRetry} />;
+  }
+
+  if (!data) {
     return (
-      <div style={{ padding: 20, textAlign: "center", color: "#999" }}>
-        Không tải được dữ liệu ghế
-      </div>
+      <ErrorRenderer
+        error={{
+          response: {
+            status: 404,
+          },
+        }}
+        onRetry={handleRetry}
+      />
     );
   }
   const handleSelectSeat = (seat: Seat) => {
@@ -47,7 +67,9 @@ export default function SeatContainer({ tripId, initialData }: Props) {
       return;
     }
 
-    const isSelected = selectedSeats.some((s) => s.seatId === seat.seatId);
+    const isSelected = selectedSeats.some(
+      (selectedSeat) => selectedSeat.seatId === seat.seatId,
+    );
 
     if (!isSelected && selectedSeats.length >= MAX_SEATS) {
       toast.warning("Bạn chỉ được chọn tối đa 5 ghế");
@@ -60,6 +82,7 @@ export default function SeatContainer({ tripId, initialData }: Props) {
       price: selectedTrip?.price ?? 0,
     });
   };
+
   const commonProps = {
     seats: data.seats,
     selectedSeats,
@@ -105,9 +128,46 @@ export default function SeatContainer({ tripId, initialData }: Props) {
   return (
     <div className={styles.wrapper}>
       <div className={styles.main}>
+        {isError && (
+          <div
+            style={{
+              marginBottom: 12,
+              padding: "10px 14px",
+              borderRadius: 10,
+              background: "#fff7ed",
+              color: "#9a3412",
+              fontSize: 14,
+              fontWeight: 600,
+            }}
+          >
+            Không thể cập nhật trạng thái ghế mới nhất.
+            <button
+              type="button"
+              onClick={handleRetry}
+              style={{
+                marginLeft: 8,
+              }}
+            >
+              Thử lại
+            </button>
+          </div>
+        )}
         <BlockErrorBoundary fallback={<BlockSkeleton height={400} />}>
           {renderLayout()}
         </BlockErrorBoundary>
+
+        {isFetching && !isPending && !isError && (
+          <div
+            style={{
+              marginTop: 10,
+              color: "#64748b",
+              fontSize: 13,
+              textAlign: "center",
+            }}
+          >
+            Đang cập nhật trạng thái ghế...
+          </div>
+        )}
       </div>
 
       <aside className={styles.sidebar}>
@@ -115,7 +175,9 @@ export default function SeatContainer({ tripId, initialData }: Props) {
           <BookingSummary />
         </BlockErrorBoundary>
 
-        <SeatLegend />
+        <BlockErrorBoundary fallback={<BlockSkeleton height={100} />}>
+          <SeatLegend />
+        </BlockErrorBoundary>
       </aside>
     </div>
   );

@@ -32,16 +32,20 @@ export default function LocationAutocomplete({
   const [focused, setFocused] = useState(false);
 
   const [expandedZones, setExpandedZones] = useState<number[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
 
-  const { data, isLoading } = useLocationSearch(keyword);
-
+  const { data, isFetching } = useLocationSearch(keyword, open && isTyping);
   const searchData = data || [];
-
   useEffect(() => {
     if (value?.label) {
       setKeyword(value.label);
+      setIsTyping(false);
+      setOpen(false);
+    } else {
+      setKeyword("");
+      setIsTyping(false);
     }
-  }, [value]);
+  }, [value?.id, value?.label]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -69,10 +73,6 @@ export default function LocationAutocomplete({
     );
   };
 
-  /**
-   * ✅ Luôn normalize về CITY ID
-   * label vẫn giữ office / hub / city để UX đẹp hơn
-   */
   const createCitySelection = (
     cityId: number,
     label: string,
@@ -83,7 +83,14 @@ export default function LocationAutocomplete({
       label,
     };
   };
+  const handleSelectLocation = (selected: SelectedLocation) => {
+    setKeyword(selected.label);
+    setIsTyping(false);
+    setOpen(false);
+    setExpandedZones([]);
 
+    onSelect(selected);
+  };
   return (
     <div ref={wrapperRef} className={styles.wrapper}>
       <label className={styles.label}>{label}</label>
@@ -103,7 +110,7 @@ export default function LocationAutocomplete({
           onFocus={() => {
             setFocused(true);
 
-            if (keyword.trim().length >= 2) {
+            if (isTyping && keyword.trim().length >= 2) {
               setOpen(true);
             }
           }}
@@ -114,24 +121,24 @@ export default function LocationAutocomplete({
             }
           }}
           onChange={(e) => {
-            const value = e.target.value;
+            const nextKeyword = e.target.value;
 
-            setKeyword(value);
-
-            setOpen(value.trim().length >= 2);
+            setKeyword(nextKeyword);
+            setIsTyping(true);
+            setOpen(nextKeyword.trim().length >= 2);
           }}
         />
       </div>
 
       {open && (
         <div className={styles.dropdown}>
-          {isLoading && <div className={styles.loading}>Đang tìm kiếm...</div>}
+          {isFetching && <div className={styles.loading}>Đang tìm kiếm...</div>}
 
-          {!isLoading && !searchData.length && (
+          {!isFetching && !searchData.length && (
             <div className={styles.empty}>Không tìm thấy kết quả</div>
           )}
 
-          {!isLoading &&
+          {!isFetching &&
             searchData.map((city) => (
               <div key={city.city_id} className={styles.cityBlock}>
                 {/* CITY */}
@@ -143,12 +150,9 @@ export default function LocationAutocomplete({
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={(e) => {
                     e.stopPropagation();
-
-                    onSelect(createCitySelection(city.city_id, city.city_name));
-
-                    setKeyword(city.city_name);
-
-                    setOpen(false);
+                    handleSelectLocation(
+                      createCitySelection(city.city_id, city.city_name),
+                    );
                   }}
                 >
                   <MapPin size={18} />
@@ -206,20 +210,12 @@ export default function LocationAutocomplete({
                                 onClick={(e) => {
                                   e.stopPropagation();
 
-                                  /**
-                                   * ✅ LABEL = office
-                                   * ✅ ID = city_id
-                                   */
-                                  onSelect(
+                                  handleSelectLocation(
                                     createCitySelection(
                                       city.city_id,
                                       office.point_name,
                                     ),
                                   );
-
-                                  setKeyword(office.point_name);
-
-                                  setOpen(false);
                                 }}
                               >
                                 <Building2 size={15} />
@@ -255,20 +251,12 @@ export default function LocationAutocomplete({
                           onClick={(e) => {
                             e.stopPropagation();
 
-                            /**
-                             * ✅ LABEL = office
-                             * ✅ ID = city_id
-                             */
-                            onSelect(
+                            handleSelectLocation(
                               createCitySelection(
                                 city.city_id,
                                 office.point_name,
                               ),
                             );
-
-                            setKeyword(office.point_name);
-
-                            setOpen(false);
                           }}
                         >
                           <Building2 size={15} />

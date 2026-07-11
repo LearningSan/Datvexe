@@ -27,22 +27,25 @@ export function useCities() {
   });
 }
 
-export function useLocationSearch(keyword: string) {
-  const debouncedKeyword = useDebounce(keyword, 300);
+export function useLocationSearch(keyword: string, enabled = true) {
+  const debouncedKeyword = useDebounce(keyword.trim(), 500);
 
   return useQuery({
     queryKey: ["location-search", debouncedKeyword],
     queryFn: () => searchLocations(debouncedKeyword),
-    enabled: debouncedKeyword.trim().length >= 2,
+
+    enabled: enabled && debouncedKeyword.length >= 2,
+
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
+
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    retry: 1,
+
+    retry: false,
   });
 }
-
 export function useOfficePickupPoints(cityId?: number, zoneIds: number[] = []) {
   return useQuery({
     queryKey: ["office-pickup-points", cityId, zoneIds],

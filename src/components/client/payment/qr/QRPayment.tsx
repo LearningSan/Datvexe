@@ -40,20 +40,15 @@ function getLogoText(method: PaymentMethodType) {
   if (method === "CASH") return "$";
   return "";
 }
+
 function getQrAppName(method: PaymentMethodType) {
-  if (method === "MOMO") {
-    return "ứng dụng MoMo";
-  }
-
-  if (method === "ZALOPAY") {
-    return "ứng dụng ZaloPay";
-  }
-
+  if (method === "MOMO") return "ứng dụng MoMo";
+  if (method === "ZALOPAY") return "ứng dụng ZaloPay";
   return "ứng dụng ngân hàng";
 }
+
 function isDirectQrImageUrl(value: string) {
   const normalized = value.toLowerCase();
-
   return (
     normalized.includes("img.vietqr.io/") ||
     normalized.includes("api.qrserver.com/") ||
@@ -63,16 +58,13 @@ function isDirectQrImageUrl(value: string) {
 
 function buildQrImageUrl(value: string | null | undefined) {
   if (!value) return null;
-
-  if (isDirectQrImageUrl(value)) {
-    return value;
-  }
-
+  if (isDirectQrImageUrl(value)) return value;
   return (
     "https://api.qrserver.com/v1/create-qr-code/" +
     `?size=320x320&data=${encodeURIComponent(value)}`
   );
 }
+
 const QRPayment = memo(function QRPayment({
   method,
   totalAmount,
@@ -82,16 +74,14 @@ const QRPayment = memo(function QRPayment({
   onConfirmManualPayment,
 }: QRPaymentProps) {
   const manualInfo = paymentData?.manualInfo;
-
   const qrImageUrl = buildQrImageUrl(paymentData?.qrCodeUrl);
+
   const handleOpenPayment = () => {
     if (!paymentData) return;
-
     if (paymentData.deeplink) {
       window.location.href = paymentData.deeplink;
       return;
     }
-
     if (paymentData.paymentUrl) {
       window.location.href = paymentData.paymentUrl;
     }
@@ -110,11 +100,20 @@ const QRPayment = memo(function QRPayment({
   const canPayWallet =
     showWallet && walletMissing <= 0 && paymentData?.status !== "PAID";
   const isVietQR = method === "VIETQR";
+
+  // Hàm helper lấy class màu sắc trạng thái
+  const getStatusClass = (status?: string) => {
+    if (status === "PAID") return styles.statusSuccess;
+    if (status === "WAITING_CONFIRM") return styles.statusProcessing;
+    return styles.statusPending;
+  };
+
   return (
     <div className={styles.wrapper}>
+      {/* Khối số tiền đảo vị trí nhãn lên trên để dễ đọc */}
       <div className={styles.amountBox}>
-        <div className={styles.amount}>{formatCurrency(totalAmount)}</div>
         <div className={styles.amountLabel}>Tổng thanh toán</div>
+        <div className={styles.amount}>{formatCurrency(totalAmount)}</div>
       </div>
 
       {!paymentData && (
@@ -126,10 +125,10 @@ const QRPayment = memo(function QRPayment({
           {isSubmitting ? "Đang tạo thanh toán..." : "Tạo thanh toán"}
         </button>
       )}
+
       {showQr && qrImageUrl && (
         <div className={styles.qrCard}>
           <div className={styles.qrVisualSection}>
-            {/* Thêm class động qrImageWrapVietQR nếu là VietQR */}
             <div
               className={`${styles.qrImageWrap} ${isVietQR ? styles.qrImageWrapVietQR : ""}`}
             >
@@ -147,7 +146,6 @@ const QRPayment = memo(function QRPayment({
             </div>
           </div>
 
-          {/* Cột bên phải: Hướng dẫn chi tiết */}
           <div className={styles.qrGuideSection}>
             <div className={styles.qrGuideTitle}>
               Hướng dẫn thanh toán bằng <span>{getProviderName(method)}</span>
@@ -160,21 +158,18 @@ const QRPayment = memo(function QRPayment({
                   Mở <strong>{getQrAppName(method)}</strong> trên điện thoại
                 </div>
               </li>
-
               <li>
                 <span className={styles.stepNumber}>2</span>
                 <div className={styles.stepText}>
                   Chọn chức năng <strong>Quét mã QR</strong>
                 </div>
               </li>
-
               <li>
                 <span className={styles.stepNumber}>3</span>
                 <div className={styles.stepText}>
                   Quét mã QR đang hiển thị trên màn hình
                 </div>
               </li>
-
               <li>
                 <span className={styles.stepNumber}>4</span>
                 <div className={styles.stepText}>
@@ -273,7 +268,7 @@ const QRPayment = memo(function QRPayment({
           </div>
           <div>
             Trạng thái:{" "}
-            <strong>
+            <strong className={getStatusClass(paymentData.status)}>
               {paymentData.status === "PAID"
                 ? "Đã thanh toán"
                 : paymentData.status === "WAITING_CONFIRM"

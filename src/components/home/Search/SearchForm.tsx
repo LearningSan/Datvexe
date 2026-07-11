@@ -55,7 +55,16 @@ type Props = {
 
   onSelectHistory: (item: RecentSearch) => void;
 };
+function getTodayLocal() {
+  const now = new Date();
 
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+const today = getTodayLocal();
 export default function SearchForm({
   isRoundTrip,
   setIsRoundTrip,
@@ -72,6 +81,7 @@ export default function SearchForm({
   onSwap,
   onSubmit,
   recentSearches = [],
+  onSelectHistory,
 }: Props) {
   return (
     <div className={styles.searchCard}>
@@ -144,7 +154,6 @@ export default function SearchForm({
         </div>
         {/* ROW 2 */}
         <div className={styles.row}>
-          {/* DATE */}
           <div className={styles.inputBlock}>
             <label className={styles.inputLabel}>Ngày đi</label>
 
@@ -156,7 +165,16 @@ export default function SearchForm({
                   type="date"
                   className={styles.dateInput}
                   value={departureDate}
-                  onChange={(e) => setDepartureDate(e.target.value)}
+                  min={today}
+                  onChange={(e) => {
+                    const nextDepartureDate = e.target.value;
+
+                    setDepartureDate(nextDepartureDate);
+
+                    if (returnDate && returnDate < nextDepartureDate) {
+                      setReturnDate(nextDepartureDate);
+                    }
+                  }}
                 />
 
                 <div className={styles.weekday}>
@@ -165,6 +183,30 @@ export default function SearchForm({
               </div>
             </div>
           </div>
+
+          {isRoundTrip && (
+            <div className={styles.inputBlock}>
+              <label className={styles.inputLabel}>Ngày về</label>
+
+              <div className={styles.dateField}>
+                <CalendarIcon size={18} className={styles.inputIcon} />
+
+                <div className={styles.dateContent}>
+                  <input
+                    type="date"
+                    className={styles.dateInput}
+                    value={returnDate}
+                    min={departureDate || today}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                  />
+
+                  <div className={styles.weekday}>
+                    {returnDate ? getWeekday(returnDate) : ""}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* KHỨ HỒI (NGÀY VỀ) */}
           {isRoundTrip && (
@@ -180,6 +222,7 @@ export default function SearchForm({
                     type="date"
                     className={styles.dateInput}
                     value={returnDate}
+                    min={departureDate || today}
                     onChange={(e) => setReturnDate(e.target.value)}
                   />
 
@@ -219,12 +262,7 @@ export default function SearchForm({
                 key={index}
                 className={styles.historyCard}
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  setOrigin(item.origin);
-                  setDestination(item.destination);
-                  setDepartureDate(item.departureDate);
-                  setTicketCount(item.ticketCount);
-                }}
+                onClick={() => onSelectHistory(item)}
               >
                 <div className={styles.historyRoute}>
                   {item.origin?.label} → {item.destination?.label}

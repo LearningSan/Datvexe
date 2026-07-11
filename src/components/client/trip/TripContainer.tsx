@@ -1,19 +1,23 @@
 "use client";
 
-import styles from "./TripContainer.module.css";
-
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
+import styles from "./TripContainer.module.css";
 
 import FilterSidebar from "@/components/client/trip/filterSidebar/FilterSidebar";
 import TripList from "@/components/client/trip/tripList/TripList";
 
 import BlockErrorBoundary from "@/components/common/BlockErrorBoundary";
 import BlockSkeleton from "@/components/common/BlockSkeleton";
+import BlockErrorState from "@/components/common/BlockErrorState";
+
+import ErrorRenderer from "@/lib/error/error.renderer";
 
 import { useTripFilterStore } from "@/store/filter.store";
-import { useTripSearch, useTripFilterOptions } from "@/hooks/client/useTrip";
 import { useBookingStore } from "@/store/booking.store";
+
+import { useTripSearch, useTripFilterOptions } from "@/hooks/client/useTrip";
 
 import type { Trip } from "@/types/client/trip/trip.type";
 import type {
@@ -25,22 +29,44 @@ export default function TripContainer() {
   const router = useRouter();
 
   const { filters, setFilters } = useTripFilterStore();
+
   const { setSelectedTrip, clearSelectedTrip, clearSeats } = useBookingStore();
 
-  const { trips, pagination, isLoading, isFetching } = useTripSearch(filters);
+  const {
+    trips,
+    pagination,
+
+    isLoading: tripsLoading,
+
+    // Refetch nền, đổi bộ lọc, đổi trang
+    isFetching: tripsFetching,
+
+    // Cần hook trả thêm các field này
+    isError: tripsIsError,
+    error: tripsError,
+    refetch: refetchTrips,
+  } = useTripSearch(filters);
+
+
+  const {
+    data: filterOptions,
+    isPending: filterOptionsPending,
+    isError: filterOptionsIsError,
+    error: filterOptionsError,
+    refetch: refetchFilterOptions,
+  } = useTripFilterOptions({
+    origin: filters.originCityId ?? undefined,
+    destination: filters.destinationCityId ?? undefined,
+    date: filters.date || undefined,
+  });
 
   const [openSort, setOpenSort] = useState<"price" | "departure" | null>(null);
-
-  const loading = isLoading || isFetching;
 
   useEffect(() => {
     clearSelectedTrip();
     clearSeats();
-  }, []);
+  }, [clearSelectedTrip, clearSeats]);
 
-  // =========================
-  // FILTER
-  // =========================
 
   const toggleArray = (key: keyof TripSearchFilters, value: string) => {
     const current = filters[key] as string[];
@@ -90,11 +116,7 @@ export default function TripContainer() {
       page: 1,
     });
   };
-  const { data: filterOptions } = useTripFilterOptions({
-    origin: filters.originCityId ?? undefined,
-    destination: filters.destinationCityId ?? undefined,
-    date: filters.date || undefined,
-  });
+
   // =========================
   // TRIP
   // =========================
@@ -104,34 +126,102 @@ export default function TripContainer() {
     router.push(`/trips/${trip.id}`);
   };
 
+  // =========================
+  // LỖI QUERY CHÍNH
+  // =========================
+
+  if (tripsIsError) {
+    return (
+      <ErrorRenderer
+        error={tripsError}
+        onRetry={() => {
+          void refetchTrips();
+        }}
+      />
+    );
+  }
+
   return (
     <div className={styles.container}>
-      {/* SIDEBAR */}
+      {/* SIDEBAR: QUERY PHỤ */}
       <aside className={styles.sidebar}>
-        <BlockErrorBoundary fallback={<div>Lỗi bộ lọc</div>}>
-          <FilterSidebar
-            filters={filters}
-            filterOptions={filterOptions}
-            openSort={openSort}
-            setOpenSort={setOpenSort}
-            toggleArray={toggleArray}
-            handleOnlyAvailable={handleOnlyAvailable}
-            handleSort={handleSort}
-            resetFilters={resetFilters}
-          />
+        <BlockErrorBoundary
+          fallback={
+            <BlockErrorState
+              height={400}
+              title="Bộ lọc gặp lỗi"
+              message="Không thể hiển thị bộ lọc chuyến xe."
+            />
+          }
+        >
+          {filterOptionsPending ? (
+            <BlockSkeleton height={400} />
+          ) : filterOptionsIsError ? (
+            <BlockErrorState
+              height={400}
+              title="Không thể tải bộ lọc"
+              message={
+                (filterOptionsError as any)?.response?.data?.message ||
+                (filterOptionsError as any)?.message ||
+                "Bạn vẫn có thể xem danh sách chuyến ở bên cạnh."
+              }
+              onRetry={() => {
+                void refetchFilterOptions();
+              }}
+            />
+          ) : (
+            <FilterSidebar
+              filters={filters}
+              filterOptions={filterOptions}
+              openSort={openSort}
+              setOpenSort={setOpenSort}
+              toggleArray={toggleArray}
+              handleOnlyAvailable={handleOnlyAvailable}
+              handleSort={handleSort}
+              resetFilters={resetFilters}
+            />
+          )}
         </BlockErrorBoundary>
       </aside>
 
-      {/* MAIN */}
+      {/* MAIN: QUERY CHÍNH */}
       <main className={styles.main}>
-        <BlockErrorBoundary fallback={<BlockSkeleton height={500} />}>
+        <BlockErrorBoundary
+          fallback={
+            <BlockErrorState
+              height={500}
+              title="Danh sách chuyến gặp lỗi"
+              message="Không thể hiển thị danh sách chuyến."
+            />
+          }
+        >
           <TripList
             trips={trips}
-            loading={loading}
+            /*
+             * Không dùng isFetching ở đây.
+             * Nếu dùng isLoading || isFetching,
+             * mỗi lần đổi trang hoặc bộ lọc có thể hiện skeleton lại.
+             */
+            loading={tripsLoading}
             pagination={pagination}
-            onPageChange={(page) => setFilters({ page })}
+            onPageChange={(page) => {
+              setFilters({ page });
+            }}
             onChooseTrip={handleChooseTrip}
           />
+
+          {tripsFetching && !tripsLoading && (
+            <div
+              style={{
+                marginTop: 10,
+                color: "#64748b",
+                fontSize: 13,
+                textAlign: "center",
+              }}
+            >
+              Đang cập nhật danh sách chuyến...
+            </div>
+          )}
         </BlockErrorBoundary>
       </main>
     </div>

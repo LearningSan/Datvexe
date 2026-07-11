@@ -1,78 +1,138 @@
-import { NextResponse } from "next/server";
-import { PayOS } from "@payos/node";
+import { NextRequest, NextResponse } from "next/server";
 
 import { withTransaction } from "@/lib/server/mysql";
 
-import { findPaymentByProviderOrderCode } from "@/repositories/client/payment.repo";
+import { getPayosClient } from "@/services/server/client/payment-gateway.service";
 
 import {
   confirmPaymentByTransactionCode,
   sendPaymentResultSideEffects,
-} from "@/services/server/client/payment-confirm.service";
+} from "@/services/server/client/payment-webhook.service";
 
-const payOS = new PayOS({
-  clientId: process.env.PAYOS_CLIENT_ID!,
-  apiKey: process.env.PAYOS_API_KEY!,
-  checksumKey: process.env.PAYOS_CHECKSUM_KEY!,
-});
+import { findPaymentByProviderOrderCode } from "@/repositories/client/payment.repo";
 
-export async function POST(req: Request) {
+export async function GET() {
+  return NextResponse.json(
+    {
+      success: true,
+      message: "PayOS webhook endpoint is running",
+      method: "POST",
+    },
+    { status: 200 },
+  );
+}
+
+export async function POST(request: NextRequest) {
+  const payOS = getPayosClient();
+
+  type PayosWebhookInput = Parameters<typeof payOS.webhooks.verify>[0];
+
+  let body: PayosWebhookInput;
+
   try {
-    const body = await req.json();
+    body = (await request.json()) as PayosWebhookInput;
+  } catch {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Request body không phải JSON hợp lệ",
+      },
+      { status: 400 },
+    );
+  }
 
-    // Xác minh chữ ký webhook PayOS.
-    const webhookData = await payOS.webhooks.verify(body);
+  console.log("[PAYOS WEBHOOK RECEIVED]", JSON.stringify(body));
 
-    const orderCode = String(webhookData.orderCode);
-    const amount = Number(webhookData.amount);
+  try {
+    /*
+     * verify có thể là async tùy phiên bản SDK,
+     * dùng await vẫn an toàn.
+     */
+    const verifiedData = await payOS.webhooks.verify(body);
 
-    const payment = await findPaymentByProviderOrderCode(orderCode);
+    const orderCode = Number(verifiedData.orderCode);
 
+    const amount = Number(verifiedData.amount);
+
+    if (!Number.isFinite(orderCode) || orderCode <= 0) {
+      throw new Error("orderCode PayOS không hợp lệ");
+    }
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new Error("Số tiền PayOS không hợp lệ");
+    }
+
+    /*
+     * orderCode PayOS được lưu trong
+     * payments.provider_order_code.
+     */
+    const payment = await findPaymentByProviderOrderCode(String(orderCode));
+
+    /*
+     * PayOS có thể gửi webhook kiểm tra URL.
+     * Payload đã verify nhưng chưa có payment tương ứng.
+     */
     if (!payment) {
-      console.error("[PAYOS WEBHOOK] Không tìm thấy payment:", {
+      console.log("[PAYOS WEBHOOK TEST ACCEPTED]", {
         orderCode,
+        amount,
       });
 
       return NextResponse.json(
         {
-          success: false,
-          message: "Không tìm thấy giao dịch",
+          success: true,
+          message: "Webhook endpoint hoạt động",
         },
-        { status: 404 },
+        { status: 200 },
       );
     }
 
-    const isPaid = webhookData.code === "00";
+    const reference =
+      typeof verifiedData.reference === "string"
+        ? verifiedData.reference.trim()
+        : "";
+
+    /*
+     * Không phải mọi phiên bản type PayOS đều khai báo
+     * paymentLinkId trên verifiedData.
+     *
+     * orderCode đủ làm fallback.
+     */
+    const gatewayTransactionId = reference || String(orderCode);
 
     const result = await withTransaction(async (conn) => {
       return confirmPaymentByTransactionCode({
         conn,
-
-        // Dùng transactionCode nội bộ lấy từ database.
         transactionCode: payment.transactionCode,
-
-        status: isPaid ? "SUCCESS" : "FAILED",
+        status: "SUCCESS",
         amount,
-
-        gatewayTransactionId:
-          webhookData.reference || webhookData.paymentLinkId || orderCode,
-
+        gatewayTransactionId,
         gatewayResponse: body,
       });
     });
 
+    /*
+     * Gửi mail và notification sau khi transaction commit.
+     */
     if (!result.alreadyProcessed) {
-      await sendPaymentResultSideEffects({
-        bookingId: result.bookingId,
-        isPaid,
-      });
+      try {
+        await sendPaymentResultSideEffects({
+          bookingId: result.bookingId,
+          isPaid: true,
+        });
+      } catch (sideEffectError) {
+        console.error("[PAYOS SIDE EFFECT ERROR]", sideEffectError);
+      }
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Webhook PayOS đã được xử lý",
-    });
-  } catch (error) {
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Webhook PayOS đã được xử lý",
+      },
+      { status: 200 },
+    );
+  } catch (error: unknown) {
     console.error("[PAYOS WEBHOOK ERROR]", error);
 
     return NextResponse.json(

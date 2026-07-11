@@ -1,15 +1,22 @@
 "use client";
 
-import { useIsFetching, useIsMutating } from "@tanstack/react-query";
+import { useIsFetching } from "@tanstack/react-query";
+
 import LoadingState from "@/components/ui/state/Loading/LoadingState";
 
 export default function GlobalLoading() {
-  const isFetching = useIsFetching();
-  const isMutating = useIsMutating();
+  const initialFetchingCount = useIsFetching({
+    predicate: (query) => {
+      if (query.meta?.globalLoading === false) {
+        return false;
+      }
+      return query.state.data === undefined;
+    },
+  });
 
-  const isLoading = isFetching > 0 || isMutating > 0;
-
-  if (!isLoading) return null;
+  if (initialFetchingCount === 0) {
+    return null;
+  }
 
   return (
     <div
@@ -17,7 +24,7 @@ export default function GlobalLoading() {
         position: "fixed",
         inset: 0,
         zIndex: 9999,
-        background: "#0f172a", // match UI của bạn
+        background: "#0f172a",
       }}
     >
       <LoadingState />

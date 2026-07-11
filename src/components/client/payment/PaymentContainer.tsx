@@ -1,8 +1,14 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from "react";
 import styles from "./PaymentContainer.module.css";
-
+import ErrorRenderer from "@/lib/error/error.renderer";
 import { usePaymentStore } from "@/store/payment.store";
 import { useRouter } from "next/navigation";
 
@@ -68,7 +74,15 @@ export default function PaymentContainer({ bookingId }: Props) {
     reset,
   } = usePaymentStore();
 
-  const { data: summary, isError } = useBookingSummary(bookingId);
+  const summaryQuery = useBookingSummary(bookingId);
+
+  const {
+    data: summary,
+    isPending: summaryPending,
+    isError: summaryIsError,
+    error: summaryError,
+    refetch: refetchSummary,
+  } = summaryQuery;
   const { mutate: createPayment, isPending: isCreating } = useCreatePayment();
   const { mutate: cancelHold } = useCancelHold();
 
@@ -78,7 +92,11 @@ export default function PaymentContainer({ bookingId }: Props) {
   const { mutate: confirmManualPayment, isPending: isConfirmingManual } =
     useConfirmManualPayment();
 
-  const { data: paymentStatus } = usePaymentStatus(
+  const {
+    data: paymentStatus,
+    isError: paymentStatusIsError,
+    refetch: refetchPaymentStatus,
+  } = usePaymentStatus(
     paymentId,
     Boolean(paymentId) && (step === "checkout" || step === "processing"),
   );
@@ -326,45 +344,87 @@ export default function PaymentContainer({ bookingId }: Props) {
     ],
   );
 
-  if (!Number.isFinite(bookingId) || bookingId <= 0) {
-    return <div style={{ padding: 24 }}>Mã bookingId không hợp lệ</div>;
-  }
+  const paymentData = useMemo(() => {
+    if (!summary || !paymentId || !transactionCode || !flowType || !uiMode) {
+      return null;
+    }
 
-  if (isError) {
-    return <div style={{ padding: 24 }}>Lỗi tải thông tin thanh toán</div>;
-  }
+    return {
+      paymentId,
+      bookingId,
+      bookingCode: summary.bookingCode,
+      transactionCode,
+      paymentMethod: selectedMethod,
+      amount: summary.totalAmount,
+      status: paymentStatus?.status ?? ("PENDING" as const),
 
-  if (!summary) return null;
+      flowType,
+      uiMode,
+      actionText,
 
-  const paymentData =
-    paymentId && transactionCode && flowType && uiMode
-      ? {
-          paymentId,
-          bookingId,
-          bookingCode: summary.bookingCode,
-          transactionCode,
-          paymentMethod: selectedMethod,
-          amount: summary.totalAmount,
-          status: paymentStatus?.status ?? ("PENDING" as const),
+      qrCodeUrl,
+      paymentUrl,
+      deeplink,
+      returnUrl,
+      cancelUrl,
+      manualInfo,
 
-          flowType,
-          uiMode,
-          actionText,
-
-          qrCodeUrl,
-          paymentUrl,
-          deeplink,
-          returnUrl,
-          cancelUrl,
-          manualInfo,
-
-          expiredAt: summary.holdExpiredAt ?? "",
-        }
-      : null;
-
+      expiredAt: summary.holdExpiredAt ?? "",
+    };
+  }, [
+    summary,
+    paymentId,
+    bookingId,
+    transactionCode,
+    selectedMethod,
+    paymentStatus?.status,
+    flowType,
+    uiMode,
+    actionText,
+    qrCodeUrl,
+    paymentUrl,
+    deeplink,
+    returnUrl,
+    cancelUrl,
+    manualInfo,
+  ]);
+  const handleRetrySummary = useCallback(() => {
+    void refetchSummary();
+  }, [refetchSummary]);
   const isResultStep =
     step === "success" || step === "failed" || step === "expired";
+  if (!Number.isFinite(bookingId) || bookingId <= 0) {
+    return (
+      <ErrorRenderer
+        error={{
+          response: {
+            status: 404,
+          },
+        }}
+      />
+    );
+  }
 
+  if (summaryPending && !summary) {
+    return <BlockSkeleton height={500} />;
+  }
+
+  if (summaryIsError && !summary) {
+    return <ErrorRenderer error={summaryError} onRetry={handleRetrySummary} />;
+  }
+
+  if (!summary) {
+    return (
+      <ErrorRenderer
+        error={{
+          response: {
+            status: 404,
+          },
+        }}
+        onRetry={handleRetrySummary}
+      />
+    );
+  }
   return (
     <div className={styles.page}>
       <div
@@ -437,6 +497,38 @@ export default function PaymentContainer({ bookingId }: Props) {
                     }}
                   >
                     {paymentError}
+                  </div>
+                )}
+                {paymentStatusIsError && paymentId && (
+                  <div
+                    style={{
+                      marginBottom: 12,
+                      padding: "10px 14px",
+                      borderRadius: 10,
+                      background: "#fff7ed",
+                      color: "#9a3412",
+                      fontSize: 14,
+                      fontWeight: 600,
+                    }}
+                  >
+                    Tạm thời chưa kiểm tra được trạng thái thanh toán.
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void refetchPaymentStatus();
+                      }}
+                      style={{
+                        marginLeft: 8,
+                        padding: "5px 10px",
+                        border: "1px solid #fdba74",
+                        borderRadius: 6,
+                        background: "#fff",
+                        color: "#9a3412",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Kiểm tra lại
+                    </button>
                   </div>
                 )}
                 <QRPayment
