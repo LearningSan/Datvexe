@@ -10,7 +10,6 @@ import { useBookingStore } from "@/store/booking.store";
 export default function PassengerForm() {
   const { data } = useCurrentUser();
 
-  console.log("CURRENT USER:", data);
   const passenger = useBookingStore((s) => s.passenger);
   const setPassenger = useBookingStore((s) => s.setPassenger);
 

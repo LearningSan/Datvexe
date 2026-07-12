@@ -48,11 +48,7 @@ export function getPayosClient(): PayOS {
   });
 }
 function appHost() {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL ||
-    process.env.PAYMENT_PUBLIC_URL ||
-    "http://localhost:3000"
-  ).replace(/\/$/, "");
+  return requireEnv("NEXT_PUBLIC_APP_URL").replace(/\/$/, "");
 }
 
 function publicHost() {
@@ -64,11 +60,27 @@ function publicHost() {
 }
 
 function resultUrl(bookingId: number) {
-  return `${appHost()}/payment/result?bookingId=${bookingId}`;
+  if (!Number.isInteger(bookingId) || bookingId <= 0) {
+    throw new Error(`bookingId không hợp lệ: ${bookingId}`);
+  }
+
+  const url = new URL("/payment/result", appHost());
+
+  url.searchParams.set("bookingId", String(bookingId));
+
+  return url.toString();
 }
 
 function cancelUrl(bookingId: number) {
-  return `${appHost()}/api/client/payments/cancel?bookingId=${bookingId}`;
+  if (!Number.isInteger(bookingId) || bookingId <= 0) {
+    throw new Error(`bookingId không hợp lệ: ${bookingId}`);
+  }
+
+  const url = new URL("/api/client/payments/cancel", appHost());
+
+  url.searchParams.set("bookingId", String(bookingId));
+
+  return url.toString();
 }
 
 function buildMomoOrderId(transactionCode: string) {
@@ -160,29 +172,14 @@ function getMomoQrData(data: {
   return data.qrCodeUrl || data.deeplink || data.payUrl || null;
 }
 async function createMomo(input: Input): Promise<GatewayResult> {
-  const partnerCode = process.env.MOMO_PARTNER_CODE?.trim();
-  const accessKey = process.env.MOMO_ACCESS_KEY?.trim();
-  const secretKey = process.env.MOMO_SECRET_KEY?.trim();
-  const endpoint = process.env.MOMO_ENDPOINT?.trim();
+  const partnerCode = requireEnv("MOMO_PARTNER_CODE");
+  const accessKey = requireEnv("MOMO_ACCESS_KEY");
+  const secretKey = requireEnv("MOMO_SECRET_KEY");
+  const endpoint = requireEnv("MOMO_ENDPOINT");
 
-  if (!partnerCode || !accessKey || !secretKey || !endpoint) {
-    console.error("[MOMO ENV MISSING]", {
-      hasPartnerCode: Boolean(partnerCode),
-      hasAccessKey: Boolean(accessKey),
-      hasSecretKey: Boolean(secretKey),
-      hasEndpoint: Boolean(endpoint),
-    });
-
-    throw new Error("Thiếu cấu hình thanh toán MoMo");
+  if (!Number.isInteger(input.bookingId) || input.bookingId <= 0) {
+    throw new Error(`bookingId MoMo không hợp lệ: ${input.bookingId}`);
   }
-
-  // Log cấu hình an toàn, không in key thật.
-  console.log("[MOMO CONFIG]", {
-    endpoint,
-    partnerCode,
-    accessKeyLength: accessKey.length,
-    secretKeyLength: secretKey.length,
-  });
 
   const timestamp = Date.now();
 
@@ -190,17 +187,15 @@ async function createMomo(input: Input): Promise<GatewayResult> {
     `REQ_${input.transactionCode}_${timestamp}`,
   );
 
-  const orderId = buildMomoOrderId(`${input.transactionCode}_${timestamp}`);
+  const orderId = buildMomoOrderId(
+    `${input.transactionCode}_${timestamp}`,
+  );
 
   const amount = String(Math.round(input.amount));
   const orderInfo = `Thanh toan ve ${input.bookingCode}`;
 
-  const redirectUrl =
-    process.env.MOMO_REDIRECT_URL?.trim() || resultUrl(input.bookingId);
-
-  const ipnUrl =
-    process.env.MOMO_IPN_URL?.trim() ||
-    `${publicHost()}/api/client/payments/momo/ipn`;
+  const redirectUrl = resultUrl(input.bookingId);
+  const ipnUrl = `${publicHost()}/api/client/payments/momo/ipn`;
 
   const requestType = "captureWallet";
   const extraData = "";
@@ -219,11 +214,11 @@ async function createMomo(input: Input): Promise<GatewayResult> {
 
   const signature = crypto
     .createHmac("sha256", secretKey)
-    .update(rawSignature, "utf8")
+    .update(rawSignature)
     .digest("hex");
 
-  // Log request trước khi gửi.
   console.log("[MOMO CREATE REQUEST]", {
+    bookingId: input.bookingId,
     endpoint,
     partnerCode,
     requestId,
@@ -233,9 +228,6 @@ async function createMomo(input: Input): Promise<GatewayResult> {
     redirectUrl,
     ipnUrl,
     requestType,
-    extraData,
-    rawSignature,
-    signature,
   });
 
   try {
@@ -263,32 +255,25 @@ async function createMomo(input: Input): Promise<GatewayResult> {
       },
     );
 
-    // Log toàn bộ thông tin quan trọng MoMo trả về.
-    console.log("[MOMO CREATE RESPONSE]", {
-      status: res.status,
-      partnerCode: res.data?.partnerCode,
-      requestId: res.data?.requestId,
-      orderId: res.data?.orderId,
-      resultCode: res.data?.resultCode,
-      message: res.data?.message,
-      responseTime: res.data?.responseTime,
-      hasPayUrl: Boolean(res.data?.payUrl),
-      hasDeeplink: Boolean(res.data?.deeplink),
-      hasQrCodeUrl: Boolean(res.data?.qrCodeUrl),
-    });
+    const resultCode = Number(res.data?.resultCode);
 
-    if (Number(res.data.resultCode) !== 0) {
+    if (resultCode !== 0) {
+      console.error("[MOMO REJECTED]", {
+        resultCode,
+        message: res.data?.message,
+        response: res.data,
+      });
+
       throw new Error(
-        `[MoMo ${res.data.resultCode}] ${
-          res.data.message || "MoMo từ chối tạo giao dịch"
-        }`,
+        res.data?.message ||
+          `MoMo từ chối tạo giao dịch, mã lỗi ${resultCode}`,
       );
     }
 
     const momoQrData = getMomoQrData({
-      qrCodeUrl: res.data.qrCodeUrl,
-      deeplink: res.data.deeplink,
-      payUrl: res.data.payUrl,
+      qrCodeUrl: res.data?.qrCodeUrl,
+      deeplink: res.data?.deeplink,
+      payUrl: res.data?.payUrl,
     });
 
     if (!momoQrData) {
@@ -297,44 +282,47 @@ async function createMomo(input: Input): Promise<GatewayResult> {
 
     return {
       providerOrderCode: orderId,
-      paymentUrl: res.data.payUrl ?? null,
+      paymentUrl: res.data?.payUrl ?? null,
       qrCodeUrl: momoQrData,
-      deeplink: res.data.deeplink ?? null,
+      deeplink: res.data?.deeplink ?? null,
+
       returnUrl: redirectUrl,
       cancelUrl: cancelUrl(input.bookingId),
+
       flowType: "QR",
       uiMode: "QR",
       actionText: "Mở ứng dụng MoMo",
+
       gatewayResponse: res.data,
     };
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       console.error("[MOMO AXIOS ERROR]", {
-        message: error.message,
-        code: error.code,
         status: error.response?.status,
+        resultCode: error.response?.data?.resultCode,
+        responseMessage: error.response?.data?.message,
         responseData: error.response?.data,
         requestUrl: error.config?.url,
-        requestMethod: error.config?.method,
       });
 
       throw new Error(
         error.response?.data?.subErrors?.[0]?.message ||
           error.response?.data?.message ||
-          `Không thể kết nối MoMo: ${error.message}`,
+          "Tạo thanh toán MoMo thất bại",
       );
     }
 
-    console.error("[MOMO BUSINESS ERROR]", {
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    });
+    console.error(
+      "[MOMO CREATE ERROR]",
+      error instanceof Error ? error.message : error,
+    );
 
     throw error instanceof Error
       ? error
       : new Error("Tạo thanh toán MoMo thất bại");
   }
 }
+
 async function createZalopay(input: Input): Promise<GatewayResult> {
   const appId = process.env.ZALOPAY_APP_ID!;
   const key1 = process.env.ZALOPAY_KEY1!;
