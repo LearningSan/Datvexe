@@ -164,7 +164,13 @@ async function createMomo(input: Input): Promise<GatewayResult> {
   const accessKey = process.env.MOMO_ACCESS_KEY;
   const secretKey = process.env.MOMO_SECRET_KEY;
   const endpoint = process.env.MOMO_ENDPOINT;
-
+console.log("[MOMO CONFIG]", {
+  endpoint,
+  partnerCode,
+  requestType,
+  accessKeyLength: accessKey.length,
+  secretKeyLength: secretKey.length,
+});
   if (!partnerCode || !accessKey || !secretKey || !endpoint) {
     throw new Error("Thiếu cấu hình thanh toán MoMo");
   }
