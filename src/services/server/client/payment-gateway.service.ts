@@ -160,11 +160,17 @@ function getMomoQrData(data: {
   return data.qrCodeUrl || data.deeplink || data.payUrl || null;
 }
 async function createMomo(input: Input): Promise<GatewayResult> {
-  const partnerCode = process.env.MOMO_PARTNER_CODE?.trim();
-  const accessKey = process.env.MOMO_ACCESS_KEY?.trim();
-  const secretKey = process.env.MOMO_SECRET_KEY?.trim();
-  const endpoint = process.env.MOMO_ENDPOINT?.trim();
-
+  const partnerCode = process.env.MOMO_PARTNER_CODE;
+  const accessKey = process.env.MOMO_ACCESS_KEY;
+  const secretKey = process.env.MOMO_SECRET_KEY;
+  const endpoint = process.env.MOMO_ENDPOINT;
+console.log("[MOMO CONFIG]", {
+  endpoint,
+  partnerCode,
+  requestType,
+  accessKeyLength: accessKey.length,
+  secretKeyLength: secretKey.length,
+});
   if (!partnerCode || !accessKey || !secretKey || !endpoint) {
     console.error("[MOMO ENV MISSING]", {
       hasPartnerCode: Boolean(partnerCode),
