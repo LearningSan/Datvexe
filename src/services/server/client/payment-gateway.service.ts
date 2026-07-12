@@ -48,13 +48,12 @@ export function getPayosClient(): PayOS {
   });
 }
 function appHost() {
-  return requireEnv("NEXT_PUBLIC_APP_URL").replace(/\/$/, "");
+  return requireEnv("APP_URL").replace(/\/$/, "");
 }
 
 function publicHost() {
   return (
-    process.env.PAYMENT_PUBLIC_URL ||
-    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.APP_URL ||
     "http://localhost:3000"
   ).replace(/\/$/, "");
 }
