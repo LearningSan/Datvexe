@@ -1,54 +1,120 @@
 import { NextRequest, NextResponse } from "next/server";
-import { VNPay, ignoreLogger } from "vnpay";
+
 import { withTransaction } from "@/lib/server/mysql";
-import { confirmPaymentByTransactionCode } from "@/services/server/client/payment-confirm.service";
 
-export async function GET(req: NextRequest) {
+import { getVnpayClient } from "@/services/server/client/payment-gateway.service";
+
+import {
+  confirmPaymentByTransactionCode,
+  sendPaymentResultSideEffects,
+} from "@/services/server/client/payment-webhook.service";
+import type { ReturnQueryFromVNPay } from "vnpay";
+function vnpayResponse(rspCode: string, message: string) {
+  return NextResponse.json(
+    {
+      RspCode: rspCode,
+      Message: message,
+    },
+    { status: 200 },
+  );
+}
+
+export async function GET(request: NextRequest) {
   try {
-    const params = Object.fromEntries(req.nextUrl.searchParams.entries());
+    const query = Object.fromEntries(
+      request.nextUrl.searchParams.entries(),
+    ) as ReturnQueryFromVNPay;
 
-    const vnpay = new VNPay({
-      tmnCode: process.env.VNPAY_TMN_CODE!,
-      secureSecret: process.env.VNPAY_SECURE_SECRET!,
-      vnpayHost: process.env.VNPAY_PAYMENT_URL!,
-      testMode: true,
-      loggerFn: ignoreLogger,
+    const vnpay = getVnpayClient();
+
+    const verified = vnpay.verifyIpnCall(query);
+
+    console.log("[VNPAY IPN VERIFIED]", {
+      isVerified: verified.isVerified,
+      isSuccess: verified.isSuccess,
+      message: verified.message,
+      transactionCode: verified.vnp_TxnRef,
+      amount: verified.vnp_Amount,
+      transactionNo: verified.vnp_TransactionNo,
+      responseCode: verified.vnp_ResponseCode,
+      transactionStatus: verified.vnp_TransactionStatus,
     });
 
-    const verify = vnpay.verifyIpnCall(params as any);
-
-    if (!verify.isVerified) {
-      return NextResponse.json({
-        RspCode: "97",
-        Message: "Invalid signature",
-      });
+    if (!verified.isVerified) {
+      return vnpayResponse("97", "Invalid Checksum");
     }
 
-    await withTransaction(async (conn) => {
-      await confirmPaymentByTransactionCode({
+    const transactionCode = String(verified.vnp_TxnRef ?? "").trim();
+
+    if (!transactionCode) {
+      return vnpayResponse("01", "Order Not Found");
+    }
+
+    const amount = Number(verified.vnp_Amount);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return vnpayResponse("04", "Invalid Amount");
+    }
+
+    /*
+     * isSuccess = false nghĩa là giao dịch không thành công.
+     *
+     * Service hiện tại của bạn sẽ:
+     * payment -> FAILED
+     * booking -> CANCELLED
+     */
+    const status = verified.isSuccess
+      ? ("SUCCESS" as const)
+      : ("FAILED" as const);
+
+    const gatewayTransactionId =
+      verified.vnp_TransactionNo != null
+        ? String(verified.vnp_TransactionNo)
+        : transactionCode;
+
+    const result = await withTransaction(async (conn) => {
+      return confirmPaymentByTransactionCode({
         conn,
-        transactionCode: String(params.vnp_TxnRef),
-        status:
-          params.vnp_ResponseCode === "00" &&
-          params.vnp_TransactionStatus === "00"
-            ? "SUCCESS"
-            : "FAILED",
-        amount: Number(params.vnp_Amount) / 100,
-        gatewayTransactionId: String(params.vnp_TransactionNo || ""),
-        gatewayResponse: params,
+        transactionCode,
+        status,
+        amount,
+        gatewayTransactionId,
+        gatewayResponse: query,
       });
     });
 
-    return NextResponse.json({
-      RspCode: "00",
-      Message: "Confirm Success",
-    });
-  } catch (error) {
+    /*
+     * Transaction đã commit mới gửi email và notification.
+     */
+    if (!result.alreadyProcessed) {
+      try {
+        await sendPaymentResultSideEffects({
+          bookingId: result.bookingId,
+          isPaid: status === "SUCCESS",
+        });
+      } catch (sideEffectError) {
+        console.error("[VNPAY SIDE EFFECT ERROR]", sideEffectError);
+      }
+    }
+
+    if (result.alreadyProcessed) {
+      return vnpayResponse("02", "Order Already Confirmed");
+    }
+
+    return vnpayResponse("00", "Confirm Success");
+  } catch (error: unknown) {
     console.error("[VNPAY IPN ERROR]", error);
 
-    return NextResponse.json({
-      RspCode: "99",
-      Message: "Unknown error",
-    });
+    const message = error instanceof Error ? error.message : "Unknown error";
+
+    if (message === "Transaction không tồn tại") {
+      return vnpayResponse("01", "Order Not Found");
+    }
+
+    if (message === "Số tiền thanh toán không khớp") {
+      return vnpayResponse("04", "Invalid Amount");
+    }
+
+    return vnpayResponse("99", "Unknown Error");
   }
 }

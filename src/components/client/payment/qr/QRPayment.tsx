@@ -42,8 +42,18 @@ function getLogoText(method: PaymentMethodType) {
 }
 
 function getQrAppName(method: PaymentMethodType) {
-  if (method === "MOMO") return "ứng dụng MoMo";
-  if (method === "ZALOPAY") return "ứng dụng ZaloPay";
+  if (method === "MOMO") {
+    return "ứng dụng MoMo";
+  }
+
+  if (method === "ZALOPAY") {
+    return "ứng dụng ZaloPay hoặc camera";
+  }
+
+  if (method === "VNPAY") {
+    return "ứng dụng ngân hàng, VNPay hoặc camera";
+  }
+
   return "ứng dụng ngân hàng";
 }
 

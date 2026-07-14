@@ -16,6 +16,7 @@ type Input = {
   transactionCode: string;
   amount: number;
   ipAddress?: string;
+  demoPaymentUrl?: string;
 };
 
 export type GatewayResult = {
@@ -47,15 +48,24 @@ export function getPayosClient(): PayOS {
     checksumKey: requireEnv("PAYOS_CHECKSUM_KEY"),
   });
 }
+export function getVnpayClient(): VNPay {
+  return new VNPay({
+    tmnCode: requireEnv("VNPAY_TMN_CODE"),
+    secureSecret: requireEnv("VNPAY_SECURE_SECRET"),
+    vnpayHost: requireEnv("VNPAY_PAYMENT_URL"),
+    testMode:
+      process.env.VNPAY_TEST_MODE !== undefined
+        ? process.env.VNPAY_TEST_MODE === "true"
+        : true,
+    loggerFn: ignoreLogger,
+  });
+}
 function appHost() {
   return requireEnv("APP_URL").replace(/\/$/, "");
 }
 
 function publicHost() {
-  return (
-    process.env.APP_URL ||
-    "http://localhost:3000"
-  ).replace(/\/$/, "");
+  return (process.env.APP_URL || "http://localhost:3000").replace(/\/$/, "");
 }
 
 function resultUrl(bookingId: number) {
@@ -130,15 +140,44 @@ async function createPayos(input: Input): Promise<GatewayResult> {
     gatewayResponse: result,
   };
 }
+function buildDemoGatewayResult(input: Input): GatewayResult {
+  if (!input.demoPaymentUrl) {
+    throw new Error(`Thiếu demoPaymentUrl cho ${input.method}`);
+  }
+  return {
+    providerOrderCode: input.transactionCode,
 
+    paymentUrl: null,
+
+    qrCodeUrl: input.demoPaymentUrl,
+
+    deeplink: null,
+
+    returnUrl: resultUrl(input.bookingId),
+
+    cancelUrl: cancelUrl(input.bookingId),
+
+    flowType: "QR",
+    uiMode: "QR",
+
+    actionText: null,
+
+    gatewayResponse: {
+      environment: "SANDBOX_DEMO",
+      provider: input.method,
+      demoPaymentUrl: input.demoPaymentUrl,
+    },
+  };
+}
 async function createVnpay(input: Input): Promise<GatewayResult> {
-  const vnpay = new VNPay({
-    tmnCode: process.env.VNPAY_TMN_CODE!,
-    secureSecret: process.env.VNPAY_SECURE_SECRET!,
-    vnpayHost: process.env.VNPAY_PAYMENT_URL!,
-    testMode: true,
-    loggerFn: ignoreLogger,
-  });
+  if (input.demoPaymentUrl) {
+    return buildDemoGatewayResult(input);
+  }
+  const vnpay = getVnpayClient();
+
+  const returnUrl =
+    `${publicHost()}/api/client/payments/vnpay/return` +
+    `?bookingId=${input.bookingId}`;
 
   const paymentUrl = vnpay.buildPaymentUrl({
     vnp_Amount: Math.round(input.amount),
@@ -146,21 +185,33 @@ async function createVnpay(input: Input): Promise<GatewayResult> {
     vnp_TxnRef: input.transactionCode,
     vnp_OrderInfo: `Thanh toan ve ${input.bookingCode}`,
     vnp_OrderType: ProductCode.Other,
-    vnp_ReturnUrl: `${publicHost()}/api/client/payments/vnpay/return?bookingId=${input.bookingId}`,
+    vnp_ReturnUrl: returnUrl,
     vnp_Locale: VnpLocale.VN,
   });
+
+  if (!paymentUrl) {
+    throw new Error("VNPay không tạo được URL thanh toán");
+  }
 
   return {
     providerOrderCode: input.transactionCode,
     paymentUrl,
-    qrCodeUrl: null,
+
+    qrCodeUrl: paymentUrl,
+
     deeplink: null,
-    returnUrl: `${publicHost()}/api/client/payments/vnpay/return?bookingId=${input.bookingId}`,
+    returnUrl,
     cancelUrl: cancelUrl(input.bookingId),
-    flowType: "IFRAME",
-    uiMode: "IFRAME",
-    actionText: "Mở VNPay",
-    gatewayResponse: { paymentUrl },
+
+    flowType: "QR",
+    uiMode: "QR",
+
+    actionText: null,
+
+    gatewayResponse: {
+      paymentUrl,
+      transactionCode: input.transactionCode,
+    },
   };
 }
 function getMomoQrData(data: {
@@ -171,6 +222,9 @@ function getMomoQrData(data: {
   return data.qrCodeUrl || data.deeplink || data.payUrl || null;
 }
 async function createMomo(input: Input): Promise<GatewayResult> {
+  if (input.demoPaymentUrl) {
+    return buildDemoGatewayResult(input);
+  }
   const partnerCode = requireEnv("MOMO_PARTNER_CODE");
   const accessKey = requireEnv("MOMO_ACCESS_KEY");
   const secretKey = requireEnv("MOMO_SECRET_KEY");
@@ -186,9 +240,7 @@ async function createMomo(input: Input): Promise<GatewayResult> {
     `REQ_${input.transactionCode}_${timestamp}`,
   );
 
-  const orderId = buildMomoOrderId(
-    `${input.transactionCode}_${timestamp}`,
-  );
+  const orderId = buildMomoOrderId(`${input.transactionCode}_${timestamp}`);
 
   const amount = String(Math.round(input.amount));
   const orderInfo = `Thanh toan ve ${input.bookingCode}`;
@@ -264,8 +316,7 @@ async function createMomo(input: Input): Promise<GatewayResult> {
       });
 
       throw new Error(
-        res.data?.message ||
-          `MoMo từ chối tạo giao dịch, mã lỗi ${resultCode}`,
+        res.data?.message || `MoMo từ chối tạo giao dịch, mã lỗi ${resultCode}`,
       );
     }
 
@@ -323,6 +374,9 @@ async function createMomo(input: Input): Promise<GatewayResult> {
 }
 
 async function createZalopay(input: Input): Promise<GatewayResult> {
+  if (input.demoPaymentUrl) {
+    return buildDemoGatewayResult(input);
+  }
   const appId = process.env.ZALOPAY_APP_ID!;
   const key1 = process.env.ZALOPAY_KEY1!;
   const endpoint = process.env.ZALOPAY_ENDPOINT!;
@@ -364,32 +418,81 @@ async function createZalopay(input: Input): Promise<GatewayResult> {
     callback_url: `${publicHost()}/api/client/payments/zalopay/callback`,
     mac,
   });
-
   try {
-    const res = await axios.post(endpoint, body, {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    const res = await axios.post(endpoint, body.toString(), {
+      timeout: 30_000,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
     });
+
+    console.log("[ZALOPAY CREATE RESPONSE]", res.data);
+
+    const returnCode = Number(res.data?.return_code);
+
+    if (returnCode !== 1) {
+      throw new Error(
+        res.data?.sub_return_message ||
+          res.data?.return_message ||
+          `ZaloPay từ chối tạo giao dịch, mã ${returnCode}`,
+      );
+    }
+
+    const paymentUrl =
+      typeof res.data?.order_url === "string" && res.data.order_url.trim()
+        ? res.data.order_url.trim()
+        : null;
+
+    const providerQrCode =
+      typeof res.data?.qr_code === "string" && res.data.qr_code.trim()
+        ? res.data.qr_code.trim()
+        : null;
+
+    const qrData = providerQrCode || paymentUrl;
+
+    if (!qrData) {
+      throw new Error("ZaloPay không trả dữ liệu QR hoặc URL thanh toán");
+    }
 
     return {
       providerOrderCode: appTransId,
-      paymentUrl: res.data.order_url ?? null,
-      qrCodeUrl: res.data.qr_code ?? null,
+      paymentUrl,
+
+      qrCodeUrl: qrData,
+
       deeplink: null,
+
       returnUrl: resultUrl(input.bookingId),
       cancelUrl: cancelUrl(input.bookingId),
+
       flowType: "QR",
-      uiMode: res.data.qr_code ? "QR" : "REDIRECT",
-      actionText: "Mở ZaloPay",
+      uiMode: "QR",
+
+      actionText: null,
+
       gatewayResponse: res.data,
     };
-  } catch (error: any) {
-    console.error(
-      "[ZALOPAY CREATE ERROR]",
-      error.response?.data || error.message,
-    );
-    throw new Error(
-      error.response?.data?.return_message || "Tạo thanh toán ZaloPay thất bại",
-    );
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error("[ZALOPAY AXIOS ERROR]", {
+        status: error.response?.status,
+        responseData: error.response?.data,
+        requestUrl: error.config?.url,
+      });
+
+      throw new Error(
+        error.response?.data?.sub_return_message ||
+          error.response?.data?.return_message ||
+          error.message ||
+          "Tạo thanh toán ZaloPay thất bại",
+      );
+    }
+
+    console.error("[ZALOPAY CREATE ERROR]", error);
+
+    throw error instanceof Error
+      ? error
+      : new Error("Tạo thanh toán ZaloPay thất bại");
   }
 }
 

@@ -1,0 +1,620 @@
+.page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(22, 78, 99, 0.08), transparent 34%),
+    #f4f7fb;
+  color: #10243e;
+}
+
+.header {
+  background: linear-gradient(120deg, #0b3b72 0%, #1266a8 100%);
+  box-shadow: 0 8px 30px rgba(8, 53, 102, 0.18);
+}
+
+.headerInner {
+  width: min(1180px, calc(100% - 32px));
+  min-height: 88px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #ffffff;
+}
+
+.brandMark {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  color: #0b4f8a;
+  font-size: 19px;
+  font-weight: 900;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+}
+
+.brandName {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.brandSubtitle {
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 13px;
+}
+
+.sandboxBadge {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.content {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 48px;
+}
+
+.warning {
+  margin-bottom: 20px;
+  border: 1px solid #f5c668;
+  border-radius: 12px;
+  padding: 13px 16px;
+  background: #fff9e9;
+  color: #7a5305;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 350px minmax(0, 1fr);
+  align-items: start;
+  gap: 22px;
+}
+
+.summaryCard,
+.formCard,
+.stateCard,
+.successCard {
+  border: 1px solid #dfe7f1;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 12px 36px rgba(29, 59, 92, 0.08);
+}
+
+.summaryCard {
+  position: sticky;
+  top: 20px;
+  overflow: hidden;
+}
+
+.summaryTitle {
+  padding: 18px 20px;
+  background: #eef6fd;
+  border-bottom: 1px solid #dce9f5;
+  color: #124b7c;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.merchant {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.merchantIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: #e7f2fb;
+  color: #0d5a94;
+  font-weight: 900;
+}
+
+.merchant span,
+.summaryRows span,
+.totalBox span,
+.confirmSummary span,
+.successDetails span {
+  display: block;
+  color: #718096;
+  font-size: 12px;
+}
+
+.merchant strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 16px;
+}
+
+.summaryRows {
+  padding: 8px 20px;
+}
+
+.summaryRows > div {
+  padding: 13px 0;
+  border-bottom: 1px dashed #dfe6ee;
+}
+
+.summaryRows strong {
+  display: block;
+  margin-top: 5px;
+  color: #1a3049;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.code {
+  font-family: Consolas, monospace;
+  font-size: 12px !important;
+}
+
+.countdown {
+  color: #d24531 !important;
+  font-size: 20px !important;
+  letter-spacing: 0.04em;
+}
+
+.totalBox {
+  margin: 14px;
+  border-radius: 14px;
+  padding: 17px;
+  background: linear-gradient(135deg, #0d4d83, #1674b8);
+  color: #ffffff;
+}
+
+.totalBox span {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.totalBox strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 25px;
+}
+
+.formCard {
+  padding: 28px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.sectionHeader > span {
+  flex: 0 0 auto;
+  width: 37px;
+  height: 37px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #0c5d9d;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.sectionHeader h1 {
+  margin: 0;
+  color: #102e4d;
+  font-size: 23px;
+}
+
+.sectionHeader p {
+  margin: 7px 0 0;
+  color: #738195;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.label {
+  display: block;
+  margin-bottom: 10px;
+  color: #243e59;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.bankGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 11px;
+  margin-bottom: 24px;
+}
+
+.bankOption {
+  min-height: 86px;
+  border: 1px solid #dbe4ee;
+  border-radius: 13px;
+  padding: 10px;
+  background: #ffffff;
+  color: #334b64;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.bankOption:hover {
+  border-color: #5793c1;
+  transform: translateY(-1px);
+}
+
+.bankActive {
+  border: 2px solid #0c65a6;
+  background: #eff8ff;
+  color: #0b568d;
+}
+
+.bankLogo {
+  width: 38px;
+  height: 38px;
+  margin: 0 auto 8px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #eaf2f9;
+  color: #175b90;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.bankOption > span:last-child {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.field {
+  display: block;
+  margin-bottom: 18px;
+}
+
+.field > span {
+  display: block;
+  margin-bottom: 8px;
+  color: #314b66;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.field input {
+  width: 100%;
+  height: 48px;
+  box-sizing: border-box;
+  border: 1px solid #cfdae6;
+  border-radius: 11px;
+  padding: 0 14px;
+  outline: none;
+  background: #ffffff;
+  color: #152b42;
+  font-size: 15px;
+}
+
+.field input:focus {
+  border-color: #1470ad;
+  box-shadow: 0 0 0 3px rgba(20, 112, 173, 0.1);
+}
+
+.field small {
+  display: block;
+  margin-top: 6px;
+  color: #8390a0;
+  font-size: 12px;
+}
+
+.amountInput {
+  display: flex;
+  align-items: center;
+  border: 1px solid #cfdae6;
+  border-radius: 11px;
+  overflow: hidden;
+}
+
+.amountInput:focus-within {
+  border-color: #1470ad;
+  box-shadow: 0 0 0 3px rgba(20, 112, 173, 0.1);
+}
+
+.amountInput input {
+  border: 0;
+  box-shadow: none !important;
+}
+
+.amountInput strong {
+  padding: 0 14px;
+  color: #42617f;
+  font-size: 13px;
+}
+
+.demoInfo {
+  margin: 6px 0 20px;
+  border-left: 4px solid #4a97ca;
+  border-radius: 0 10px 10px 0;
+  padding: 13px 15px;
+  background: #f1f8fd;
+  color: #496479;
+  font-size: 13px;
+}
+
+.demoInfo strong,
+.demoInfo span {
+  display: block;
+}
+
+.demoInfo span {
+  margin-top: 5px;
+}
+
+.errorMessage {
+  margin-bottom: 16px;
+  border-radius: 10px;
+  padding: 11px 13px;
+  background: #fff0ef;
+  color: #b43d31;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.submitButton,
+.backButton {
+  width: 100%;
+  min-height: 50px;
+  border-radius: 11px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.submitButton {
+  border: 0;
+  background: linear-gradient(135deg, #0d5792, #1478b9);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(14, 101, 163, 0.22);
+}
+
+.submitButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.backButton {
+  margin-top: 10px;
+  border: 1px solid #d4deea;
+  background: #ffffff;
+  color: #52667c;
+}
+
+.confirmSummary {
+  margin-bottom: 22px;
+  border: 1px solid #dce6f0;
+  border-radius: 13px;
+  padding: 8px 17px;
+  background: #f9fbfd;
+}
+
+.confirmSummary > div {
+  padding: 11px 0;
+  border-bottom: 1px dashed #dbe2ea;
+}
+
+.confirmSummary > div:last-child {
+  border-bottom: 0;
+}
+
+.confirmSummary strong,
+.successDetails strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.otpInput {
+  text-align: center;
+  font-size: 24px !important;
+  font-weight: 800;
+  letter-spacing: 0.4em;
+}
+
+.otpHint {
+  margin: -6px 0 20px;
+  border: 1px dashed #e9a841;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff8e8;
+  color: #80580d;
+  text-align: center;
+}
+
+.otpHint span,
+.otpHint strong {
+  display: block;
+}
+
+.otpHint strong {
+  margin-top: 5px;
+  font-size: 20px;
+  letter-spacing: 0.16em;
+}
+
+.stateCard,
+.successCard {
+  max-width: 560px;
+  margin: 35px auto;
+  padding: 46px 30px;
+  text-align: center;
+}
+
+.stateCard h2,
+.successCard h1 {
+  margin: 18px 0 8px;
+}
+
+.stateCard p,
+.successCard p {
+  color: #728095;
+  line-height: 1.6;
+}
+
+.spinner {
+  width: 45px;
+  height: 45px;
+  margin: auto;
+  border: 4px solid #dbeaf5;
+  border-top-color: #126ca9;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.errorIcon,
+.successIcon {
+  width: 64px;
+  height: 64px;
+  margin: auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.errorIcon {
+  background: #ffe8e5;
+  color: #c64738;
+}
+
+.successIcon {
+  background: #daf6e5;
+  color: #16864a;
+}
+
+.successDetails {
+  margin-top: 25px;
+  border: 1px solid #dce9e2;
+  border-radius: 13px;
+  padding: 7px 18px;
+  background: #f8fdf9;
+  text-align: left;
+}
+
+.successDetails > div {
+  padding: 12px 0;
+  border-bottom: 1px dashed #dce7df;
+}
+
+.successDetails > div:last-child {
+  border-bottom: 0;
+}
+
+.successNote {
+  margin-top: 20px;
+  border-radius: 10px;
+  padding: 12px;
+  background: #eef7ff;
+  color: #315f83;
+  font-size: 13px;
+}
+
+.footer {
+  min-height: 70px;
+  border-top: 1px solid #dde6ef;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 25px;
+  background: #ffffff;
+  color: #8190a1;
+  font-size: 12px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryCard {
+    position: static;
+  }
+
+  .bankGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .headerInner,
+  .content {
+    width: min(100% - 20px, 1180px);
+  }
+
+  .headerInner {
+    min-height: 76px;
+  }
+
+  .brandSubtitle {
+    display: none;
+  }
+
+  .sandboxBadge {
+    padding: 6px 9px;
+    font-size: 10px;
+  }
+
+  .content {
+    padding-top: 16px;
+  }
+
+  .formCard {
+    padding: 20px 16px;
+  }
+
+  .fieldGrid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .sectionHeader h1 {
+    font-size: 20px;
+  }
+
+  .footer {
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+  }
+}

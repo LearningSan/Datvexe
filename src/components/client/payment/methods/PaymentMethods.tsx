@@ -24,7 +24,7 @@ const OPTIONS: Option[] = [
   {
     id: "VNPAY",
     name: "VNPay",
-    note: "Cổng thanh toán VNPay: ATM, Visa, QR...",
+    note: "Quét QR để mở cổng VNPay và chọn ngân hàng",
     colorClass: styles.vnpay,
     label: "VP",
   },
@@ -38,7 +38,7 @@ const OPTIONS: Option[] = [
   {
     id: "ZALOPAY",
     name: "ZaloPay",
-    note: "Thanh toán bằng app ZaloPay, deeplink hoặc QR",
+    note: "Quét QR bằng ZaloPay hoặc camera điện thoại",
     colorClass: styles.zalopay,
     label: "ZP",
   },

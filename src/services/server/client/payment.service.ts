@@ -35,6 +35,12 @@ import {
   findPaymentForConfirm,
 } from "@/repositories/client/payment.repo";
 import { createGatewayPayment } from "@/services/server/client/payment-gateway.service";
+
+import {
+  createDemoPaymentSession,
+  isDemoPaymentEnabled,
+  isDemoPaymentProvider,
+} from "@/services/server/client/demo-payment.service";
 function getPaymentHost() {
   return process.env.NEXT_PUBLIC_PAYMENT_HOST || "http://localhost:3000";
 }
@@ -55,15 +61,12 @@ function isGatewayMethod(method: PaymentMethodType) {
 function getFlowType(method: PaymentMethodType): PaymentFlowType {
   if (
     method === "PAYOS" ||
+    method === "VNPAY" ||
     method === "MOMO" ||
     method === "ZALOPAY" ||
     method === "VIETQR"
   ) {
     return "QR";
-  }
-
-  if (method === "VNPAY") {
-    return "IFRAME";
   }
 
   if (method === "CASH") {
@@ -478,12 +481,29 @@ export async function createPayment(
     }
 
     if (isGatewayMethod(payload.paymentMethod)) {
+      let demoPaymentUrl: string | undefined;
+
+      if (
+        isDemoPaymentEnabled() &&
+        isDemoPaymentProvider(payload.paymentMethod)
+      ) {
+        const demoSession = await createDemoPaymentSession(conn, {
+          paymentId,
+          provider: payload.paymentMethod,
+          amount,
+          expiredAt: booking.holdExpiredAt,
+        });
+
+        demoPaymentUrl = demoSession.demoUrl;
+      }
+
       const gateway = await createGatewayPayment({
         method: payload.paymentMethod,
         bookingId: payload.bookingId,
         bookingCode: booking.bookingCode,
         transactionCode,
         amount,
+        demoPaymentUrl,
       });
 
       const response: CreatePaymentResponse = {
@@ -615,12 +635,29 @@ export async function updatePaymentMethod(
     if (isGatewayMethod(payload.paymentMethod)) {
       const paymentId = Number(oldPayment.paymentId);
 
+      let demoPaymentUrl: string | undefined;
+
+      if (
+        isDemoPaymentEnabled() &&
+        isDemoPaymentProvider(payload.paymentMethod)
+      ) {
+        const demoSession = await createDemoPaymentSession(conn, {
+          paymentId,
+          provider: payload.paymentMethod,
+          amount,
+          expiredAt: booking.holdExpiredAt,
+        });
+
+        demoPaymentUrl = demoSession.demoUrl;
+      }
+
       const gateway = await createGatewayPayment({
         method: payload.paymentMethod,
         bookingId: payload.bookingId,
         bookingCode: booking.bookingCode,
         transactionCode,
         amount,
+        demoPaymentUrl,
       });
 
       const response: CreatePaymentResponse = {
