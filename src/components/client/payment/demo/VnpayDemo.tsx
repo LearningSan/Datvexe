@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { useSearchParams } from "next/navigation";
 
-import styles from "./VNPayDemo.module.css";
+import styles from "./VnpayDemo.module.css";
 
 type DemoSession = {
   demoSessionId: number;
