@@ -127,7 +127,7 @@ export async function sendPaymentSuccessEmail(data: {
   const formattedAmount = Number(data.amount).toLocaleString("vi-VN") + " đ";
 
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: `"XeKhachPT" <${process.env.MAIL_FROM!}>`,
       to: data.to,
       subject: `[XeKhachPT] Xác nhận đặt vé thành công - Mã vé: ${data.bookingCode}`,
@@ -282,9 +282,15 @@ export async function sendPaymentSuccessEmail(data: {
         </html>
       `,
     });
-    return { success: true };
+    return {
+      success: true,
+      messageId: info.messageId,
+    };
   } catch (error) {
-    console.error("Gửi email thất bại:", error);
-    return { success: false, error };
+    console.error("[SMTP PAYMENT EMAIL FAILED]", {
+      to: data.to,
+      error,
+    });
+    throw error;
   }
 }

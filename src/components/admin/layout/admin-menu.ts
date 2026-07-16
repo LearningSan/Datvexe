@@ -11,6 +11,8 @@ import {
   MapPin,
   CarFront,
   Armchair,
+  QrCode,
+  Wallet,
 } from "lucide-react";
 
 export const ADMIN_MENU = [
@@ -18,6 +20,16 @@ export const ADMIN_MENU = [
     href: "/admin/dashboard",
     label: "Dashboard Tổng Quan",
     icon: LayoutDashboard,
+  },
+  {
+    href: "/admin/cash-payments",
+    label: "Thanh toán tại quầy",
+    icon: QrCode,
+  },
+  {
+    href: "/admin/wallets",
+    label: "Quản lý Ví nội bộ",
+    icon: Wallet,
   },
   {
     href: "/admin/users",

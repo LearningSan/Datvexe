@@ -1,0 +1,330 @@
+.scannerCard {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Chiếm trọn chiều cao container cha */
+  min-height: 500px; /* Đảm bảo có một khoảng cao tối thiểu */
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Header của camera */
+.scannerHeader {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Đổi thành center để cân đối hơn khi làm mỏng */
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.scannerHeader h3 {
+  margin: 0 0 2px 0;
+  font-size: 1rem;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.scannerHeader p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.statusBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.statusActive {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.statusWaiting {
+  background-color: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.statusError {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* KHUNG VIDEO: Thay đổi quan trọng để kéo giãn tối đa */
+.videoFrame {
+  position: relative;
+  width: 100%;
+  flex: 1; /* Tự động chiếm toàn bộ khoảng trống còn lại */
+  min-height: 320px; /* Đảm bảo không bị xẹp lép */
+  background: #0f172a;
+  overflow: hidden;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Cực kỳ quan trọng: Giúp video camera tràn viền không bị méo */
+}
+
+/* Lớp phủ giả lập máy quét (Scanner Overlay) */
+.scanOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Các góc vuông tiêu điểm quét - bo rộng hơn trên Mobile */
+.cornerTopLeft,
+.cornerTopRight,
+.cornerBottomLeft,
+.cornerBottomRight {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-color: #3b82f6; /* Đổi sang màu xanh sáng hơn cho dễ nhìn */
+  border-style: solid;
+  pointer-events: none;
+}
+
+.cornerTopLeft {
+  top: 30px;
+  left: 30px;
+  border-width: 5px 0 0 5px;
+  border-top-left-radius: 8px;
+}
+.cornerTopRight {
+  top: 30px;
+  right: 30px;
+  border-width: 5px 5px 0 0;
+  border-top-right-radius: 8px;
+}
+.cornerBottomLeft {
+  bottom: 30px;
+  left: 30px;
+  border-width: 0 0 5px 5px;
+  border-bottom-left-radius: 8px;
+}
+.cornerBottomRight {
+  bottom: 30px;
+  right: 30px;
+  border-width: 0 5px 5px 0;
+  border-bottom-right-radius: 8px;
+}
+
+/* Đường line quét chạy lên xuống */
+.scanLine {
+  position: absolute;
+  width: calc(100% - 60px);
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+  animation: scan 2s linear infinite;
+  box-shadow: 0 0 12px #3b82f6;
+}
+
+@keyframes scan {
+  0% {
+    top: 30px;
+  }
+  50% {
+    top: calc(100% - 30px);
+  }
+  100% {
+    top: 30px;
+  }
+}
+
+/* Trạng thái thông báo đè lên Video */
+.videoMessage {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.85);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+  z-index: 10;
+}
+
+.videoMessage strong {
+  font-size: 1rem;
+}
+
+.videoMessage p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  max-width: 280px;
+}
+
+.spinIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Nút điều khiển bật tắt nằm đè lên video để tiết kiệm diện tích */
+.toggleContainer {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20; /* Đưa lên trên cùng của khung video */
+  pointer-events: auto;
+}
+
+/* Style cho nút bật/tắt */
+.toggleButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+/* Trạng thái khi camera đang hoạt động */
+.toggleActive {
+  background-color: #fee2e2;
+  color: #ef4444;
+}
+
+.toggleActive:hover {
+  background-color: #fecaca;
+}
+
+/* Trạng thái khi camera đang tắt/lỗi */
+.toggleInactive {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.toggleInactive:hover {
+  background-color: #bfdbfe;
+}
+
+/* Phần chân của Camera */
+.scannerFooter {
+  padding: 12px 20px;
+  border-top: 1px dashed #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scannerHint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.scannerHint strong {
+  color: #0f172a;
+}
+
+/* TỐI ƯU HOÀN TOÀN TRÊN MOBILE (DƯỚI 768PX) */
+@media (max-width: 768px) {
+  .scannerCard {
+    border-radius: 0;
+    border: none;
+
+    height: 650px;
+    min-height: 0;
+  }
+
+  .scannerHeader {
+    padding: 10px 16px;
+  }
+
+  .scannerHeader p {
+    display: none;
+  }
+
+  .videoFrame {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .scannerFooter {
+    padding: 8px 16px;
+  }
+
+  /* Bo góc quét nhỏ lại một chút trên màn hình nhỏ để cân đối */
+  .cornerTopLeft,
+  .cornerTopRight,
+  .cornerBottomLeft,
+  .cornerBottomRight {
+    width: 24px;
+    height: 24px;
+  }
+
+  .cornerTopLeft {
+    top: 20px;
+    left: 20px;
+  }
+  .cornerTopRight {
+    top: 20px;
+    right: 20px;
+  }
+  .cornerBottomLeft {
+    bottom: 20px;
+    left: 20px;
+  }
+  .cornerBottomRight {
+    bottom: 20px;
+    right: 20px;
+  }
+
+  .scanLine {
+    width: calc(100% - 40px);
+  }
+
+  @keyframes scan {
+    0% {
+      top: 20px;
+    }
+    50% {
+      top: calc(100% - 20px);
+    }
+    100% {
+      top: 20px;
+    }
+  }
+
+  .toggleContainer {
+    bottom: 24px; /* Đẩy nút điều khiển dịch lên một chút để tránh thanh điều hướng của OS */
+  }
+
+  .scannerFooter {
+    padding: 10px 16px;
+  }
+}

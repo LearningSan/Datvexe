@@ -8,11 +8,7 @@ import BlockErrorBoundary from "@/components/common/BlockErrorBoundary";
 import BlockSkeleton from "@/components/common/BlockSkeleton";
 
 import {
-  LayoutDashboard,
-  Bus,
   Ticket,
-  CreditCard,
-  Star,
   Banknote,
   TrendingUp,
   Wallet,
@@ -28,7 +24,6 @@ import PaymentMethodChart from "./payment/PaymentMethodChart";
 import TripStatusChart from "./trip/TripStatusChart";
 import RouteRevenueChart from "./route/RouteRevenueChart";
 import RouteSellingChart from "./route/RouteSellingChart";
-import LowPerformanceTrips from "./trip/LowPerformanceTrips";
 import RoutePerformanceSection from "./route/RoutePerformanceSection";
 import ComparisonOptions from "./analytics/ComparisonOptions";
 import TimeSlotInsight from "./insight/TimeSlotInsight";
@@ -36,7 +31,6 @@ import ReviewRatingChart from "./customer/ReviewRatingChart";
 import RiskCenter from "./risk/RiskCenter";
 import {
   formatDateTime,
-  formatMoney,
   getLocalDateString,
   formatMoneyCompact,
 } from "./utils/dashboardFormat";

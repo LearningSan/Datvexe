@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import styles from "./HomeContainer.module.css";
 
@@ -22,6 +22,7 @@ import BlockSkeleton from "@/components/common/BlockSkeleton";
 
 export default function HomeContainer() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const { setFilters } = useTripFilterStore();
   const { recentSearches, setSearch } = useSearchStore();
@@ -37,6 +38,34 @@ export default function HomeContainer() {
 
   const [origin, setOrigin] = useState<SelectedLocation | null>(null);
   const [destination, setDestination] = useState<SelectedLocation | null>(null);
+  useEffect(() => {
+    const originId = Number(searchParams.get("origin"));
+    const destinationId = Number(searchParams.get("destination"));
+
+    const originLabel = searchParams.get("originLabel");
+
+    const destinationLabel = searchParams.get("destinationLabel");
+
+    if (Number.isInteger(originId) && originId > 0 && originLabel) {
+      setOrigin({
+        type: "CITY",
+        id: originId,
+        label: originLabel,
+      });
+    }
+
+    if (
+      Number.isInteger(destinationId) &&
+      destinationId > 0 &&
+      destinationLabel
+    ) {
+      setDestination({
+        type: "CITY",
+        id: destinationId,
+        label: destinationLabel,
+      });
+    }
+  }, [searchParams]);
   const {
     data: popularRoutes,
     isPending: routesPending,

@@ -54,7 +54,7 @@ export async function markNotificationRead(
 export async function createNotification(
   conn: mysql.PoolConnection,
   data: {
-    userId: number;
+    userId: number|null;
     title: string;
     content: string;
     type: NotificationType;

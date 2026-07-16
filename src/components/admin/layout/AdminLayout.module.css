@@ -1,5 +1,6 @@
 .layout {
   min-height: 100vh;
+  position: relative;
   background:
     radial-gradient(
       circle at top left,
@@ -20,21 +21,75 @@
     sans-serif;
 }
 
+/* NÚT MỞ MENU TRÊN MOBILE (Ẩn mặc định trên PC) */
+.mobileMenuBtn {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 90;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  padding: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  transition: 0.2s ease;
+}
+
+.mobileMenuBtn:hover {
+  background: #f1f5f9;
+}
+
+/* NÚT ĐÓNG MENU TRONG SIDEBAR (Ẩn mặc định trên PC) */
+.closeMenuBtn {
+  display: none;
+}
+
+/* LỚP PHỦ MỜ (OVERLAY) */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 17, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 98;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* LOGO SECTION HELPER */
+.logoBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* SIDEBAR FIXED & KHÔNG CHO PHÉP TRÀN */
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;
   width: 260px;
   height: 100vh;
-  padding: 28px 18px;
+  padding: 24px 16px;
   z-index: 100;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 20px;
   color: #f8fafc;
   background: linear-gradient(180deg, #0f172a, #020617);
   border-right: 1px solid #1e293b;
   box-shadow: 18px 0 40px rgba(15, 23, 42, 0.16);
+  overflow: hidden;
 }
 
 .main {
@@ -45,6 +100,7 @@
   box-sizing: border-box;
 }
 
+/* LOGO SECTION CỐ ĐỊNH PHẦN ĐẦU */
 .logoSection {
   display: flex;
   align-items: center;
@@ -52,6 +108,7 @@
   padding: 12px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
 }
 
 .logoIcon {
@@ -65,24 +122,50 @@
   font-weight: 800;
 }
 
+/* 🚀 NAV MENU: KHU VỰC TỰ CUỘN ĐỘC LẬP */
 .navMenu {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.navMenu::-webkit-scrollbar {
+  width: 5px;
+}
+
+.navMenu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.navMenu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 99px;
+}
+
+.navMenu::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .navItem {
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: flex-start; /* 👈 Đảm bảo mặc định luôn căn lề trái */
   gap: 14px;
-  padding: 12px 16px;
+  padding: 11px 16px;
   border-radius: 14px;
   color: #94a3b8;
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
   transition: 0.18s ease;
+  flex-shrink: 0;
 }
 
 .navItem:hover {
@@ -108,47 +191,117 @@
   background: #fff;
 }
 
+/* RESPONSIVE CHO TABLET */
 @media (max-width: 1024px) {
   .sidebar {
     width: 88px;
-    padding: 24px 12px;
+    padding: 24px 10px;
+    align-items: center;
   }
 
   .sidebar h2,
-  .navItem span {
+  .navItem span,
+  .closeMenuBtn {
     display: none;
   }
 
   .navItem {
-    justify-content: center;
+    justify-content: center; /* Giữ căn giữa cho icon đơn lẻ khi sidebar thu nhỏ dạng icon-only */
+    width: 100%;
   }
 
   .main {
     margin-left: 88px;
     padding: 24px;
   }
+
+  .logoBrand h2 {
+    display: none;
+  }
 }
 
+/* --- RESPONSIVE CHO MOBILE (640px trở xuống) --- */
 @media (max-width: 640px) {
-  .layout {
-    display: block;
-  }
-
-  .sidebar {
-    position: sticky;
-    top: 0;
-    width: 100%;
-    height: auto;
-    flex-direction: row;
-    overflow-x: auto;
+  .mobileMenuBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .main {
     margin-left: 0;
-    padding: 16px;
+    padding: 80px 16px 16px 16px;
   }
 
+  /* SIDEBAR DI ĐỘNG */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 99;
+    flex-direction: column;
+    padding: 20px 16px;
+    overflow-y: auto;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .navMenu {
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .navItem {
+    width: 100%;
+    padding: 12px 16px;
+    justify-content: flex-start; /* 👈 Căn trái chữ và icon khi mở drawer trên mobile */
+  }
+
+  .navItem span {
+    display: inline;
+    text-align: left; /* 👈 Đảm bảo chữ căn trái */
+  }
+
+  /* Căn chỉnh Logo Section trên mobile */
   .logoSection {
-    min-width: 52px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 12px 14px;
+  }
+
+  .logoBrand h2 {
+    display: block;
+    font-size: 18px;
+  }
+
+  .closeMenuBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    transition: 0.2s;
+  }
+
+  .closeMenuBtn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
   }
 }

@@ -2,7 +2,7 @@
 
 import React, { memo } from "react";
 import styles from "./QRPayment.module.css";
-
+import { useRouter } from "next/navigation";
 import type {
   PaymentMethodType,
   CreatePaymentResponse,
@@ -18,7 +18,23 @@ interface QRPaymentProps {
   onCreatePayment: () => void;
   onConfirmManualPayment: () => void;
 }
+function formatExpiredAt(value: string) {
+  const date = new Date(value);
 
+  if (Number.isNaN(date.getTime())) {
+    return "Không xác định";
+  }
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+}
 function getProviderName(method: PaymentMethodType) {
   if (method === "PAYOS") return "PayOS";
   if (method === "VNPAY") return "VNPay";
@@ -83,6 +99,7 @@ const QRPayment = memo(function QRPayment({
   onCreatePayment,
   onConfirmManualPayment,
 }: QRPaymentProps) {
+  const router = useRouter();
   const manualInfo = paymentData?.manualInfo;
   const qrImageUrl = buildQrImageUrl(paymentData?.qrCodeUrl);
 
@@ -219,52 +236,213 @@ const QRPayment = memo(function QRPayment({
           </button>
         </div>
       )}
-
       {showWallet && manualInfo && (
         <div className={styles.walletCard}>
-          <h3>Ví nội bộ XeKhachPT</h3>
+          <div className={styles.walletHeader}>
+            <div className={styles.walletBrand}>
+              <div className={styles.walletLogo}>PT</div>
 
-          <div className={styles.walletRow}>
-            <span>Số dư ví</span>
+              <div>
+                <h3>Ví XeKhachPT</h3>
+                <p>Thanh toán trực tiếp bằng số dư ví nội bộ.</p>
+              </div>
+            </div>
+
+            <span
+              className={`${styles.walletStatus} ${
+                walletMissing <= 0
+                  ? styles.walletStatusReady
+                  : styles.walletStatusInsufficient
+              }`}
+            >
+              {walletMissing <= 0 ? "Đủ số dư" : "Không đủ số dư"}
+            </span>
+          </div>
+
+          <div className={styles.walletBalanceBox}>
+            <span>Số dư khả dụng</span>
+
             <strong>{formatCurrency(manualInfo.walletBalance ?? 0)}</strong>
           </div>
 
-          <div className={styles.walletRow}>
-            <span>Số tiền thanh toán</span>
-            <strong>{formatCurrency(totalAmount)}</strong>
+          <div className={styles.walletSummary}>
+            <div className={styles.walletRow}>
+              <span>Số tiền vé</span>
+
+              <strong>{formatCurrency(totalAmount)}</strong>
+            </div>
+
+            <div className={styles.walletRow}>
+              <span>Phí giao dịch</span>
+              <strong>0 đ</strong>
+            </div>
+
+            <div className={styles.walletRow}>
+              <span>Số dư sau thanh toán</span>
+
+              <strong>
+                {formatCurrency(manualInfo.walletBalanceAfterPayment ?? 0)}
+              </strong>
+            </div>
           </div>
 
-          <div className={styles.walletRow}>
-            <span>Số dư sau thanh toán</span>
-            <strong>
-              {formatCurrency(manualInfo.walletBalanceAfterPayment ?? 0)}
-            </strong>
-          </div>
+          {walletMissing > 0 ? (
+            <div className={styles.walletInsufficient}>
+              <div className={styles.walletWarningIcon}>!</div>
 
-          {walletMissing > 0 && (
-            <div className={styles.errorBox}>
-              Số dư không đủ. Còn thiếu {formatCurrency(walletMissing)}.
+              <div>
+                <strong>Số dư không đủ</strong>
+
+                <p>
+                  Ví của bạn còn thiếu <b>{formatCurrency(walletMissing)}</b> để
+                  thanh toán vé này.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.walletReady}>
+              <span>✓</span>
+
+              <div>
+                <strong>Ví đủ số dư để thanh toán</strong>
+
+                <p>Số tiền sẽ được trừ ngay sau khi bạn xác nhận.</p>
+              </div>
             </div>
           )}
 
-          {canPayWallet && (
+          {canPayWallet ? (
             <button
+              type="button"
               className={styles.primaryBtn}
               onClick={onConfirmManualPayment}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Đang thanh toán..." : "Thanh toán bằng ví"}
+              {isSubmitting
+                ? "Đang xử lý thanh toán..."
+                : `Thanh toán ${formatCurrency(totalAmount)}`}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={styles.depositWalletBtn}
+              onClick={() => {
+                router.push("/account/wallet/deposit");
+              }}
+            >
+              Nạp thêm tiền vào ví
             </button>
           )}
+
+          <button
+            type="button"
+            className={styles.viewWalletBtn}
+            onClick={() => {
+              router.push("/account/wallet");
+            }}
+          >
+            Xem ví và lịch sử giao dịch
+          </button>
         </div>
       )}
-
       {showCash && manualInfo && (
         <div className={styles.cashCard}>
-          <h3>Thanh toán tại quầy</h3>
-          <p>Mã đặt chỗ / mã giao dịch:</p>
-          <div className={styles.codeBox}>{paymentData.transactionCode}</div>
-          <p>{manualInfo.instruction}</p>
+          <div className={styles.cashHeader}>
+            <div className={styles.cashProviderIcon}>$</div>
+
+            <div>
+              <h3>Thanh toán tại quầy</h3>
+
+              <p>
+                Xuất trình mã QR cho nhân viên để hoàn tất thanh toán tiền mặt.
+              </p>
+            </div>
+
+            <span className={styles.cashPendingBadge}>Chờ thanh toán</span>
+          </div>
+
+          <div className={styles.cashLayout}>
+            <div className={styles.cashQrSection}>
+              {qrImageUrl ? (
+                <div className={styles.cashQrWrapper}>
+                  <img
+                    src={qrImageUrl}
+                    alt="Mã QR thanh toán tiền mặt tại quầy"
+                    className={styles.cashQrImage}
+                  />
+
+                  <div className={styles.cashQrBadge}>XeKhachPT</div>
+                </div>
+              ) : (
+                <div className={styles.cashQrError}>
+                  Không tạo được mã QR thanh toán tại quầy.
+                </div>
+              )}
+
+              <strong className={styles.cashQrCaption}>
+                Đưa mã này cho nhân viên quầy
+              </strong>
+
+              <span className={styles.cashQrDescription}>
+                Không tự thanh toán hoặc chuyển khoản bằng mã QR này.
+              </span>
+            </div>
+
+            <div className={styles.cashDetails}>
+              <div className={styles.cashDetailRow}>
+                <span>Mã đặt vé</span>
+
+                <strong>{paymentData.bookingCode}</strong>
+              </div>
+
+              <div className={styles.cashDetailRow}>
+                <span>Mã giao dịch</span>
+
+                <strong className={styles.cashTransactionCode}>
+                  {paymentData.transactionCode}
+                </strong>
+              </div>
+
+              <div className={styles.cashDetailRow}>
+                <span>Số tiền cần thanh toán</span>
+
+                <strong className={styles.cashAmount}>
+                  {formatCurrency(totalAmount)}
+                </strong>
+              </div>
+
+              <div className={styles.cashDetailRow}>
+                <span>Hạn thanh toán</span>
+
+                <strong>{formatExpiredAt(paymentData.expiredAt)}</strong>
+              </div>
+
+              <div className={styles.cashInstruction}>
+                <div className={styles.cashInstructionIcon}>i</div>
+
+                <div>
+                  <strong>Hướng dẫn tại quầy</strong>
+
+                  <ol>
+                    <li>Đưa mã QR cho nhân viên.</li>
+                    <li>Nhân viên quét và kiểm tra thông tin vé.</li>
+                    <li>Thanh toán đủ số tiền bằng tiền mặt.</li>
+                    <li>Nhân viên xác nhận đã thu tiền.</li>
+                    <li>Hệ thống tự động gửi vé qua email.</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div className={styles.cashWarning}>
+                <strong>Lưu ý</strong>
+
+                <p>
+                  Vé chỉ được xác nhận sau khi nhân viên quầy đã nhận tiền và
+                  xác nhận giao dịch trên hệ thống.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

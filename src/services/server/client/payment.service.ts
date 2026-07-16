@@ -1,7 +1,6 @@
 import { nanoid } from "nanoid";
-import { withTransaction } from "@/lib/server/mysql";
+import { withTransaction, type PoolConnection } from "@/lib/server/mysql";
 import { formatDateTimeVN } from "@/lib/client/helpers";
-
 import type {
   BookingPaymentSummary,
   CreatePaymentPayload,
@@ -26,7 +25,6 @@ import {
   findBookingUserIdForWallet,
   findOrCreateWalletForUpdate,
   deductWalletBalance,
-  insertWalletTransaction,
   markPaymentPaidByWallet,
   confirmBookingAfterPayment,
   findSeatHoldsForPaymentConfirm,
@@ -35,7 +33,8 @@ import {
   findPaymentForConfirm,
 } from "@/repositories/client/payment.repo";
 import { createGatewayPayment } from "@/services/server/client/payment-gateway.service";
-
+import { insertWalletTransaction as insertWalletHistory } from "@/repositories/client/wallet.repo";
+import { sendPaymentResultSideEffects } from "@/services/server/client/payment-webhook.service";
 import {
   createDemoPaymentSession,
   isDemoPaymentEnabled,
@@ -129,20 +128,25 @@ function buildVietQrData(params: {
   };
 }
 function buildCashData(transactionCode: string): BuiltPaymentData {
+  const cashQrPayload = `CASH:${transactionCode}`;
+
   return {
-    qrCodeUrl: buildQrUrl(transactionCode),
+    qrCodeUrl: buildQrUrl(cashQrPayload),
+
     paymentUrl: null,
     deeplink: null,
     returnUrl: null,
     cancelUrl: null,
+
     uiMode: "CASH",
     actionText: null,
+
     manualInfo: {
-      type: "CASH" as const,
+      type: "CASH",
       title: "Thanh toán tại quầy",
       transferContent: transactionCode,
       instruction:
-        "Đưa mã đặt chỗ hoặc mã QR này cho nhân viên quầy để thanh toán trong thời gian giữ chỗ.",
+        "Đưa mã QR này cho nhân viên tại quầy. Sau khi nhận tiền mặt, nhân viên sẽ quét mã và xác nhận thanh toán.",
     },
   };
 }
@@ -372,9 +376,11 @@ async function confirmBookingSeatsAfterPaid(conn: any, bookingId: number) {
 }
 
 async function payByInternalWallet(params: {
-  conn: any;
+  conn: PoolConnection;
   paymentId: number;
   bookingId: number;
+  bookingCode: string;
+  userId: number;
   amount: number;
   transactionCode: string;
 }) {
@@ -384,13 +390,19 @@ async function payByInternalWallet(params: {
   );
 
   if (!bookingUser?.userId) {
-    throw new Error("Ví nội bộ chỉ áp dụng cho khách hàng đã đăng nhập");
+    throw new Error("Booking không thuộc tài khoản đăng nhập");
   }
 
-  const wallet = await findOrCreateWalletForUpdate(
-    params.conn,
-    Number(bookingUser.userId),
-  );
+  if (Number(bookingUser.userId) !== Number(params.userId)) {
+    throw new Error("Bạn không có quyền thanh toán booking này");
+  }
+
+  /*
+   * Hàm này:
+   * - tự tạo ví nếu chưa có;
+   * - SELECT ... FOR UPDATE khóa ví.
+   */
+  const wallet = await findOrCreateWalletForUpdate(params.conn, params.userId);
 
   if (!wallet) {
     throw new Error("Không tìm thấy ví nội bộ");
@@ -401,40 +413,64 @@ async function payByInternalWallet(params: {
   }
 
   const balanceBefore = Number(wallet.balance);
-  const balanceAfter = balanceBefore - params.amount;
 
-  if (balanceAfter < 0) {
+  const amount = Math.round(Number(params.amount));
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new Error("Số tiền thanh toán không hợp lệ");
+  }
+
+  if (balanceBefore < amount) {
+    const missingAmount = amount - balanceBefore;
+
     throw new Error(
-      `Số dư ví không đủ. Còn thiếu ${Math.abs(balanceAfter).toLocaleString(
-        "vi-VN",
-      )}đ`,
+      `Số dư ví không đủ. Còn thiếu ${missingAmount.toLocaleString("vi-VN")} đ`,
     );
   }
 
+  const balanceAfter = balanceBefore - amount;
+
   await deductWalletBalance(params.conn, {
     walletId: Number(wallet.walletId),
-    amount: params.amount,
+    amount,
   });
 
-  await insertWalletTransaction(params.conn, {
+  await insertWalletHistory(params.conn, {
     walletId: Number(wallet.walletId),
+
     paymentId: params.paymentId,
+
     bookingId: params.bookingId,
+
+    topupId: null,
+
     transactionType: "PAYMENT",
-    amount: params.amount,
+
+    amount,
     balanceBefore,
     balanceAfter,
-    description: `Thanh toán vé ${params.transactionCode}`,
-    createdBy: Number(bookingUser.userId),
+
+    referenceCode: `WALLET-PAY-${params.paymentId}-${Date.now()}`,
+
+    description: `Thanh toán vé ${params.bookingCode}`,
   });
 
   await markPaymentPaidByWallet(params.conn, params.paymentId);
+
   await confirmBookingAfterPayment(params.conn, params.bookingId);
+
   await confirmBookingSeatsAfterPaid(params.conn, params.bookingId);
 
   return {
-    walletBalanceBefore: balanceBefore,
-    walletBalanceAfter: balanceAfter,
+    bookingId: params.bookingId,
+    paymentId: params.paymentId,
+
+    walletId: Number(wallet.walletId),
+
+    balanceBefore,
+    balanceAfter,
+
+    alreadyProcessed: false,
   };
 }
 
@@ -769,32 +805,102 @@ export async function getPaymentStatus(
 
 export async function customerConfirmManualPayment(payload: {
   paymentId: number;
+  userId: number;
   note: string | null;
 }) {
-  return withTransaction(async (conn) => {
+  if (!Number.isInteger(payload.userId) || payload.userId <= 0) {
+    throw new Error("Tài khoản đăng nhập không hợp lệ");
+  }
+
+  const result = await withTransaction(async (conn) => {
     const payment = await findPaymentForConfirm(conn, payload.paymentId);
 
     if (!payment) {
       throw new Error("Payment không tồn tại");
     }
 
-    if (payment.paymentMethod === "INTERNAL_WALLET") {
-      await payByInternalWallet({
-        conn,
-        paymentId: Number(payment.paymentId),
+    if (payment.status === "PAID") {
+      return {
+        success: true,
         bookingId: Number(payment.bookingId),
+        paymentId: Number(payment.paymentId),
+        alreadyProcessed: true,
+      };
+    }
+
+    if (payment.status !== "PENDING") {
+      throw new Error("Payment không còn ở trạng thái chờ thanh toán");
+    }
+
+    if (payment.bookingStatus !== "PENDING") {
+      throw new Error("Booking không còn ở trạng thái chờ thanh toán");
+    }
+
+    if (
+      payment.holdExpiredAt &&
+      new Date(payment.holdExpiredAt).getTime() <= Date.now()
+    ) {
+      throw new Error("Đã hết thời gian giữ chỗ");
+    }
+
+    if (payment.paymentMethod === "INTERNAL_WALLET") {
+      if (Number(payment.bookingUserId) !== Number(payload.userId)) {
+        throw new Error("Bạn không có quyền thanh toán booking này");
+      }
+
+      const walletResult = await payByInternalWallet({
+        conn,
+
+        paymentId: Number(payment.paymentId),
+
+        bookingId: Number(payment.bookingId),
+
+        bookingCode: payment.bookingCode,
+
+        userId: payload.userId,
+
         amount: Number(payment.amount),
+
         transactionCode: payment.transactionCode,
       });
 
-      return { success: true };
+      return {
+        success: true,
+        ...walletResult,
+      };
     }
 
     if (payment.paymentMethod === "CASH") {
-      await markPaymentWaitingConfirm(payload.paymentId, payload.note);
-      return { success: true };
+      await markPaymentWaitingConfirm(conn, payload.paymentId, payload.note);
+
+      return {
+        success: true,
+        bookingId: Number(payment.bookingId),
+        paymentId: Number(payment.paymentId),
+        alreadyProcessed: false,
+      };
     }
 
-    return { success: true };
+    throw new Error("Phương thức này không hỗ trợ xác nhận thủ công");
   });
+
+  /*
+   * Gửi mail và notification sau khi
+   * transaction thanh toán đã commit.
+   */
+  if (!result.alreadyProcessed && "balanceAfter" in result) {
+    try {
+      await sendPaymentResultSideEffects({
+        bookingId: result.bookingId,
+        isPaid: true,
+      });
+    } catch (error) {
+      console.error("[INTERNAL WALLET SIDE EFFECT ERROR]", {
+        bookingId: result.bookingId,
+        error,
+      });
+    }
+  }
+
+  return result;
 }

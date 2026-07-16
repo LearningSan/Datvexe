@@ -1,0 +1,681 @@
+.dashboard {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 16px;
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.header h1 {
+  margin: 4px 0 6px 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
+.header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+/* Chỉ số Metrics */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.metric {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.metricIcon {
+  background-color: #eff6ff;
+  color: #2563eb;
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metric div {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric span {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.metric strong {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 2px;
+}
+
+/* KHU VỰC TOP WORKSPACE: Camera & Nhập tay song hành */
+.topScannerWorkspace {
+  display: flex;
+  gap: 24px;
+  align-items: stretch; /* Ép cột trái và cột phải cao bằng nhau tuyệt đối */
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+/* Cột bên trái (chứa Camera) */
+.scannerBox {
+  flex: 1; /* Chia đều 50% kích thước */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Cột bên phải (Nhập mã thủ công) */
+.manualPanel {
+  flex: 1; /* Chia đều 50% kích thước */
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  box-sizing: border-box;
+  justify-content: space-between; /* Đẩy phần tiêu đề lên đỉnh, ô nhập liệu xuống đáy */
+}
+
+/* Tiêu đề cột phải */
+.manualPanel h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+}
+
+.manualPanel p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Khung nhập liệu (Input & Button Tra cứu) */
+.scannerInput {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: auto; /* Đảm bảo luôn nằm sát đáy giống như footer của camera */
+  height: 52px; /* Thiết lập chiều cao cố định cho thanh input để cân đối */
+  box-sizing: border-box;
+}
+
+.scannerInput svg {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.scannerInput input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.scannerInput input::placeholder {
+  color: #94a3b8;
+}
+
+/* Nút Tra cứu bên trong Input */
+.scannerInput button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  white-space: nowrap;
+}
+
+.scannerInput button:hover {
+  background: #1d4ed8;
+}
+
+.scannerInput button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.toggleCameraButton {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggleCameraButton:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+/* LAYOUT CHI TIẾT BÊN DƯỚI */
+.mainLayout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: start;
+  transition: all 0.3s ease;
+}
+
+/* Khi có sidebar mở rộng, chia tỷ lệ 2 cột */
+@media (min-width: 1025px) {
+  .mainLayout:has(.previewSidebar) {
+    grid-template-columns: 1fr 380px;
+  }
+}
+
+.tableSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Bộ lọc (Filters) */
+.filterPanel {
+  background: #ffffff;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filterPanel input,
+.filterPanel select {
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  outline: none;
+  font-size: 0.85rem;
+  background-color: #ffffff;
+}
+
+.filterPanel input {
+  flex: 2;
+  min-width: 200px;
+}
+
+.filterPanel select {
+  flex: 1;
+  min-width: 150px;
+}
+
+.filterPanel button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.filterPanel button:nth-of-type(1) {
+  background-color: #0f172a;
+  color: #ffffff;
+}
+
+.filterPanel button:nth-of-type(1):hover {
+  background-color: #1e293b;
+}
+
+.filterPanel button:nth-of-type(2) {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.filterPanel button:nth-of-type(2):hover {
+  background-color: #e2e8f0;
+}
+
+/* Bảng danh sách */
+.tableCard {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow-x: auto;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.tableCard table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.tableCard th {
+  background-color: #f8fafc;
+  padding: 14px 16px;
+  color: #475569;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tableCard td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.tableCard tr:hover td {
+  background-color: #f8fafc;
+}
+
+.tableCard td strong {
+  display: block;
+  color: #0f172a;
+}
+
+.tableCard td small {
+  display: block;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.rowAction {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.rowAction:hover {
+  background-color: #eff6ff;
+  text-decoration: underline;
+}
+
+.empty {
+  padding: 32px;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* Phân trang (Pagination) */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+}
+
+.pagination button {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: #f8fafc;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+/* Cột xem trước giao dịch (Preview Sidebar) */
+.previewSidebar {
+  position: sticky;
+  top: 24px;
+}
+
+.paymentPreview {
+  background: #ffffff;
+  border: 2px solid #2563eb; /* Highlight màu xanh dương */
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.previewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 12px;
+}
+
+.previewHeader h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.closePreviewBtn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.paymentPreview > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.paymentPreview span {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.paymentPreview strong {
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.paymentPreview small {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.previewAmount {
+  font-size: 1.4rem !important;
+  color: #16a34a !important; /* Hiển thị tiền màu xanh lá lớn */
+  font-weight: 800 !important;
+}
+
+.confirmButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #16a34a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 8px;
+}
+
+.confirmButton:hover:not(:disabled) {
+  background-color: #15803d;
+}
+
+.confirmButton:disabled {
+  background-color: #cbd5e1;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+/* Huy hiệu trạng thái (Status Badge) */
+.status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.pending {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+.paid {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+.expired {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+/* --- RESPONSIVE TOÀN DIỆN CHO ĐIỆN THOẠI --- */
+@media (max-width: 1024px) {
+  .dashboard {
+    margin: 0;
+    padding: 0;
+    gap: 16px;
+  }
+
+  .header {
+    order: 2;
+    text-align: center;
+    padding-bottom: 12px;
+  }
+
+  .header h1 {
+    font-size: 1.35rem;
+  }
+
+  .header p {
+    font-size: 0.85rem;
+  }
+
+  /* 1. ĐẨY CAMERA LÊN ĐẦU, CĂN GIỮA VÀ THU GỌN BỀ NGANG */
+  .topScannerWorkspace {
+    order: 1;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+  }
+
+  /* Giới hạn chiều rộng tối đa của camera trên mobile để nhìn cân đối, không bị to bè */
+  .scannerBox {
+    width: 100%;
+    max-width: 480px;
+    order: 1; /* Ưu tiên số 1: Hiện lên đầu tiên */
+  }
+
+  .manualPanel {
+    width: 100%;
+    max-width: 480px;
+    order: 2; /* Hiện ngay dưới camera */
+    padding: 16px;
+  }
+
+  .metrics {
+    order: 3;
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    width: 100%;
+    padding-bottom: 8px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .metric {
+    flex: 0 0 180px;
+    scroll-snap-align: start;
+    padding: 10px;
+  }
+
+  .mainLayout {
+    order: 4; /* Danh sách dưới cùng */
+    width: 100%;
+  }
+
+  .filterPanel {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .filterPanel input,
+  .filterPanel select,
+  .filterPanel button {
+    width: 100% !important;
+  }
+
+  .tableCard table,
+  .tableCard thead,
+  .tableCard tbody,
+  .tableCard th,
+  .tableCard td,
+  .tableCard tr {
+    display: block;
+  }
+
+  .tableCard thead {
+    display: none;
+  }
+
+  .tableCard tr {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 16px 12px;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tableCard td {
+    padding: 0;
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .tableCard td::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    margin-right: 12px;
+    padding-top: 2px;
+  }
+
+  .tableCard td > * {
+    text-align: right;
+  }
+
+  .rowAction {
+    width: 100%;
+    text-align: center;
+    background-color: #eff6ff;
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 6px;
+    font-size: 0.9rem;
+  }
+
+  /* Sidebar chi tiết thanh toán trượt lên từ cạnh dưới màn hình */
+  .previewSidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 99;
+    top: auto;
+    padding: 16px;
+    background-color: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(4px);
+    height: 100vh;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .paymentPreview {
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+}

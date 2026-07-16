@@ -1,0 +1,581 @@
+/* MomoDemo.module.css */
+
+/* --- Định nghĩa biến màu sắc chuẩn thương hiệu --- */
+:root {
+  --momo-pink: #d82d8b;
+  --momo-pink-dark: #b02070;
+  --momo-pink-light: #fff0f6;
+  --bg-page: #f4f6f9;
+  --text-main: #222222;
+  --text-muted: #666666;
+  --border-color: #e0e0e0;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.page {
+  min-height: 100vh;
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Header --- */
+.header {
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  padding: 16px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.headerInner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandMark {
+  background-color: var(--momo-pink);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.brandName {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.brandSubtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.testBadge {
+  background-color: #fff3cd;
+  color: #856404;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid #ffeeba;
+}
+
+/* --- Toàn bộ khung nội dung chính --- */
+.content {
+  flex: 1;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.warning {
+  background-color: #e8f4fd;
+  color: #0d3c61;
+  border: 1px solid #d1e9fc;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* --- Bố cục dạng Wallet Layout (Chia 2 bên) --- */
+.walletLayout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* --- Cột bên trái: Mô phỏng UI Điện thoại --- */
+.phoneCard {
+  background-color: #ffffff;
+  border-radius: 24px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.phoneTop {
+  background-color: #f8f9fa;
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #eee;
+}
+
+.walletHeader {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.avatar {
+  background-color: #e3f2fd;
+  color: #1e88e5;
+  font-weight: 700;
+  font-size: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.walletHeader span {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.walletHeader strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.moneyBox {
+  padding: 24px 20px;
+  background-color: #fafafa;
+  text-align: center;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.moneyBox span {
+  display: block;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.moneyBox strong {
+  display: block;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 6px 0;
+}
+
+.moneyBox small {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.walletInfo {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.walletInfo > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.walletInfo span {
+  color: var(--text-muted);
+}
+
+.walletInfo strong {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.countdown {
+  color: #e53935 !important;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700 !important;
+}
+
+/* --- Cột bên phải: Form Nhập liệu --- */
+.formCard {
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  padding: 32px;
+}
+
+.stepHeader {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+
+.stepHeader > span {
+  background-color: var(--momo-pink-light);
+  color: var(--momo-pink);
+  font-weight: 700;
+  font-size: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stepHeader h1 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.stepHeader p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* --- Các thành phần Form & Input --- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.field > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.field input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 16px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--momo-pink);
+}
+
+.amountInput {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.amountInput input {
+  padding-right: 60px;
+  font-weight: 700;
+}
+
+.amountInput strong {
+  position: absolute;
+  right: 16px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.pinInput {
+  letter-spacing: 8px;
+  text-align: center;
+  font-size: 24px !important;
+}
+
+/* --- Khối Số dư dưới form nhập tài khoản --- */
+.balanceCard {
+  background-color: #fafafa;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.balanceCard > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.balanceCard span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.balanceCard strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* --- Box hiển thị gợi ý thông tin test --- */
+.demoInfo, .pinHint {
+  background-color: #f8f9fa;
+  border-left: 4px solid #ced4da;
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.demoInfo strong, .pinHint span {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pinHint {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-left-color: var(--momo-pink);
+}
+
+.confirmBox {
+  background-color: var(--momo-pink-light);
+  border: 1px solid #ffdaed;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+
+.confirmBox > div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.confirmBox span {
+  color: var(--text-muted);
+}
+
+.confirmBox strong {
+  font-weight: 600;
+}
+
+/* --- Thông báo lỗi --- */
+.errorMessage {
+  background-color: #fde8e8;
+  color: #e53935;
+  border: 1px solid #fccdcd;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+/* --- Các nút bấm điều hướng hành động --- */
+.submitButton {
+  width: 100%;
+  height: 48px;
+  background-color: var(--momo-pink);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: var(--momo-pink-dark);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.backButton {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: 12px 0;
+  margin-top: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.backButton:hover {
+  color: var(--text-main);
+  text-decoration: underline;
+}
+
+/* --- Thẻ trạng thái lỗi độc lập (State Cards: Loading, Error, Expired) --- */
+.stateCard {
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  padding: 48px 24px;
+  text-align: center;
+  max-width: 500px;
+  margin: 40px auto 0;
+}
+
+.stateCard h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 24px 0 8px 0;
+}
+
+.stateCard p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Hiệu ứng loading quay tròn */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(216, 45, 139, 0.1);
+  border-top-color: var(--momo-pink);
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.errorIcon {
+  width: 48px;
+  height: 48px;
+  background-color: #fde8e8;
+  color: #e53935;
+  border-radius: 50%;
+  font-size: 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+/* --- Card hoàn thành giao dịch thành công --- */
+.successCard {
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  padding: 40px 24px;
+  max-width: 550px;
+  margin: 20px auto 0;
+  text-align: center;
+}
+
+.successIcon {
+  width: 56px;
+  height: 56px;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 50%;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.successCard h1 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #2e7d32;
+}
+
+.successCard p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 28px 0;
+  line-height: 1.5;
+}
+
+.successDetails {
+  background-color: #fafafa;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.successDetails > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.successDetails span {
+  color: var(--text-muted);
+}
+
+.successDetails strong {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* --- Tối ưu hóa giao diện thiết bị di động (Responsive) --- */
+@media (max-width: 768px) {
+  .walletLayout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .phoneCard {
+    /* Đưa block mô phỏng điện thoại lên làm thẻ thông tin đơn giản trên Mobile */
+    border-radius: 12px;
+  }
+  
+  .phoneTop {
+    display: none; /* Ẩn thanh top status bar của điện thoại trên Mobile thật */
+  }
+
+  .formCard {
+    padding: 20px;
+    border-radius: 12px;
+  }
+}

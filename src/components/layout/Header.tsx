@@ -1,34 +1,46 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image"; // 1. Import thêm Image từ Next.js
-import styles from "./layout.module.css";
+import Image from "next/image";
+import Link from "next/link";
+
+// Đổi từ layout.module.css sang file css riêng vừa tạo
+import styles from "./Header.module.css";
 
 import AuthModal from "@/components/client/auth/AuthModal/AuthModal";
-import { useAuthStore } from "@/store/auth.store";
-import UserDropdown from "./UserDropdown";
 import NotificationDropdown from "./NotificationDropdown";
+import UserDropdown from "./UserDropdown";
+
+import { useAuthStore } from "@/store/auth.store";
 
 export default function Header() {
   const [openAuth, setOpenAuth] = useState(false);
-  const user = useAuthStore((s) => s.user);
+  const user = useAuthStore((state) => state.user);
 
   return (
     <>
       <header className={styles.header}>
         <div className={styles.headerInner}>
+          {/* Menu bên trái */}
           <nav className={styles.leftNav}>
-            <a href="#" className={styles.navLink}>
+            <Link href="/schedule" className={styles.navLink}>
               Lịch Trình
-            </a>
-            <a href="#" className={styles.navLink}>
+            </Link>
+
+            <Link href="/account/tickets" className={styles.navLink}>
               Tra Cứu Vé
-            </a>
+            </Link>
+            <Link href="/news" className={styles.navLink}>
+              Tin Tức
+            </Link>
+            <Link href="/contact" className={styles.navLink}>
+              Liên Hệ
+            </Link>
           </nav>
 
-          {/* Thay thế khối brandBox cũ bằng logo mới */}
+          {/* Logo ở trung tâm */}
           <div className={styles.brandBox}>
-            <a href="/" className={styles.logoWrapper}>
+            <Link href="/" className={styles.logoWrapper}>
               <Image
                 src="/logo.png"
                 alt="XeKhachPT Logo"
@@ -37,16 +49,32 @@ export default function Header() {
                 priority
                 className={styles.logoImg}
               />
-            </a>
+            </Link>
           </div>
 
+          {/* Menu bên phải */}
           <nav className={styles.rightNav}>
-            <a href="#" className={styles.navLink}>
-              Tin Tức
-            </a>
-            <a href="#" className={styles.navLink}>
-              Liên Hệ
-            </a>
+            {/* Chỉ hiển thị Ví của tôi khi đã đăng nhập */}
+            {user && (
+              <Link href="/account/wallet" className={styles.walletLink}>
+                <span className={styles.walletIcon}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={styles.svgIcon}
+                  >
+                    <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-1" />
+                    <path d="M19 11v4" />
+                  </svg>
+                </span>
+                <span className={styles.walletText}>Ví của tôi</span>
+              </Link>
+            )}
 
             {user && <NotificationDropdown />}
 
@@ -54,7 +82,8 @@ export default function Header() {
               <UserDropdown />
             ) : (
               <button
-                className={styles.btnLogin}
+                type="button"
+                className={styles.headerLoginButton}
                 onClick={() => setOpenAuth(true)}
               >
                 Đăng Nhập

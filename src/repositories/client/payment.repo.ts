@@ -343,18 +343,20 @@ export async function findPaymentStatusById(paymentId: number) {
 }
 
 export async function markPaymentWaitingConfirm(
+  conn: mysql.PoolConnection,
   paymentId: number,
   note: string | null,
 ) {
-  await query(
+  await connQuery(
+    conn,
     `
-    UPDATE payments
-    SET
-      status = 'WAITING_CONFIRM',
-      manual_note = ?
-    WHERE payment_id = ?
-      AND status = 'PENDING'
-      AND flow_type IN ('MANUAL', 'QR', 'CASH')
+      UPDATE payments
+      SET
+        status = 'WAITING_CONFIRM',
+        manual_note = ?
+      WHERE payment_id = ?
+        AND status = 'PENDING'
+        AND flow_type IN ('QR', 'CASH')
     `,
     [note, paymentId],
   );
@@ -431,51 +433,6 @@ export async function deductWalletBalance(
     WHERE wallet_id = ?
     `,
     [data.amount, data.walletId],
-  );
-}
-
-export async function insertWalletTransaction(
-  conn: mysql.PoolConnection,
-  data: {
-    walletId: number;
-    paymentId: number | null;
-    bookingId: number | null;
-    transactionType: "DEPOSIT" | "PAYMENT" | "REFUND" | "ADJUSTMENT";
-    amount: number;
-    balanceBefore: number;
-    balanceAfter: number;
-    description: string | null;
-    createdBy: number | null;
-  },
-) {
-  await connQuery(
-    conn,
-    `
-    INSERT INTO wallet_transactions (
-      wallet_id,
-      payment_id,
-      booking_id,
-      transaction_type,
-      amount,
-      balance_before,
-      balance_after,
-      description,
-      created_by,
-      created_at
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-    `,
-    [
-      data.walletId,
-      data.paymentId,
-      data.bookingId,
-      data.transactionType,
-      data.amount,
-      data.balanceBefore,
-      data.balanceAfter,
-      data.description,
-      data.createdBy,
-    ],
   );
 }
 
@@ -625,23 +582,42 @@ export async function findPaymentForConfirm(
   const rows = await connQuery<{
     paymentId: number;
     bookingId: number;
+    bookingCode: string;
+
+    bookingUserId: number | null;
+
     paymentMethod: PaymentMethodType;
     amount: string | number;
     transactionCode: string;
     status: PaymentStatus;
+
+    bookingStatus: BookingStatus;
+    holdExpiredAt: string | Date | null;
   }>(
     conn,
     `
-    SELECT
-      payment_id AS paymentId,
-      booking_id AS bookingId,
-      payment_method AS paymentMethod,
-      amount,
-      transaction_code AS transactionCode,
-      status
-    FROM payments
-    WHERE payment_id = ?
-    LIMIT 1
+      SELECT
+        p.payment_id AS paymentId,
+        p.booking_id AS bookingId,
+        p.payment_method AS paymentMethod,
+        p.amount,
+        p.transaction_code AS transactionCode,
+        p.status,
+
+        b.booking_code AS bookingCode,
+        b.user_id AS bookingUserId,
+        b.status AS bookingStatus,
+        b.hold_expired_at AS holdExpiredAt
+
+      FROM payments p
+
+      INNER JOIN bookings b
+        ON b.booking_id = p.booking_id
+
+      WHERE p.payment_id = ?
+
+      LIMIT 1
+      FOR UPDATE
     `,
     [paymentId],
   );
@@ -649,7 +625,9 @@ export async function findPaymentForConfirm(
   return rows[0] ?? null;
 }
 
-export async function findPaymentByProviderOrderCode(providerOrderCode: string) {
+export async function findPaymentByProviderOrderCode(
+  providerOrderCode: string,
+) {
   const rows = await query<{
     paymentId: number;
     bookingId: number;

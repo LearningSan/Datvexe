@@ -1,0 +1,455 @@
+/* --- LAYOUT & MAIN CONTAINER --- */
+
+.page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 40px 20px;
+  background-color: #f8fafc;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  color: #1e293b;
+}
+
+.container {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.backButton {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.backButton:hover {
+  color: #0f172a;
+}
+
+/* --- HEADER SECTION --- */
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+.eyebrow {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ef4444; /* Màu chủ đạo của XeKhachPT */
+  margin-bottom: 4px;
+}
+
+.pageHeader h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #0f172a;
+}
+
+.pageHeader p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+  max-width: 520px;
+}
+
+.balanceBox {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  text-align: right;
+  min-width: 200px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.balanceBox span {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.balanceBox strong {
+  font-size: 20px;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* --- CONTENT CARD (FILTER & LIST) --- */
+
+.contentCard {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* FILTER BAR */
+.filterBar {
+  display: flex;
+  gap: 8px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: #fafafa;
+  overflow-x: auto;
+}
+
+.filterButton {
+  background: none;
+  border: 1px solid transparent;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filterButton:hover {
+  color: #0f172a;
+  background-color: #f1f5f9;
+}
+
+.filterActive {
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+/* --- TRANSACTION ROW --- */
+
+.transactionList {
+  display: flex;
+  flex-direction: column;
+}
+
+.transactionRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s ease;
+}
+
+.transactionRow:hover {
+  background-color: #f8fafc;
+}
+
+.transactionRow:last-child {
+  border-bottom: none;
+}
+
+/* ICONS */
+.transactionIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.increaseIcon {
+  background-color: #ecfdf5;
+  color: #10b981;
+}
+
+.decreaseIcon {
+  background-color: #fff1f2;
+  color: #f43f5e;
+}
+
+/* MAIN INFO */
+.transactionMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.transactionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.transactionTitle strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* BADGES */
+.typeBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.increaseBadge {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.decreaseBadge {
+  background-color: #ffe4e6;
+  color: #9f1239;
+}
+
+.description {
+  font-size: 13px;
+  color: #475569;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* META DATA */
+.transactionMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #94a3b8;
+  flex-wrap: wrap;
+}
+
+.transactionMeta span:not(:last-child)::after {
+  content: "•";
+  margin-left: 12px;
+  color: #cbd5e1;
+}
+
+/* AMOUNTS & SNAPSHOTS */
+.transactionAmounts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  gap: 8px;
+  min-width: 150px;
+  flex-shrink: 0;
+}
+
+.increaseAmount {
+  color: #10b981;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.decreaseAmount {
+  color: #f43f5e;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.balanceSnapshots {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.balanceSnapshots div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.balanceSnapshots span {
+  color: #94a3b8;
+}
+
+.balanceSnapshots b {
+  color: #475569;
+  font-weight: 500;
+}
+
+/* --- STATE BOX (LOADING, ERROR, EMPTY) --- */
+
+.stateBox {
+  padding: 60px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.stateBox h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: #0f172a;
+}
+
+.stateBox p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  max-width: 300px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f1f5f9;
+  border-top: 3px solid #ef4444;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.emptyIcon,
+.errorIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.emptyIcon {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.errorIcon {
+  background-color: #fff1f2;
+  color: #ef4444;
+}
+
+.primaryButton {
+  padding: 10px 20px;
+  background-color: #ef4444;
+  border: 1px solid #ef4444;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.primaryButton:hover {
+  background-color: #dc2626;
+}
+
+/* --- PAGINATION --- */
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid #f1f5f9;
+  background-color: #fafafa;
+}
+
+.pagination button {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  border-color: #94a3b8;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.pagination button:disabled {
+  color: #cbd5e1;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+/* --- RESPONSIVE --- */
+
+@media (max-width: 768px) {
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .balanceBox {
+    width: 100%;
+    text-align: left;
+  }
+
+  .transactionRow {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .transactionAmounts {
+    align-items: flex-start;
+    text-align: left;
+    width: 100%;
+    border-top: 1px dashed #f1f5f9;
+    padding-top: 12px;
+  }
+
+  .balanceSnapshots {
+    flex-direction: row;
+    gap: 16px;
+  }
+}

@@ -1,0 +1,675 @@
+/* ==========================================================================
+   LAYOUT CHUNG & ĐỊNH DẠNG BIẾN CHỦ ĐẠO
+   ========================================================================== */
+.dashboard {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --success: #10b981;
+  --success-light: #ecfdf5;
+  --danger: #ef4444;
+  --danger-light: #fef2f2;
+  --warning: #f59e0b;
+  --dark: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --bg-card: #ffffff;
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+/* HEADER SECTION */
+.header {
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 20px;
+}
+
+.eyebrow {
+  color: var(--primary);
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.header h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--dark);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+}
+
+.header p {
+  color: var(--text-muted);
+  font-size: 15px;
+  margin: 0;
+  max-width: 700px;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   KHỐI SỐ LIỆU THỐNG KÊ (METRICS)
+   ========================================================================== */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.metric {
+  background: var(--bg-card);
+  padding: 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.2s;
+}
+
+.metric:hover {
+  transform: translateY(-2px);
+}
+
+.metricLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.metricValue {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--dark);
+}
+
+.metricAmount {
+  border-top: 3px solid var(--primary);
+}
+
+/* ==========================================================================
+   THANH BỘ LỌC (FILTER BAR)
+   ========================================================================== */
+.filters {
+  background: var(--bg-card);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.searchInput {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f1f5f9;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 0 14px;
+  height: 42px;
+  flex: 1;
+  min-width: 280px;
+  transition: all 0.2s;
+}
+
+.searchInput:focus-within {
+  background: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.searchInput input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  height: 100%;
+  font-size: 14px;
+  color: var(--dark);
+  outline: none;
+}
+
+.select {
+  height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-card);
+  color: var(--dark);
+  font-size: 14px;
+  outline: none;
+  min-width: 180px;
+  cursor: pointer;
+}
+
+.filterActions {
+  display: flex;
+  gap: 8px;
+}
+
+/* NÚT THAO TÁC TRÊN BỘ LỌC */
+.btnPrimary,
+.btnSecondary {
+  height: 42px;
+  padding: 0 20px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnPrimary {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+}
+
+.btnPrimary:hover {
+  background: var(--primary-hover);
+}
+
+.btnSecondary {
+  background: #fff;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.btnSecondary:hover {
+  background: #f1f5f9;
+  color: var(--dark);
+}
+
+/* ==========================================================================
+   BẢNG GRID DANH SÁCH VÍ (CARDS LIST)
+   ========================================================================== */
+.walletGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.walletCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+
+.walletCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+/* THÔNG TIN CHUNG PHẦN ĐẦU CARD */
+.walletHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.walletIcon {
+  background: #eff6ff;
+  color: var(--primary);
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.walletTitle {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.walletTitle strong {
+  font-size: 16px;
+  color: var(--dark);
+  font-weight: 700;
+}
+
+.walletTitle span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* TRẠNG THÁI ACTIVE/LOCKED BADGE */
+.statusBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.active {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.locked {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+/* PHẦN SỐ DƯ CHÍNH */
+.balance {
+  background: #f8fafc;
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.balance span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.balance strong {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* PHẦN CHI TIẾT DƯỚI CARD */
+.walletInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  flex: 1;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  gap: 12px;
+}
+
+.infoRow span {
+  color: var(--text-muted);
+}
+
+.infoRow strong {
+  color: var(--dark);
+  font-weight: 600;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* CÁC NÚT THAO TÁC DƯỚI CARD */
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.actions button {
+  flex: 1;
+  height: 38px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btnLock {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+.btnLock:hover {
+  background: #fee2e2;
+}
+
+.btnUnlock {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.btnUnlock:hover {
+  background: #d1fae5;
+}
+
+.btnAdjust {
+  background: #f1f5f9;
+  color: var(--dark);
+  border: 1px solid var(--border) !important;
+}
+
+.btnAdjust:hover {
+  background: #e2e8f0;
+}
+
+/* ==========================================================================
+   MODAL DIALOG (THAY THẾ WINDOW PROMPT)
+   ========================================================================== */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  max-width: 480px;
+  width: 100%;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
+  overflow: hidden;
+  animation: modalIn 0.2s ease-out;
+}
+
+@keyframes modalIn {
+  from {
+    transform: translateY(12px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.modalHeader {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modalHeader h3 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.modalHeader p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.modalBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup label,
+.modalBody label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.required {
+  color: var(--danger);
+}
+
+.modalBody textarea,
+.modalBody input[type="number"] {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modalBody textarea:focus,
+.modalBody input[type="number"]:focus {
+  border-color: var(--primary);
+}
+
+/* NÚT THAO TÁC TRÊN MODAL */
+.modalFooter {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  background-color: #f8fafc;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btnCancel,
+.btnConfirmPrimary,
+.btnConfirmDanger,
+.btnConfirmSuccess {
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btnCancel {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.btnCancel:hover {
+  background: #e2e8f0;
+  color: var(--dark);
+}
+
+.btnConfirmPrimary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btnConfirmPrimary:hover {
+  background: var(--primary-hover);
+}
+
+.btnConfirmDanger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btnConfirmDanger:hover {
+  background: #dc2626;
+}
+
+.btnConfirmSuccess {
+  background: var(--success);
+  color: #fff;
+}
+
+.btnConfirmSuccess:hover {
+  background: #059669;
+}
+
+/* NHÓM CHỌN RADIO TRONG MODAL ĐIỀU CHỈNH */
+.radioGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.radioGroup label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.radioGroup input {
+  display: none;
+}
+
+.radioActive {
+  border-color: var(--primary) !important;
+  background-color: #eff6ff;
+  color: var(--primary) !important;
+}
+
+/* ==========================================================================
+   PAGINATION & EMPTY STATE & LOADING ANIMATION
+   ========================================================================== */
+.pagination {
+  margin-top: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-card);
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.pagination button {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--dark);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.pagination strong {
+  color: var(--dark);
+}
+
+.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* UTILITIES */
+.txtSuccess {
+  color: var(--success) !important;
+}
+.txtDanger {
+  color: var(--danger) !important;
+}
+
+.spin {
+  animation: spinner 1s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 16px;
+  }
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .searchInput {
+    min-width: 100%;
+  }
+  .filterActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .pagination {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+}

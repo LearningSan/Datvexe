@@ -107,43 +107,69 @@ export async function sendPaymentResultSideEffects(params: {
 }) {
   const bookingInfo = await findBookingByIdForNotification(params.bookingId);
 
-  if (bookingInfo?.userId) {
-    await createNotification(null as any, {
-      userId: bookingInfo.userId,
-      type: params.isPaid ? "PAYMENT" : "BOOKING",
-      title: params.isPaid ? "Thanh toán thành công" : "Thanh toán thất bại",
-      content: params.isPaid
-        ? `Thanh toán thành công! Mã vé của bạn là ${bookingInfo.bookingCode}.`
-        : `Giao dịch thất bại. Vé ${bookingInfo.bookingCode} đã bị hủy.`,
-    });
+  console.log("[PAYMENT BOOKING INFO]", {
+    bookingId: params.bookingId,
+    found: Boolean(bookingInfo),
+    isPaid: params.isPaid,
+    contactEmail: bookingInfo?.contactEmail ?? null,
+  });
+
+  if (!bookingInfo) {
+    throw new Error("Không tìm thấy thông tin booking để gửi email");
   }
 
-  if (params.isPaid && bookingInfo?.contactEmail) {
-    await sendPaymentSuccessEmail({
-      to: bookingInfo.contactEmail,
-      customerName: bookingInfo.contactName,
-      customerPhone: bookingInfo.contactPhone,
-      bookingCode: bookingInfo.bookingCode,
-      amount: bookingInfo.totalAmount,
-      routeName: bookingInfo.routeName,
-      departureDatetime: bookingInfo.departureDatetime,
-      arrivalDatetime: bookingInfo.arrivalDatetime,
-      pickupPointName: bookingInfo.pickupPointName,
-      pickupPointAddress: bookingInfo.pickupPointAddress,
-      dropoffPointName: bookingInfo.dropoffPointName,
-      dropoffPointAddress: bookingInfo.dropoffPointAddress,
-      vehicleName: bookingInfo.vehicleName,
-      licensePlate: bookingInfo.licensePlate,
-      seatNumbers: bookingInfo.seatNumbers,
+  if (bookingInfo?.userId) {
+    await withTransaction(async (conn) => {
+      await createNotification(conn, {
+        userId: bookingInfo.userId,
+        type: params.isPaid ? "PAYMENT" : "BOOKING",
+        title: params.isPaid ? "Thanh toán thành công" : "Thanh toán thất bại",
+        content: params.isPaid
+          ? `Thanh toán thành công! Mã vé của bạn là ${bookingInfo.bookingCode}.`
+          : `Giao dịch thất bại. Vé ${bookingInfo.bookingCode} đã bị hủy.`,
+      });
     });
   }
+  if (!params.isPaid) {
+    return;
+  }
+
+  if (!bookingInfo.contactEmail?.trim()) {
+    throw new Error(
+      `Booking ${bookingInfo.bookingCode} không có email người nhận`,
+    );
+  }
+
+  console.log("[PAYMENT EMAIL START]", {
+    bookingId: params.bookingId,
+    bookingCode: bookingInfo.bookingCode,
+    to: bookingInfo.contactEmail,
+  });
+
+  await sendPaymentSuccessEmail({
+    to: bookingInfo.contactEmail,
+    customerName: bookingInfo.contactName,
+    customerPhone: bookingInfo.contactPhone,
+    bookingCode: bookingInfo.bookingCode,
+    amount: bookingInfo.totalAmount,
+    routeName: bookingInfo.routeName,
+    departureDatetime: bookingInfo.departureDatetime,
+    arrivalDatetime: bookingInfo.arrivalDatetime,
+    pickupPointName: bookingInfo.pickupPointName,
+    pickupPointAddress: bookingInfo.pickupPointAddress,
+    dropoffPointName: bookingInfo.dropoffPointName,
+    dropoffPointAddress: bookingInfo.dropoffPointAddress,
+    vehicleName: bookingInfo.vehicleName,
+    licensePlate: bookingInfo.licensePlate,
+    seatNumbers: bookingInfo.seatNumbers,
+  });
+
+  console.log("[PAYMENT EMAIL SUCCESS]", {
+    bookingId: params.bookingId,
+    to: bookingInfo.contactEmail,
+  });
 }
 
-/**
- * Hàm xử lý webhook dùng chung hiện có.
- *
- * Route /api/client/payments/webhook đang import hàm này.
- */
 export async function handlePaymentWebhook(payload: PaymentWebhookPayload) {
   const result = await withTransaction(async (conn) => {
     return confirmPaymentByTransactionCode({
@@ -157,10 +183,6 @@ export async function handlePaymentWebhook(payload: PaymentWebhookPayload) {
     });
   });
 
-  /*
-   * Transaction đã commit xong mới gửi mail
-   * và notification.
-   */
   if (!result.alreadyProcessed) {
     try {
       await sendPaymentResultSideEffects({

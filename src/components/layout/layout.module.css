@@ -210,19 +210,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 140px;        /* 1. Tăng lại chiều rộng lên 140px để logo dàn đều theo chiều ngang */
-  height: 64px;        /* Giữ nguyên chiều cao bằng Header */
-  overflow: hidden;    
+  width: 140px; /* 1. Tăng lại chiều rộng lên 140px để logo dàn đều theo chiều ngang */
+  height: 64px; /* Giữ nguyên chiều cao bằng Header */
+  overflow: hidden;
   position: relative;
 }
 
 /* Thẻ img bên trong */
 .logoImg {
-  width: 100%;         /* 2. Cho ảnh chiếm 100% chiều rộng của khung 140px */
-  height: 100%;        
-  object-fit: contain; 
-  clip-path: inset(2% 10% 2% 10%); 
-  transform: scale(1.3); 
+  width: 100%; /* 2. Cho ảnh chiếm 100% chiều rộng của khung 140px */
+  height: 100%;
+  object-fit: contain;
+  clip-path: inset(2% 10% 2% 10%);
+  transform: scale(1.3);
 }
 /* ================= 3. RESPONSIVE MEDIA QUERIES (MOBILE) ================= */
 @media (max-width: 768px) {
@@ -495,4 +495,70 @@
 
 .notificationUnread:hover {
   background-color: #e1f0ff;
+}
+/* ================= VÍ CỦA TÔI (THEME HÀI HÒA NỀN CAM) ================= */
+.walletLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px; /* Khớp với chiều cao các thành phần khác */
+  padding: 0 14px;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border-radius: 9999px; /* Bo tròn đều giống nút Đăng Nhập */
+  background-color: rgba(255, 255, 255, 0.1); /* Nền mờ nhẹ sang trọng */
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.walletLink:hover {
+  background-color: #ffffff;
+  color: #ea580c; /* Đổi màu chữ sang cam khi hover */
+  border-color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.walletIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+.svgIcon {
+  width: 100%;
+  height: 100%;
+}
+
+/* ================= RESPONSIVE ĐIỀU CHỈNH RIÊNG CHO VÍ ================= */
+@media (max-width: 900px) {
+  /* Ẩn chữ "Ví của tôi" trên màn hình vừa và nhỏ, giữ lại icon */
+  .walletText {
+    display: none;
+  }
+
+  .walletLink {
+    padding: 0;
+    width: 36px; /* Tạo thành nút tròn */
+    height: 36px;
+    justify-content: center;
+    border-radius: 50%;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Đồng bộ khoảng cách cực nhỏ trên mobile để không bị tràn header */
+  .walletLink {
+    width: 32px;
+    height: 32px;
+    border-width: 1px;
+  }
+
+  .walletIcon {
+    width: 16px;
+    height: 16px;
+  }
 }

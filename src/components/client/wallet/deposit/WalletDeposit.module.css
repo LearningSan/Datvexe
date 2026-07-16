@@ -1,0 +1,650 @@
+/* --- LAYOUT & CONTAINERS --- */
+
+.page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 40px 20px;
+  background-color: #f8fafc;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  color: #1e293b;
+}
+
+.container {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.topBar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.backButton {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.backButton:hover {
+  color: #0f172a;
+}
+
+.eyebrow {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ef4444; /* Màu chủ đạo của nhà xe XeKhachPT */
+  margin-bottom: 4px;
+}
+
+.topBar h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #0f172a;
+}
+
+.topBar p {
+  font-size: 15px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+  max-width: 600px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* --- CARDS BASE --- */
+
+.walletCard,
+.formCard,
+.paymentCard,
+.stateCard {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* --- LEFT SIDEBAR (WALLET CARD) --- */
+
+.walletCard {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.walletCard > span {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.walletCard strong {
+  font-size: 24px;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.walletStatus {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 14px;
+}
+
+.walletStatus span {
+  color: #64748b;
+}
+
+.walletStatus b {
+  color: #10b981; /* Xanh lá cho ACTIVE */
+  font-weight: 600;
+}
+
+.walletInformation {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+  background-color: #f8fafc;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 3px solid #cbd5e1;
+}
+
+/* --- FORM CARD (BƯỚC 1) --- */
+
+.formCard {
+  padding: 32px;
+}
+
+.formCard h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.formDescription {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0 0 24px 0;
+}
+
+.suggestedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.suggestedButton {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.suggestedButton:hover {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+}
+
+.suggestedActive {
+  background: #fef2f2 !important;
+  border-color: #f87171 !important;
+  color: #dc2626 !important;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.field > span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.amountInput {
+  display: flex;
+  align-items: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 16px;
+  background: #ffffff;
+  transition: border-color 0.2s ease;
+}
+
+.amountInput:focus-within {
+  border-color: #ef4444;
+}
+
+.amountInput input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 14px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.amountInput strong {
+  font-size: 14px;
+  color: #94a3b8;
+  margin-left: 12px;
+}
+
+.field small {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* --- BẢNG TÓM TẮT (SUMMARY BOX) --- */
+
+.summaryBox {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.summaryBox div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.summaryBox span {
+  color: #64748b;
+}
+
+.summaryBox strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.summaryBox div:last-child {
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 12px;
+  margin-top: 4px;
+}
+
+.summaryBox div:last-child strong {
+  color: #ef4444;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* --- PAYMENT CARD (BƯỚC 2 - QR CODE) --- */
+
+.paymentCard {
+  padding: 32px;
+}
+
+.paymentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 24px;
+}
+
+.paymentHeader span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ef4444;
+  text-transform: uppercase;
+}
+
+.paymentHeader h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 4px 0 0 0;
+}
+
+.countdown {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #ef4444;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.paymentLayout {
+  display: grid;
+  grid-template-columns: 1.2fr 1.8fr;
+  gap: 32px;
+}
+
+.qrSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.qrWrapper {
+  position: relative;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.qrImage {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+}
+
+.payosBadge {
+  margin-top: 12px;
+  background: #0052cc;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.qrSection p {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.qrError {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #64748b;
+  padding: 16px;
+  text-align: center;
+}
+
+/* --- TOPUP DETAILS --- */
+
+.topupDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.topupDetails > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.topupDetails span {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.topupDetails strong {
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.topupDetails .code {
+  font-family: monospace;
+  font-size: 16px;
+  background: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.topupDetails .topupAmount {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.pendingStatus {
+  color: #d97706 !important; /* Màu hổ phách cho trạng thái chờ */
+}
+
+.guideList {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.6;
+  padding-left: 20px;
+  margin: 8px 0;
+}
+
+.guideList li {
+  margin-bottom: 4px;
+}
+
+/* --- TRẠNG THÁI LOADING / THÀNH CÔNG / THẤT BẠI (STATE CARD) --- */
+
+.stateCard {
+  width: 100%;
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 48px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.stateCard h1,
+.stateCard h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.stateCard p {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #f1f5f9;
+  border-top: 4px solid #ef4444;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.successIcon,
+.errorIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.successIcon {
+  background: #ecfdf5;
+  color: #10b981;
+}
+
+.errorIcon {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.resultDetails {
+  width: 100%;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.resultDetails div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.resultDetails span {
+  color: #64748b;
+}
+
+.resultDetails strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.resultActions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.resultActions button {
+  flex: 1;
+}
+
+/* --- THÔNG BÁO LỖI & CẢNH BÁO --- */
+
+.errorMessage {
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.warningMessage {
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+  color: #b45309;
+  font-size: 13px;
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.warningMessage button {
+  background: none;
+  border: none;
+  color: #b45309;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* --- CÁC NÚT BẤM (BUTTONS) --- */
+
+.primaryButton,
+.secondaryButton {
+  width: 100%;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+}
+
+.primaryButton {
+  background: #ef4444;
+  border: 1px solid #ef4444;
+  color: #ffffff;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.primaryButton:disabled {
+  background: #cbd5e1;
+  border-color: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+}
+
+.secondaryButton:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+/* --- RESPONSIVE --- */
+
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .paymentLayout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .paymentHeader {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .countdown {
+    align-self: flex-start;
+  }
+
+  .formCard,
+  .paymentCard {
+    padding: 20px;
+  }
+}

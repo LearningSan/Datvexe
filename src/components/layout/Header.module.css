@@ -1,0 +1,209 @@
+/* ================= HEADER SYSTEM ================= */
+.header {
+  width: 100%;
+  background-color: #f98242; /* Màu cam đặc trưng */
+  color: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.headerInner {
+  max-width: 1200px; /* Tăng nhẹ để các link có không gian thở */
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 80px; /* Tăng nhẹ chiều cao để tương thích tốt với logo tròn */
+  display: flex;
+  align-items: center; /* Căn giữa hoàn hảo tất cả các phần tử theo trục dọc */
+  justify-content: space-between;
+}
+
+/* Các khối chứa menu */
+.leftNav,
+.rightNav {
+  flex: 1;
+  display: flex;
+  gap: 28px; /* Khoảng cách rộng rãi, sang trọng giữa các link */
+  align-items: center;
+}
+
+.leftNav {
+  justify-content: flex-end; /* Đẩy các link sát về phía logo */
+  margin-right: 32px; /* Tạo khoảng trống đều với logo */
+}
+
+.rightNav {
+  justify-content: flex-start; /* Đẩy các link sát về phía logo */
+  margin-left: 32px; /* Tạo khoảng trống đều với logo */
+}
+
+/* KHỐI LOGO TRUNG TÂM */
+.brandBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; /* Không cho phép logo bị bóp méo */
+}
+
+.logoWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px; /* Điều chỉnh kích thước fit vừa vặn với logo tròn */
+  height: 70px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #ffffff; /* Giữ nền trắng của logo gọn gàng trong hình tròn */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.logoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Đảm bảo logo tròn hiển thị trọn vẹn, không bị vỡ */
+}
+
+/* Các nút menu điều hướng */
+.navLink {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 15px; /* Tăng cỡ chữ một chút cho dễ nhìn */
+  font-weight: 700;
+  transition: color 0.2s;
+  white-space: nowrap; /* Không cho phép chữ xuống dòng */
+}
+
+.navLink:hover {
+  color: #fef08a;
+}
+
+/* ================= VÍ CỦA TÔI (FIX LỖI RƠT CHỮ) ================= */
+.walletLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px; /* Tăng padding hai bên */
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap; /* BẮT BUỘC: Giữ chữ "Ví của tôi" luôn nằm trên 1 dòng */
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.walletLink:hover {
+  background-color: #ffffff;
+  color: #ea580c;
+  border-color: #ffffff;
+}
+
+.walletIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+.svgIcon {
+  width: 100%;
+  height: 100%;
+}
+
+/* ================= RESPONSIVE ĐIỀU CHỈNH RIÊNG CHO MOBILE ================= */
+@media (max-width: 992px) {
+  .leftNav,
+  .rightNav {
+    gap: 16px;
+    margin: 0;
+  }
+}
+
+@media (max-width: 850px) {
+  /* Ẩn chữ "Ví của tôi" trên màn hình nhỏ để tránh chật chội */
+  .walletText {
+    display: none;
+  }
+  .walletLink {
+    padding: 0;
+    width: 38px;
+    height: 38px;
+    justify-content: center;
+    border-radius: 50%;
+  }
+}
+
+@media (max-width: 768px) {
+  .headerInner {
+    height: 64px;
+    padding: 0 16px;
+  }
+
+  .navLink {
+    display: none; /* Ẩn bớt link chữ trên Mobile để dồn chỗ cho các icon */
+  }
+
+  .logoWrapper {
+    width: 50px;
+    height: 50px;
+  }
+}
+/* --- BUTTON ĐĂNG NHẬP TRÊN HEADER (NAVBAR) --- */
+
+.headerLoginButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ef4444; /* Chữ đỏ */
+  background-color: #ffffff; /* Nền trắng */
+  border: 1.5px solid #ef4444; /* Viền đỏ mảnh */
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.headerLoginButton:hover {
+  color: #ffffff; /* Chữ chuyển trắng */
+  background-color: #ef4444; /* Nền chuyển đỏ */
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+.headerLoginButton:active {
+  transform: translateY(1px);
+}
+
+/* Trường hợp nút đăng nhập dạng "Fill" hoàn toàn nổi bật trên Header */
+.headerLoginFilledButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #ef4444;
+  border: 1px solid #ef4444;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.1);
+}
+
+.headerLoginFilledButton:hover {
+  background-color: #dc2626;
+  border-color: #dc2626;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}

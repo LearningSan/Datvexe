@@ -329,3 +329,410 @@
   color: #d97706;
   font-weight: 600;
 }
+.walletHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.walletBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.walletLogo {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 15px;
+
+  background: linear-gradient(135deg, #0f609a, #1885c3);
+
+  color: #ffffff;
+
+  font-weight: 900;
+}
+
+.walletBrand h3 {
+  margin: 0;
+  color: #173b58;
+}
+
+.walletBrand p {
+  margin: 5px 0 0;
+  color: #7b8997;
+  font-size: 12px;
+}
+
+.walletStatus {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.walletStatusReady {
+  background: #e6f8ed;
+  color: #168049;
+}
+
+.walletStatusInsufficient {
+  background: #fff0ee;
+  color: #bb4438;
+}
+
+.walletBalanceBox {
+  border-radius: 15px;
+  padding: 18px;
+
+  background: linear-gradient(135deg, #0e5487, #1885c3);
+
+  color: #ffffff;
+}
+
+.walletBalanceBox span,
+.walletBalanceBox strong {
+  display: block;
+}
+
+.walletBalanceBox span {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 12px;
+}
+
+.walletBalanceBox strong {
+  margin-top: 7px;
+  font-size: 27px;
+}
+
+.walletSummary {
+  margin: 17px 0;
+  border: 1px solid #dce6ef;
+  border-radius: 13px;
+  padding: 7px 15px;
+  background: #f9fbfd;
+}
+
+.walletSummary .walletRow {
+  padding: 11px 0;
+  border-bottom: 1px dashed #dce5ed;
+}
+
+.walletSummary .walletRow:last-child {
+  border-bottom: 0;
+}
+
+.walletInsufficient,
+.walletReady {
+  margin-bottom: 17px;
+  border-radius: 12px;
+  padding: 13px;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.walletInsufficient {
+  background: #fff1ef;
+  color: #9e372d;
+}
+
+.walletReady {
+  background: #eaf9f0;
+  color: #166d41;
+}
+
+.walletWarningIcon,
+.walletReady > span {
+  width: 29px;
+  height: 29px;
+  flex: 0 0 auto;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  font-weight: 900;
+}
+
+.walletWarningIcon {
+  background: #ffdcd7;
+}
+
+.walletReady > span {
+  background: #ccefd9;
+}
+
+.walletInsufficient strong,
+.walletReady strong {
+  display: block;
+}
+
+.walletInsufficient p,
+.walletReady p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.depositWalletBtn,
+.viewWalletBtn {
+  width: 100%;
+  min-height: 47px;
+  border-radius: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.depositWalletBtn {
+  border: 0;
+  background: linear-gradient(135deg, #0f609a, #1885c3);
+  color: #ffffff;
+}
+
+.viewWalletBtn {
+  margin-top: 10px;
+  border: 1px solid #d3e0e9;
+  background: #ffffff;
+  color: #39617e;
+}
+/* ==========================================================================
+   4. THỐNG NHẤT KHỐI THANH TOÁN TẠI QUẦY (CASH CARD - CHUẨN 1 CỘT CHO KHUNG HẸP)
+   ========================================================================== */
+.cashCard {
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  text-align: center;
+}
+
+.cashHeader {
+  padding: 16px;
+  display: flex;
+  flex-direction: column; /* Chuyển thành dạng dọc trên khung hẹp */
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
+}
+
+.cashProviderIcon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0f609a, #1885c3);
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.cashHeader h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.cashHeader p {
+  margin: 6px 0 0;
+  color: #475569;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.cashPendingBadge {
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: #fef3c7;
+  color: #d97706;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* CHUYỂN TOÀN BỘ SANG 1 CỘT DỌC ĐỂ PHÙ HỢP WRAPPER 480PX */
+.cashLayout {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cashQrSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cashQrWrapper {
+  position: relative;
+  width: 100%;
+  max-width: 240px; /* Đồng bộ kích thước mã QR với khối qrCard */
+  aspect-ratio: 1 / 1;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.cashQrImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.cashQrBadge {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  border-radius: 6px;
+  padding: 4px 8px;
+  background: #004b93;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.cashQrCaption {
+  display: block;
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.cashQrDescription {
+  display: block;
+  margin-top: 6px;
+  color: #ef4444; /* Chuyển sang màu đỏ cảnh báo để người dùng chú ý */
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.cashQrError {
+  min-height: 200px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* KHỐI THÔNG TIN CHI TIẾT */
+.cashDetails {
+  width: 100%;
+}
+
+.cashDetailRow {
+  padding: 10px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.cashDetailRow span {
+  color: #475569;
+  font-size: 13px;
+  text-align: left;
+}
+
+.cashDetailRow strong {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+  word-break: break-all; /* Tránh tràn chữ đối với các mã giao dịch dài */
+}
+
+.cashTransactionCode {
+  font-family: Consolas, monospace;
+}
+
+.cashAmount {
+  color: #ef5222 !important; /* Đồng bộ màu thương hiệu chính */
+  font-size: 18px !important;
+  font-weight: 800 !important;
+}
+
+/* KHỐI HƯỚNG DẪN */
+.cashInstruction {
+  margin-top: 16px;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-radius: 12px;
+  background: #f0f9ff;
+  color: #0369a1;
+  text-align: left;
+}
+
+.cashInstructionIcon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #e0f2fe;
+  color: #0284c7;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.cashInstruction strong {
+  color: #0369a1;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.cashInstruction ol {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+/* KHỐI CẢNH BÁO */
+.cashWarning {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-left: 4px solid #f59e0b;
+  border-radius: 0 12px 12px 0;
+  background: #fffbeb;
+  color: #b45309;
+  text-align: left;
+}
+
+.cashWarning strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cashWarning p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}

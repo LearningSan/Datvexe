@@ -386,3 +386,222 @@ export async function getTripFilterOptionsRepo(input: {
     timeSlots,
   };
 }
+interface ScheduleRouteRepoInput {
+  originCityId?: number;
+  destinationCityId?: number;
+  vehicleTypes?: string[];
+  page?: number;
+  limit?: number;
+}
+
+export async function getScheduleRoutesRepo(
+  input: ScheduleRouteRepoInput,
+) {
+  const {
+    originCityId,
+    destinationCityId,
+    vehicleTypes = [],
+    page = 1,
+    limit = 10,
+  } = input;
+
+  const safePage = Math.max(Number(page) || 1, 1);
+  const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 50);
+  const offset = (safePage - 1) * safeLimit;
+
+  const params: Array<string | number> = [];
+
+  let whereSql = `
+    WHERE r.status = 'ACTIVE'
+      AND st.is_active = TRUE
+  `;
+
+  if (originCityId) {
+    whereSql += `
+      AND r.origin_city_id = ?
+    `;
+
+    params.push(originCityId);
+  }
+
+  if (destinationCityId) {
+    whereSql += `
+      AND r.destination_city_id = ?
+    `;
+
+    params.push(destinationCityId);
+  }
+
+  if (vehicleTypes.length > 0) {
+    whereSql += `
+      AND EXISTS (
+        SELECT 1
+        FROM trips vehicle_type_trip
+        INNER JOIN vehicles vehicle_type_vehicle
+          ON vehicle_type_vehicle.vehicle_id =
+             vehicle_type_trip.vehicle_id
+        INNER JOIN vehicle_types selected_vehicle_type
+          ON selected_vehicle_type.vehicle_type_id =
+             vehicle_type_vehicle.vehicle_type_id
+        WHERE vehicle_type_trip.route_id = r.route_id
+          AND selected_vehicle_type.type_name IN (
+            ${vehicleTypes.map(() => "?").join(",")}
+          )
+      )
+    `;
+
+    params.push(...vehicleTypes);
+  }
+
+  const sql = `
+    SELECT
+      r.route_id AS routeId,
+
+      r.origin_city_id AS originCityId,
+      r.destination_city_id AS destinationCityId,
+
+      origin_city.city_name AS originName,
+      destination_city.city_name AS destinationName,
+
+      origin_zone.zone_name AS originHub,
+      destination_zone.zone_name AS destinationHub,
+
+      COALESCE(r.distance_km, 0) AS distanceKm,
+
+      COALESCE(
+        r.estimated_duration,
+        AVG(st.estimated_duration),
+        0
+      ) AS estimatedDurationMinutes,
+
+      MIN(
+        COALESCE(
+          future_trip.ticket_price,
+          st.base_price,
+          r.base_price,
+          0
+        )
+      ) AS minimumPrice,
+
+      MAX(
+        COALESCE(
+          future_trip.ticket_price,
+          st.base_price,
+          r.base_price,
+          0
+        )
+      ) AS maximumPrice,
+
+      COUNT(
+        DISTINCT future_trip.trip_id
+      ) AS tripCount,
+
+      COUNT(
+        DISTINCT st.schedule_template_id
+      ) AS tripsPerDay,
+
+      DATE_FORMAT(
+        MIN(st.departure_time),
+        '%H:%i'
+      ) AS firstDepartureTime,
+
+      DATE_FORMAT(
+        MAX(st.departure_time),
+        '%H:%i'
+      ) AS lastDepartureTime,
+GROUP_CONCAT(
+    DISTINCT vehicle.vehicle_name
+    ORDER BY vehicle.vehicle_name
+    SEPARATOR '||'
+) AS vehicleNames,
+      GROUP_CONCAT(
+        DISTINCT vehicle_type.type_name
+        ORDER BY vehicle_type.type_name
+        SEPARATOR '||'
+      ) AS vehicleTypes
+
+    FROM routes r
+
+    INNER JOIN cities origin_city
+      ON origin_city.city_id = r.origin_city_id
+
+    INNER JOIN cities destination_city
+      ON destination_city.city_id = r.destination_city_id
+
+    LEFT JOIN zones origin_zone
+      ON origin_zone.zone_id = r.origin_hub_id
+
+    LEFT JOIN zones destination_zone
+      ON destination_zone.zone_id = r.destination_hub_id
+
+    INNER JOIN schedule_templates st
+      ON st.route_id = r.route_id
+      AND st.is_active = TRUE
+
+    LEFT JOIN trips future_trip
+      ON future_trip.route_id = r.route_id
+      AND future_trip.departure_datetime >= NOW()
+      AND future_trip.status IN ('OPEN', 'FULL')
+
+    LEFT JOIN vehicles vehicle
+      ON vehicle.vehicle_id = future_trip.vehicle_id
+
+    LEFT JOIN vehicle_types vehicle_type
+      ON vehicle_type.vehicle_type_id = vehicle.vehicle_type_id
+
+    ${whereSql}
+
+    GROUP BY
+      r.route_id,
+      r.origin_city_id,
+      r.destination_city_id,
+      origin_city.city_name,
+      destination_city.city_name,
+      origin_zone.zone_name,
+      destination_zone.zone_name,
+      r.distance_km,
+      r.estimated_duration
+
+    ORDER BY
+      origin_city.city_name ASC,
+      destination_city.city_name ASC
+
+    LIMIT ${safeLimit}
+    OFFSET ${offset}
+  `;
+
+  const countSql = `
+    SELECT COUNT(DISTINCT r.route_id) AS total
+
+    FROM routes r
+
+    INNER JOIN schedule_templates st
+      ON st.route_id = r.route_id
+      AND st.is_active = TRUE
+
+    ${whereSql}
+  `;
+
+  const [rows]: any = await pool.execute(sql, params);
+  const [countRows]: any = await pool.execute(countSql, params);
+
+  return {
+    rows,
+    total: Number(countRows[0]?.total ?? 0),
+    page: safePage,
+    limit: safeLimit,
+  };
+}
+export async function getScheduleVehicleTypesRepo() {
+    const sql = `
+        SELECT
+            vehicle_type_id AS id,
+            type_name AS name
+        FROM vehicle_types
+        ORDER BY type_name
+    `;
+
+    const [rows]: any = await pool.execute(sql);
+
+    return rows;
+}

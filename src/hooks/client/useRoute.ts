@@ -10,10 +10,11 @@ import {
   fetchPickupPoints,
   fetchPopularRoutes,
   fetchZones,
+  fetchScheduleRoutes,
 } from "@/services/client/route.service";
 
 import { useDebounce } from "./useDebounce";
-
+import type { ScheduleRouteQuery } from "@/types/client/route/schedule-route.type";
 export function useCities() {
   return useQuery({
     queryKey: ["cities"],
@@ -110,6 +111,29 @@ export function useZones(cityId?: number) {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+    retry: 1,
+  });
+}
+export function useScheduleRoutes(query: ScheduleRouteQuery) {
+  return useQuery({
+    queryKey: [
+      "schedule-routes",
+      query.originCityId ?? null,
+      query.destinationCityId ?? null,
+      query.vehicleTypes ?? [],
+      query.page ?? 1,
+      query.limit ?? 10,
+    ],
+
+    queryFn: () => fetchScheduleRoutes(query),
+
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
+
     retry: 1,
   });
 }

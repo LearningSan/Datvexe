@@ -1,6 +1,11 @@
 import { SearchTripsInput } from "@/validators/client/trip.validator";
 
-import { searchTripsRepo,getTripFilterOptionsRepo } from "@/repositories/client/trip.repo";
+import {
+  searchTripsRepo,
+  getTripFilterOptionsRepo,
+  getScheduleRoutesRepo,
+  getScheduleVehicleTypesRepo,
+} from "@/repositories/client/trip.repo";
 
 export const searchTripsService = async (query: SearchTripsInput) => {
   const {
@@ -114,4 +119,110 @@ export async function getTripFilterOptionsService(input: {
     destination: input.destinationCityId,
     date: input.date,
   });
+}
+interface GetScheduleRoutesInput {
+  originCityId?: number;
+  destinationCityId?: number;
+  vehicleTypes?: string[];
+  page?: number;
+  limit?: number;
+}
+
+function calculateAverageInterval(
+  firstDepartureTime: string | null,
+  lastDepartureTime: string | null,
+  tripsPerDay: number,
+) {
+  if (!firstDepartureTime || !lastDepartureTime || tripsPerDay <= 1) {
+    return null;
+  }
+
+  const [firstHour, firstMinute] = firstDepartureTime.split(":").map(Number);
+
+  const [lastHour, lastMinute] = lastDepartureTime.split(":").map(Number);
+
+  const firstTotalMinutes = firstHour * 60 + firstMinute;
+  const lastTotalMinutes = lastHour * 60 + lastMinute;
+
+  const operatingMinutes = lastTotalMinutes - firstTotalMinutes;
+
+  if (operatingMinutes <= 0) {
+    return null;
+  }
+
+  return Math.round(operatingMinutes / (tripsPerDay - 1));
+}
+
+export async function getScheduleRoutesService(input: GetScheduleRoutesInput) {
+  if (
+    input.originCityId &&
+    input.destinationCityId &&
+    input.originCityId === input.destinationCityId
+  ) {
+    throw new Error("Điểm đi và điểm đến không được trùng nhau");
+  }
+
+  const [result, vehicleTypes] = await Promise.all([
+    getScheduleRoutesRepo({
+      originCityId: input.originCityId,
+      destinationCityId: input.destinationCityId,
+      vehicleTypes: input.vehicleTypes ?? [],
+      page: input.page ?? 1,
+      limit: input.limit ?? 10,
+    }),
+    getScheduleVehicleTypesRepo(),
+  ]);
+  const routes = result.rows.map((row: any) => {
+    const tripsPerDay = Number(row.tripsPerDay ?? 0);
+
+    return {
+      routeId: Number(row.routeId),
+
+      originCityId: Number(row.originCityId),
+      destinationCityId: Number(row.destinationCityId),
+
+      originName: row.originName,
+      destinationName: row.destinationName,
+
+      originHub: row.originHub ?? null,
+      destinationHub: row.destinationHub ?? null,
+
+      distanceKm: Number(row.distanceKm ?? 0),
+      estimatedDurationMinutes: Number(row.estimatedDurationMinutes ?? 0),
+
+      minimumPrice: Number(row.minimumPrice ?? 0),
+      maximumPrice: Number(row.maximumPrice ?? 0),
+
+      tripCount: Number(row.tripCount ?? 0),
+      tripsPerDay,
+
+      firstDepartureTime: row.firstDepartureTime ?? null,
+      lastDepartureTime: row.lastDepartureTime ?? null,
+
+      averageIntervalMinutes: calculateAverageInterval(
+        row.firstDepartureTime,
+        row.lastDepartureTime,
+        tripsPerDay,
+      ),
+
+      vehicleTypes:
+        typeof row.vehicleTypes === "string" && row.vehicleTypes
+          ? row.vehicleTypes.split("||")
+          : [],
+      vehicleNames: row.vehicleNames ? row.vehicleNames.split("||") : [],
+    };
+  });
+
+  return {
+    routes,
+    filterOptions: {
+      vehicleTypes,
+    },
+    pagination: {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      totalPages: Math.ceil(result.total / result.limit),
+    },
+  };
 }

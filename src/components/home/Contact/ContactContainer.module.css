@@ -1,0 +1,532 @@
+/* --- LAYOUT & BASE --- */
+
+.page {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  color: #1e293b;
+  padding-bottom: 80px;
+}
+
+/* --- HERO SECTION --- */
+
+.hero {
+  background: linear-gradient(
+    135deg,
+    #fef2f2 0%,
+    #fee2e2 100%
+  ); /* Gradient đỏ nhạt đặc trưng */
+  padding: 60px 20px;
+  border-bottom: 1px solid #fca5a5;
+  display: flex;
+  justify-content: center;
+}
+
+.heroContent {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #dc2626;
+}
+
+.heroContent h1 {
+  font-size: 36px;
+  font-weight: 800;
+  margin: 0;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.heroContent p {
+  font-size: 16px;
+  color: #475569;
+  max-width: 650px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* --- LAYOUT CONTENT --- */
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+/* --- EMERGENCY CARDS (QUICK CONTACT) --- */
+
+.emergencyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.emergencyCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.emergencyCard:hover {
+  transform: translateY(-4px);
+  border-color: #fca5a5;
+  box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.1);
+}
+
+.emergencyIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background-color: #fef2f2;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.emergencyCard:hover .emergencyIcon {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.emergencyCard div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.emergencyCard span {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.emergencyCard strong {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.emergencyCard small {
+  font-size: 12px;
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* --- MAIN GRID (FORM & SIDEBAR) --- */
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/* FORM CARD */
+.formCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+}
+
+.sectionHeading {
+  margin-bottom: 32px;
+}
+
+.sectionHeading span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ef4444;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.sectionHeading h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+/* FORM FIELDS */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 640px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.formCard label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formCard label span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.formCard input,
+.formCard select,
+.formCard textarea {
+  width: 100%;
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.formCard input:focus,
+.formCard select:focus,
+.formCard textarea:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.formCard input::placeholder,
+.formCard textarea::placeholder {
+  color: #94a3b8;
+}
+
+/* Option styling */
+.formCard select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+.messageField {
+  margin-bottom: 24px;
+}
+
+/* STATE MESSAGES */
+.successMessage {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.errorMessage {
+  background-color: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+/* SUBMIT BUTTON */
+.submitButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #ef4444;
+  color: #ffffff;
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: #dc2626;
+  border-color: #dc2626;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+.submitButton:disabled {
+  background-color: #fca5a5;
+  border-color: #fca5a5;
+  cursor: not-allowed;
+}
+
+/* SIDEBAR CONTACT */
+.contactSide {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sideCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sideCard h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid #f1f5f9;
+}
+
+.sideCard a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.sideCard a:hover {
+  color: #ef4444;
+}
+
+.sideCard a svg {
+  color: #94a3b8;
+  transition: color 0.2s ease;
+}
+
+.sideCard a:hover svg {
+  color: #ef4444;
+}
+
+.workingRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.workingRow svg {
+  color: #ef4444;
+  margin-top: 2px;
+}
+
+.workingRow div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workingRow strong {
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.workingRow span {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* --- OFFICES SECTION --- */
+
+.officeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.officeHeading {
+  text-align: center;
+}
+
+.officeHeading span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ef4444;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.officeHeading h2 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 6px 0 0 0;
+}
+
+.officeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.officeCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01);
+}
+
+.officeCard:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 20px -3px rgba(0, 0, 0, 0.05);
+  border-color: #fca5a5;
+}
+
+.officeIcon {
+  width: 48px;
+  height: 48px;
+  background-color: #fef2f2;
+  color: #ef4444;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.officeCard h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 16px 0;
+}
+
+.officeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 24px;
+  flex-grow: 1;
+}
+
+.officeInfo p {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: #475569;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.officeInfo p svg {
+  color: #94a3b8;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* MAP BUTTON */
+.mapButton {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+}
+
+.mapButton:hover {
+  color: #ef4444;
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+/* --- RESPONSIVE MEDIA --- */
+
+@media (max-width: 1024px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 40px 20px;
+  }
+
+  .heroContent h1 {
+    font-size: 28px;
+  }
+
+  .heroContent p {
+    font-size: 14px;
+  }
+
+  .content {
+    gap: 32px;
+  }
+
+  .formCard {
+    padding: 24px;
+  }
+
+  .officeHeading h2 {
+    font-size: 22px;
+  }
+}

@@ -241,7 +241,33 @@ function validateVnpayInformation(input: VerifyDemoPaymentInput) {
     throw new Error("Vui lòng nhập tên chủ tài khoản");
   }
 }
+function validateMomoInformation(input: VerifyDemoPaymentInput) {
+  const phoneNumber = input.customerPhone?.trim() ?? "";
 
+  if (!/^0\d{9}$/.test(phoneNumber)) {
+    throw new Error("Số điện thoại MoMo phải gồm 10 chữ số và bắt đầu bằng 0");
+  }
+}
+
+function validateZalopayInformation(input: VerifyDemoPaymentInput) {
+  const phoneNumber = input.customerPhone?.trim() ?? "";
+
+  const paymentSource = input.paymentSource?.trim() ?? "";
+
+  if (!/^0\d{9}$/.test(phoneNumber)) {
+    throw new Error(
+      "Số điện thoại ZaloPay phải gồm 10 chữ số và bắt đầu bằng 0",
+    );
+  }
+
+  if (
+    paymentSource !== "WALLET" &&
+    paymentSource !== "LINKED_BANK" &&
+    paymentSource !== "DOMESTIC_CARD"
+  ) {
+    throw new Error("Vui lòng chọn nguồn tiền thanh toán");
+  }
+}
 function getExpectedVerificationCode(provider: DemoPaymentProvider): string {
   if (provider === "VNPAY") {
     return "123456";
@@ -271,6 +297,13 @@ export async function verifyDemoPaymentInformation(
     validateVnpayInformation(input);
   }
 
+  if (input.provider === "MOMO") {
+    validateMomoInformation(input);
+  }
+
+  if (input.provider === "ZALOPAY") {
+    validateZalopayInformation(input);
+  }
   const tokenHash = hashDemoPaymentToken(rawToken);
 
   return withTransaction(async (conn) => {
@@ -420,13 +453,24 @@ export async function confirmDemoPayment(input: ConfirmDemoPaymentInput) {
   });
 
   if (!result.alreadyProcessed) {
+    console.log("[DEMO PAYMENT SIDE EFFECT START]", {
+      bookingId: result.bookingId,
+    });
+
     try {
       await sendPaymentResultSideEffects({
         bookingId: result.bookingId,
         isPaid: true,
       });
+
+      console.log("[DEMO PAYMENT SIDE EFFECT SUCCESS]", {
+        bookingId: result.bookingId,
+      });
     } catch (error) {
-      console.error("[DEMO PAYMENT SIDE EFFECT ERROR]", error);
+      console.error("[DEMO PAYMENT SIDE EFFECT ERROR]", {
+        bookingId: result.bookingId,
+        error,
+      });
     }
   }
 

@@ -8,11 +8,11 @@ import {
 } from "@/types/client/route/route-response.type";
 import { SearchLocationResponse } from "@/types/client/route/location-search.type";
 import { ApiResponse } from "@/types/common/api.type";
-import { TripPickupPoint } from "@/types/client/trip/trip-pickup-point.type";
 import { PickupPointMatchResponse } from "@/types/client/route/route-response.type";
-/* =========================
-   API CALLS
-========================= */
+import type {
+  ScheduleRouteQuery,
+  ScheduleRouteResponse,
+} from "@/types/client/route/schedule-route.type";
 
 export async function fetchCities() {
   const res = await api.get<ApiResponse<CityResponse>>("/client/routes/cities");
@@ -35,8 +35,9 @@ export async function fetchPickupPoints(cityId: number, zoneId: number) {
 }
 
 export async function fetchPopularRoutes() {
-  const res =
-    await api.get<ApiResponse<PopularRouteResponse>>("/client/routes/popular");
+  const res = await api.get<ApiResponse<PopularRouteResponse>>(
+    "/client/routes/popular",
+  );
 
   return res.data.data;
 }
@@ -57,6 +58,30 @@ export async function fetchOfficePickupPoints(cityId: number, zoneId: number) {
 export async function fetchPickupPointMatch(label: string, cityId: number) {
   const response = await api.get<ApiResponse<PickupPointMatchResponse>>(
     `/client/routes/pickup-point-match?label=${encodeURIComponent(label)}&cityId=${cityId}`,
+  );
+
+  return response.data.data;
+}
+export async function fetchScheduleRoutes(query: ScheduleRouteQuery) {
+  const params = new URLSearchParams();
+
+  if (query.originCityId) {
+    params.set("originCityId", String(query.originCityId));
+  }
+
+  if (query.destinationCityId) {
+    params.set("destinationCityId", String(query.destinationCityId));
+  }
+
+  query.vehicleTypes?.forEach((vehicleType) => {
+    params.append("vehicleTypes", vehicleType);
+  });
+
+  params.set("page", String(query.page ?? 1));
+  params.set("limit", String(query.limit ?? 10));
+
+  const response = await api.get<ApiResponse<ScheduleRouteResponse>>(
+    `/client/routes/schedules?${params.toString()}`,
   );
 
   return response.data.data;
