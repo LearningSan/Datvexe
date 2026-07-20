@@ -7,11 +7,11 @@ import {
   useMarkAllNotificationsAsRead,
   useMarkNotificationAsRead,
 } from "@/hooks/client/useNotifications";
-
 const notificationMeta = {
   BOOKING: { label: "Đặt vé", icon: "🎫", className: "badgeBooking" },
   PAYMENT: { label: "Thanh toán", icon: "💳", className: "badgePayment" },
-  TRIP: { label: "Chuyến xe", icon: "🚌", className: "badgeTrip" },
+  CHECKIN: { label: "Chuyến xe", icon: "🚌", className: "badgeTrip" }, // Map CHECKIN chung style với badgeTrip
+  SYSTEM: { label: "Hệ thống", icon: "🔔", className: "badgeSystem" },
 } as const;
 
 export default function NotificationDropdown() {

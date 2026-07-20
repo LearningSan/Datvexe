@@ -21,7 +21,7 @@ export default function UserDetailModal({ open, user, onClose }: Props) {
 
   const [newPassword, setNewPassword] = useState("");
   const [showResetBox, setShowResetBox] = useState(false);
-
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const isGuest = user?.customerType === "GUEST";
 
   const loginMethods = useMemo(() => {
@@ -37,17 +37,30 @@ export default function UserDetailModal({ open, user, onClose }: Props) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key !== "Escape" || resetPasswordMutation.isPending) {
+        return;
+      }
+
+      if (showResetConfirm) {
+        setShowResetConfirm(false);
+        return;
+      }
+
+      onClose();
     };
 
-    if (open) window.addEventListener("keydown", handleKeyDown);
+    if (open) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
+  }, [open, onClose, showResetConfirm, resetPasswordMutation.isPending]);
 
   useEffect(() => {
     if (!open) {
       setNewPassword("");
       setShowResetBox(false);
+      setShowResetConfirm(false);
     }
   }, [open]);
 
@@ -101,7 +114,16 @@ export default function UserDetailModal({ open, user, onClose }: Props) {
       return;
     }
 
-    if (!window.confirm("Bạn có chắc muốn reset mật khẩu khách hàng này?")) {
+    setShowResetConfirm(true);
+  };
+  const handleSubmitResetPassword = () => {
+    if (!user.userId || resetPasswordMutation.isPending) return;
+
+    const password = newPassword.trim();
+
+    if (password.length < 6) {
+      setShowResetConfirm(false);
+      toast.error("Mật khẩu mới phải có ít nhất 6 ký tự");
       return;
     }
 
@@ -115,25 +137,44 @@ export default function UserDetailModal({ open, user, onClose }: Props) {
           toast.success("Reset mật khẩu thành công");
           setNewPassword("");
           setShowResetBox(false);
+          setShowResetConfirm(false);
         },
-        onError: (error: any) => {
-          toast.error(error?.message || "Reset mật khẩu thất bại");
+        onError: (error: unknown) => {
+          const message =
+            error instanceof Error ? error.message : "Reset mật khẩu thất bại";
+
+          toast.error(message);
         },
       },
     );
   };
-
   return (
     <div
       className={styles.overlay}
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
+      role="presentation"
+      onMouseDown={(e) => {
+        if (e.target !== e.currentTarget || resetPasswordMutation.isPending) {
+          return;
+        }
+
+        if (showResetConfirm) {
+          setShowResetConfirm(false);
+          return;
+        }
+
+        onClose();
+      }}
     >
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="user-detail-title"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         <div className={styles.header}>
           <div>
-            <h2>Chi tiết khách hàng</h2>
+            <h2 id="user-detail-title">Chi tiết khách hàng</h2>{" "}
             <span className={styles.subTitle}>
               {isGuest
                 ? "Phân hệ Khách vãng lai"
@@ -143,20 +184,141 @@ export default function UserDetailModal({ open, user, onClose }: Props) {
 
           <button
             type="button"
-            onClick={onClose}
             className={styles.closeBtn}
+            disabled={resetPasswordMutation.isPending}
             aria-label="Đóng"
+            onClick={() => {
+              if (showResetConfirm) {
+                setShowResetConfirm(false);
+                return;
+              }
+
+              onClose();
+            }}
           >
             &times;
           </button>
         </div>
 
         <div className={styles.body}>
-          {isGuest && (
-            <div className={styles.infoBoxWarn}>
-              <strong>Thông tin hệ thống:</strong> Khách vãng lai không có tài
-              khoản đăng nhập cố định. Dữ liệu được truy xuất theo email và số
-              điện thoại khi mua vé.
+          {!isGuest && (
+            <div className={styles.resetSection}>
+              <button
+                type="button"
+                className={styles.resetToggleBtn}
+                disabled={resetPasswordMutation.isPending}
+                onClick={() => {
+                  setShowResetBox((prev) => {
+                    const next = !prev;
+
+                    if (!next) {
+                      setNewPassword("");
+                    }
+
+                    return next;
+                  });
+
+                  setShowResetConfirm(false);
+                }}
+              >
+                Reset mật khẩu
+              </button>
+
+              {showResetBox && !showResetConfirm && (
+                <div className={styles.resetBox}>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    disabled={resetPasswordMutation.isPending}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleResetPassword();
+                      }
+                    }}
+                    placeholder="Nhập mật khẩu mới tối thiểu 6 ký tự"
+                    className={styles.resetInput}
+                    autoComplete="new-password"
+                  />
+
+                  <button
+                    type="button"
+                    className={styles.resetConfirmBtn}
+                    disabled={resetPasswordMutation.isPending}
+                    onClick={handleResetPassword}
+                  >
+                    Tiếp tục
+                  </button>
+                </div>
+              )}
+
+              {showResetConfirm && (
+                <div className={styles.resetConfirmBox}>
+                  <div className={styles.resetConfirmHeader}>
+                    <div className={styles.resetConfirmIcon}>!</div>
+
+                    <div>
+                      <span>Xác nhận thao tác</span>
+                      <h3>Reset mật khẩu khách hàng</h3>
+                    </div>
+                  </div>
+
+                  <p className={styles.resetConfirmDescription}>
+                    Mật khẩu đăng nhập của khách hàng sẽ được thay đổi ngay sau
+                    khi xác nhận.
+                  </p>
+
+                  <div className={styles.resetConfirmUser}>
+                    <div>
+                      <span>Khách hàng</span>
+                      <strong>{displayName}</strong>
+                    </div>
+
+                    <div>
+                      <span>Email</span>
+                      <strong>{displayEmail ?? "Chưa có"}</strong>
+                    </div>
+
+                    <div>
+                      <span>Số điện thoại</span>
+                      <strong>{displayPhone ?? "Chưa có"}</strong>
+                    </div>
+
+                    <div>
+                      <span>Mật khẩu mới</span>
+                      <strong>
+                        {"•".repeat(Math.min(newPassword.trim().length, 12))}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className={styles.resetConfirmWarning}>
+                    Sau khi reset, mật khẩu cũ sẽ không còn sử dụng được.
+                  </div>
+
+                  <div className={styles.resetConfirmActions}>
+                    <button
+                      type="button"
+                      className={styles.resetConfirmCancel}
+                      disabled={resetPasswordMutation.isPending}
+                      onClick={() => setShowResetConfirm(false)}
+                    >
+                      Quay lại
+                    </button>
+
+                    <button
+                      type="button"
+                      className={styles.resetConfirmSubmit}
+                      disabled={resetPasswordMutation.isPending}
+                      onClick={handleSubmitResetPassword}
+                    >
+                      {resetPasswordMutation.isPending
+                        ? "Đang reset..."
+                        : "Xác nhận reset"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -289,41 +451,6 @@ export default function UserDetailModal({ open, user, onClose }: Props) {
                   </span>
                 </div>
               </div>
-
-              {!isGuest && (
-                <div className={styles.resetSection}>
-                  <button
-                    type="button"
-                    className={styles.resetToggleBtn}
-                    onClick={() => setShowResetBox((prev) => !prev)}
-                  >
-                    Reset mật khẩu
-                  </button>
-
-                  {showResetBox && (
-                    <div className={styles.resetBox}>
-                      <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Nhập mật khẩu mới tối thiểu 6 ký tự"
-                        className={styles.resetInput}
-                      />
-
-                      <button
-                        type="button"
-                        className={styles.resetConfirmBtn}
-                        disabled={resetPasswordMutation.isPending}
-                        onClick={handleResetPassword}
-                      >
-                        {resetPasswordMutation.isPending
-                          ? "Đang reset..."
-                          : "Xác nhận reset"}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
 
               <div className={styles.historySection}>
                 <h3 className={styles.sectionTitle}>Lịch sử đặt vé gần đây</h3>

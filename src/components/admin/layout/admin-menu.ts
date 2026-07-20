@@ -13,6 +13,8 @@ import {
   Armchair,
   QrCode,
   Wallet,
+  ScanLine,
+  UserCheck,
 } from "lucide-react";
 
 export const ADMIN_MENU = [
@@ -79,6 +81,16 @@ export const ADMIN_MENU = [
     href: "/admin/tickets",
     label: "Quản lý Vé xe",
     icon: Ticket,
+  },
+  {
+    href: "/admin/checkins",
+    label: "Check-in hành khách",
+    icon: ScanLine,
+  },
+  {
+    label: "Check-in Dashboard",
+    href: "/admin/checkins/dashboard",
+    icon: UserCheck,
   },
   {
     href: "/admin/payments",

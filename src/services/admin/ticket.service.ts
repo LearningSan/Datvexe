@@ -1,4 +1,4 @@
-import api from "@/lib/client/api";
+import adminApi from "@/lib/admin/api";
 import type { ApiResponse } from "@/types/common/api.type";
 import type {
   AdminTicketListParams,
@@ -34,7 +34,7 @@ function throwApiError(error: any, fallback: string): never {
 
 export async function fetchAdminTickets(params: AdminTicketListParams) {
   try {
-    const res = await api.get<ApiResponse<AdminTicketListResponse>>(
+    const res = await adminApi.get<ApiResponse<AdminTicketListResponse>>(
       "/admin/tickets",
       { params },
     );
@@ -46,7 +46,7 @@ export async function fetchAdminTickets(params: AdminTicketListParams) {
 
 export async function fetchAdminTicketOptions() {
   try {
-    const res = await api.get<ApiResponse<AdminTicketOptionsResponse>>(
+    const res = await adminApi.get<ApiResponse<AdminTicketOptionsResponse>>(
       "/admin/tickets/options",
     );
     return res.data.data;
@@ -57,7 +57,7 @@ export async function fetchAdminTicketOptions() {
 
 export async function fetchAdminTicketWarnings() {
   try {
-    const res = await api.get<ApiResponse<AdminTicketWarningSummary>>(
+    const res = await adminApi.get<ApiResponse<AdminTicketWarningSummary>>(
       "/admin/tickets/warnings",
     );
     return res.data.data;
@@ -68,7 +68,7 @@ export async function fetchAdminTicketWarnings() {
 
 export async function fetchAdminTicketDetail(bookingId: number) {
   try {
-    const res = await api.get<ApiResponse<AdminTicketDetail>>(
+    const res = await adminApi.get<ApiResponse<AdminTicketDetail>>(
       `/admin/tickets/${bookingId}`,
     );
     return res.data.data;
@@ -82,7 +82,7 @@ export async function updateAdminTicketStatusApi(
   payload: UpdateTicketStatusPayload,
 ) {
   try {
-    const res = await api.patch(`/admin/tickets/${bookingId}/status`, payload);
+    const res = await adminApi.patch(`/admin/tickets/${bookingId}/status`, payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể cập nhật trạng thái vé");
@@ -94,7 +94,7 @@ export async function cancelAdminTicketApi(
   payload: CancelTicketPayload,
 ) {
   try {
-    const res = await api.post(`/admin/tickets/${bookingId}/cancel`, payload);
+    const res = await adminApi.post(`/admin/tickets/${bookingId}/cancel`, payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể hủy vé");
@@ -106,7 +106,7 @@ export async function extendAdminTicketHoldApi(
   payload: ExtendTicketHoldPayload,
 ) {
   try {
-    const res = await api.patch(`/admin/tickets/${bookingId}/hold`, payload);
+    const res = await adminApi.patch(`/admin/tickets/${bookingId}/hold`, payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể gia hạn giữ chỗ");
@@ -115,7 +115,7 @@ export async function extendAdminTicketHoldApi(
 
 export async function cancelAdminTicketHoldApi(bookingId: number) {
   try {
-    const res = await api.delete(`/admin/tickets/${bookingId}/hold`);
+    const res = await adminApi.delete(`/admin/tickets/${bookingId}/hold`);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể hủy giữ chỗ");
@@ -127,7 +127,7 @@ export async function addAdminTicketSeatsApi(
   payload: AddTicketSeatsPayload,
 ) {
   try {
-    const res = await api.post(`/admin/tickets/${bookingId}/seats`, payload);
+    const res = await adminApi.post(`/admin/tickets/${bookingId}/seats`, payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể thêm ghế");
@@ -139,7 +139,7 @@ export async function changeAdminTicketSeatsApi(
   payload: ChangeTicketSeatsPayload,
 ) {
   try {
-    const res = await api.patch(
+    const res = await adminApi.patch(
       `/admin/tickets/${bookingId}/seats/change`,
       payload,
     );
@@ -154,7 +154,7 @@ export async function removeAdminTicketSeatApi(
   bookingSeatId: number,
 ) {
   try {
-    const res = await api.delete(
+    const res = await adminApi.delete(
       `/admin/tickets/${bookingId}/seats/${bookingSeatId}`,
     );
     return res.data.data;
@@ -165,7 +165,7 @@ export async function removeAdminTicketSeatApi(
 
 export async function syncAdminTicketTripSeatsApi(bookingId: number) {
   try {
-    const res = await api.post(
+    const res = await adminApi.post(
       `/admin/tickets/${bookingId}/seats/sync-trip-availability`,
     );
     return res.data.data;
@@ -179,7 +179,7 @@ export async function updateAdminTicketPickupDropoffApi(
   payload: UpdatePickupDropoffPayload,
 ) {
   try {
-    const res = await api.patch(
+    const res = await adminApi.patch(
       `/admin/tickets/${bookingId}/pickup-dropoff`,
       payload,
     );
@@ -191,7 +191,7 @@ export async function updateAdminTicketPickupDropoffApi(
 
 export async function checkinAdminTicketApi(bookingId: number) {
   try {
-    const res = await api.post(`/admin/tickets/${bookingId}/checkin`);
+    const res = await adminApi.post(`/admin/tickets/${bookingId}/checkin`);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể check-in vé");
@@ -203,7 +203,7 @@ export async function checkinAdminTicketSeatApi(
   bookingSeatId: number,
 ) {
   try {
-    const res = await api.post(
+    const res = await adminApi.post(
       `/admin/tickets/${bookingId}/seats/${bookingSeatId}/checkin`,
     );
     return res.data.data;
@@ -216,7 +216,7 @@ export async function createAdminOfflineTicketApi(
   payload: CreateOfflineTicketPayload,
 ) {
   try {
-    const res = await api.post("/admin/tickets/offline", payload);
+    const res = await adminApi.post("/admin/tickets/offline", payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể tạo vé offline");
@@ -225,7 +225,7 @@ export async function createAdminOfflineTicketApi(
 
 export async function resendAdminTicketApi(bookingId: number) {
   try {
-    const res = await api.post(`/admin/tickets/${bookingId}/resend-ticket`);
+    const res = await adminApi.post(`/admin/tickets/${bookingId}/resend-ticket`);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể gửi lại vé");
@@ -234,7 +234,7 @@ export async function resendAdminTicketApi(bookingId: number) {
 
 export async function searchAdminTicketForCheckinApi(bookingCode: string) {
   try {
-    const res = await api.get<ApiResponse<AdminTicketDetail>>(
+    const res = await adminApi.get<ApiResponse<AdminTicketDetail>>(
       "/admin/tickets/checkin/search",
       {
         params: { bookingCode },
@@ -248,7 +248,7 @@ export async function searchAdminTicketForCheckinApi(bookingCode: string) {
 
 export async function exportAdminTicketPdfApi(bookingId: number) {
   try {
-    const res = await api.get(`/admin/tickets/${bookingId}/export-pdf`, {
+    const res = await adminApi.get(`/admin/tickets/${bookingId}/export-pdf`, {
       responseType: "blob",
     });
     return res.data as Blob;
@@ -259,7 +259,7 @@ export async function exportAdminTicketPdfApi(bookingId: number) {
 
 export async function fetchAdminTicketPrintHtmlApi(bookingId: number) {
   try {
-    const res = await api.get<ApiResponse<{ html: string }>>(
+    const res = await adminApi.get<ApiResponse<{ html: string }>>(
       `/admin/tickets/${bookingId}/print`,
     );
     return res.data.data;
@@ -270,7 +270,7 @@ export async function fetchAdminTicketPrintHtmlApi(bookingId: number) {
 
 export async function fetchCancelAdminTicketPreviewApi(bookingId: number) {
   try {
-    const res = await api.get<ApiResponse<CancelTicketPreview>>(
+    const res = await adminApi.get<ApiResponse<CancelTicketPreview>>(
       `/admin/tickets/${bookingId}/cancel/preview`,
     );
     return res.data.data;
@@ -289,7 +289,7 @@ export async function fetchChangeAdminTicketPreviewApi(
   },
 ) {
   try {
-    const res = await api.get<ApiResponse<ChangeTicketPreview>>(
+    const res = await adminApi.get<ApiResponse<ChangeTicketPreview>>(
       `/admin/tickets/${bookingId}/change-preview`,
       {
         params: {
@@ -310,7 +310,7 @@ export async function changeAdminTicketTripApi(
   payload: ChangeTicketTripPayload,
 ) {
   try {
-    const res = await api.post(
+    const res = await adminApi.post(
       `/admin/tickets/${bookingId}/change-trip`,
       payload,
     );
@@ -322,7 +322,7 @@ export async function changeAdminTicketTripApi(
 
 export async function undoCheckinAdminTicketApi(bookingId: number) {
   try {
-    const res = await api.post(`/admin/tickets/${bookingId}/undo-checkin`);
+    const res = await adminApi.post(`/admin/tickets/${bookingId}/undo-checkin`);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể bỏ check-in booking");
@@ -334,7 +334,7 @@ export async function undoCheckinAdminTicketSeatApi(
   bookingSeatId: number,
 ) {
   try {
-    const res = await api.post(
+    const res = await adminApi.post(
       `/admin/tickets/${bookingId}/seats/${bookingSeatId}/undo-checkin`,
     );
     return res.data.data;
@@ -345,7 +345,7 @@ export async function undoCheckinAdminTicketSeatApi(
 
 export async function fetchAdminTripPassengerListApi(tripId: number) {
   try {
-    const res = await api.get<ApiResponse<AdminTicketPassengerItem[]>>(
+    const res = await adminApi.get<ApiResponse<AdminTicketPassengerItem[]>>(
       `/admin/tickets/trips/${tripId}/passenger-list`,
     );
     return res.data.data;
@@ -356,7 +356,7 @@ export async function fetchAdminTripPassengerListApi(tripId: number) {
 
 export async function fetchAdminTripSeatListApi(tripId: number) {
   try {
-    const res = await api.get<ApiResponse<AdminTripSeatListItem[]>>(
+    const res = await adminApi.get<ApiResponse<AdminTripSeatListItem[]>>(
       `/admin/tickets/trips/${tripId}/seat-list`,
     );
     return res.data.data;
@@ -367,7 +367,7 @@ export async function fetchAdminTripSeatListApi(tripId: number) {
 
 export async function fetchAdminTicketPaymentsApi(bookingId: number) {
   try {
-    const res = await api.get(`/admin/tickets/${bookingId}/payments`);
+    const res = await adminApi.get(`/admin/tickets/${bookingId}/payments`);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể tải thanh toán của vé");
@@ -376,7 +376,7 @@ export async function fetchAdminTicketPaymentsApi(bookingId: number) {
 
 export async function fetchAdminTicketHistoriesApi(bookingId: number) {
   try {
-    const res = await api.get(`/admin/tickets/${bookingId}/histories`);
+    const res = await adminApi.get(`/admin/tickets/${bookingId}/histories`);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể tải lịch sử vé");
@@ -385,7 +385,7 @@ export async function fetchAdminTicketHistoriesApi(bookingId: number) {
 
 export async function fetchAdminTicketAvailableSeatsApi(bookingId: number) {
   try {
-    const res = await api.get<ApiResponse<AdminTicketAvailableSeat[]>>(
+    const res = await adminApi.get<ApiResponse<AdminTicketAvailableSeat[]>>(
       `/admin/tickets/${bookingId}/available-seats`,
     );
     return res.data.data;
@@ -396,7 +396,7 @@ export async function fetchAdminTicketAvailableSeatsApi(bookingId: number) {
 
 export async function resendAdminTicketWithResultApi(bookingId: number) {
   try {
-    const res = await api.post<ApiResponse<ResendTicketResponse>>(
+    const res = await adminApi.post<ApiResponse<ResendTicketResponse>>(
       `/admin/tickets/${bookingId}/resend-ticket`,
     );
     return res.data.data;
@@ -427,7 +427,7 @@ export async function openAdminTicketPrintWindow(bookingId: number) {
 
 export async function fetchAdminOfflineTicketPreviewApi(tripId: number) {
   try {
-    const res = await api.get<ApiResponse<AdminOfflineTicketPreview>>(
+    const res = await adminApi.get<ApiResponse<AdminOfflineTicketPreview>>(
       "/admin/tickets/offline/preview",
       {
         params: { tripId },

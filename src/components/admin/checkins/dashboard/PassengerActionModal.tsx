@@ -1,0 +1,673 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock3,
+  LoaderCircle,
+  RotateCcw,
+  UserRoundX,
+  X,
+  XCircle,
+} from "lucide-react";
+
+import {
+  useUpdatePassengerCheckin,
+  useUpdatePassengerContact,
+} from "@/hooks/admin/use-checkin-dashboard";
+
+import { getApiErrorMessage } from "@/lib/admin/get-api-error-message";
+
+import type { CheckinDashboardPassengerItem } from "@/types/admin/checkin/checkin-dashboard-passenger.type";
+
+import type { ContactStatus } from "@/types/admin/checkin/checkin-operation.type";
+
+import styles from "./PassengerActionModal.module.css";
+
+interface PassengerActionModalProps {
+  open: boolean;
+  passenger: CheckinDashboardPassengerItem | null;
+
+  actionsDisabled?: boolean;
+  disabledReason?: string;
+
+  onClose: () => void;
+}
+
+type FeedbackState =
+  | {
+      type: "SUCCESS";
+      message: string;
+    }
+  | {
+      type: "ERROR";
+      message: string;
+    }
+  | null;
+
+type PassengerCheckinAction =
+  | "CHECK_IN"
+  | "UNDO_CHECK_IN"
+  | "NO_SHOW"
+  | "REJECT";
+
+const CONTACT_STATUS_OPTIONS: Array<{
+  value: ContactStatus;
+  label: string;
+}> = [
+  {
+    value: "NOT_CONTACTED",
+    label: "Chưa liên hệ",
+  },
+  {
+    value: "NOTIFIED",
+    label: "Đã thông báo",
+  },
+  {
+    value: "CONTACTED",
+    label: "Đã liên hệ",
+  },
+  {
+    value: "COMING",
+    label: "Đang đến",
+  },
+  {
+    value: "ARRIVING_LATE",
+    label: "Đến trễ",
+  },
+  {
+    value: "UNREACHABLE",
+    label: "Không liên lạc được",
+  },
+  {
+    value: "CANCEL_REQUESTED",
+    label: "Yêu cầu hủy",
+  },
+];
+
+function toDatetimeLocal(value: string | null): string {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const offset = date.getTimezoneOffset() * 60_000;
+
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
+
+function getActionTitle(action: PassengerCheckinAction): string {
+  switch (action) {
+    case "UNDO_CHECK_IN":
+      return "Hoàn tác check-in";
+
+    case "NO_SHOW":
+      return "Đánh dấu hành khách vắng mặt";
+
+    case "REJECT":
+      return "Từ chối hành khách lên xe";
+
+    case "CHECK_IN":
+      return "Xác nhận check-in";
+  }
+}
+
+function getActionDescription(action: PassengerCheckinAction): string {
+  switch (action) {
+    case "UNDO_CHECK_IN":
+      return "Trạng thái ghế sẽ được đưa về chưa check-in và hành khách có thể được check-in lại.";
+
+    case "NO_SHOW":
+      return "Hành khách sẽ được ghi nhận không có mặt tại thời điểm xe chuẩn bị khởi hành.";
+
+    case "REJECT":
+      return "Hành khách sẽ bị từ chối lên xe. Hãy kiểm tra kỹ thông tin trước khi tiếp tục.";
+
+    case "CHECK_IN":
+      return "Xác nhận hành khách đã có mặt và đủ điều kiện lên xe.";
+  }
+}
+
+function getActionConfirmText(action: PassengerCheckinAction): string {
+  switch (action) {
+    case "UNDO_CHECK_IN":
+      return "Xác nhận hoàn tác";
+
+    case "NO_SHOW":
+      return "Xác nhận no-show";
+
+    case "REJECT":
+      return "Xác nhận từ chối";
+
+    case "CHECK_IN":
+      return "Xác nhận check-in";
+  }
+}
+
+function getActionSuccessMessage(action: PassengerCheckinAction): string {
+  switch (action) {
+    case "CHECK_IN":
+      return "Check-in hành khách thành công.";
+
+    case "UNDO_CHECK_IN":
+      return "Đã hoàn tác check-in.";
+
+    case "NO_SHOW":
+      return "Đã đánh dấu hành khách no-show.";
+
+    case "REJECT":
+      return "Đã từ chối hành khách lên xe.";
+  }
+}
+
+export default function PassengerActionModal({
+  open,
+  passenger,
+  actionsDisabled = false,
+  disabledReason,
+  onClose,
+}: PassengerActionModalProps) {
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const checkinMutation = useUpdatePassengerCheckin();
+
+  const contactMutation = useUpdatePassengerContact();
+
+  const [feedback, setFeedback] = useState<FeedbackState>(null);
+
+  const [pendingCheckinAction, setPendingCheckinAction] =
+    useState<PassengerCheckinAction | null>(null);
+  const [checkinNote, setCheckinNote] = useState("");
+
+  const [contactStatus, setContactStatus] =
+    useState<ContactStatus>("NOT_CONTACTED");
+
+  const [expectedArrivalAt, setExpectedArrivalAt] = useState("");
+
+  const [contactNote, setContactNote] = useState("");
+
+  useEffect(() => {
+    if (!passenger) {
+      return;
+    }
+
+    setCheckinNote(passenger.checkin.note ?? "");
+    setContactStatus(passenger.contact.status);
+
+    setExpectedArrivalAt(toDatetimeLocal(passenger.contact.expectedArrivalAt));
+
+    setContactNote(passenger.contact.note ?? "");
+
+    setFeedback(null);
+    setPendingCheckinAction(null);
+  }, [passenger]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
+
+  if (!open || !passenger) {
+    return null;
+  }
+  const currentPassenger = passenger;
+  const isSubmitting = checkinMutation.isPending || contactMutation.isPending;
+
+  const checkinActionDisabled = isSubmitting || actionsDisabled;
+
+  function closeAfterSuccess() {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+    }
+
+    closeTimerRef.current = setTimeout(() => {
+      onClose();
+    }, 700);
+  }
+
+  function handleClose() {
+    if (isSubmitting) {
+      return;
+    }
+
+    if (pendingCheckinAction) {
+      setPendingCheckinAction(null);
+      return;
+    }
+
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+
+    onClose();
+  }
+  async function submitCheckinAction(action: PassengerCheckinAction) {
+    if (actionsDisabled) {
+      setFeedback({
+        type: "ERROR",
+        message:
+          disabledReason ?? "Không thể thao tác check-in với chuyến này.",
+      });
+
+      return;
+    }
+
+    if (
+      action === "UNDO_CHECK_IN" ||
+      action === "NO_SHOW" ||
+      action === "REJECT"
+    ) {
+      setPendingCheckinAction(action);
+      return;
+    }
+
+    await executeCheckinAction(action);
+  }
+  async function executeCheckinAction(action: PassengerCheckinAction) {
+    setFeedback(null);
+
+    try {
+      const result = await checkinMutation.mutateAsync({
+        bookingSeatId: currentPassenger.bookingSeatId,
+        action,
+        note: checkinNote.trim() || undefined,
+      });
+
+      setPendingCheckinAction(null);
+
+      setFeedback({
+        type: "SUCCESS",
+        message: result.message?.trim() || getActionSuccessMessage(action),
+      });
+
+      closeAfterSuccess();
+    } catch (error) {
+      setFeedback({
+        type: "ERROR",
+        message: getApiErrorMessage(
+          error,
+          "Không thể cập nhật trạng thái check-in.",
+        ),
+      });
+    }
+  }
+  async function submitContact() {
+    setFeedback(null);
+
+    try {
+      const result = await contactMutation.mutateAsync({
+        bookingId: currentPassenger.bookingId,
+
+        contactStatus,
+
+        expectedArrivalAt: expectedArrivalAt || null,
+
+        note: contactNote.trim() || null,
+      });
+
+      setFeedback({
+        type: "SUCCESS",
+
+        message: result.message?.trim() || "Đã cập nhật trạng thái liên hệ.",
+      });
+
+      closeAfterSuccess();
+    } catch (error) {
+      setFeedback({
+        type: "ERROR",
+
+        message: getApiErrorMessage(
+          error,
+          "Không thể cập nhật trạng thái liên hệ.",
+        ),
+      });
+    }
+  }
+
+  return (
+    <div
+      className={styles.overlay}
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isSubmitting) {
+          handleClose();
+        }
+      }}
+    >
+      <section
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="passenger-action-title"
+      >
+        <header className={styles.header}>
+          <div>
+            <h2 id="passenger-action-title">Thao tác hành khách</h2>
+
+            <p>
+              Ghế {passenger.seatNumber} · {passenger.passenger.name}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={handleClose}
+            disabled={isSubmitting}
+            aria-label="Đóng"
+          >
+            <X size={20} />
+          </button>
+        </header>
+
+        <div className={styles.passengerInfo}>
+          <div>
+            <span>Mã đặt vé</span>
+
+            <strong>{passenger.bookingCode}</strong>
+          </div>
+
+          <div>
+            <span>Số điện thoại</span>
+
+            <a
+              href={`tel:${passenger.passenger.phone}`}
+              className={styles.phoneLink}
+            >
+              {passenger.passenger.phone}
+            </a>
+          </div>
+
+          <div>
+            <span>Check-in</span>
+
+            <strong>{passenger.checkin.status}</strong>
+          </div>
+
+          <div>
+            <span>Cảnh báo</span>
+
+            <strong>{passenger.alert.level}</strong>
+          </div>
+        </div>
+
+        <div className={styles.section}>
+          <h3>Thao tác check-in</h3>
+
+          {actionsDisabled && (
+            <div className={styles.disabledNotice}>
+              <AlertTriangle size={17} />
+
+              <span>
+                {disabledReason ??
+                  "Không thể thao tác check-in với chuyến này."}
+              </span>
+            </div>
+          )}
+
+          <label className={styles.field}>
+            <span>Ghi chú check-in</span>
+
+            <textarea
+              value={checkinNote}
+              onChange={(event) => setCheckinNote(event.target.value)}
+              rows={3}
+              maxLength={500}
+              disabled={checkinActionDisabled}
+              placeholder="Nhập ghi chú nếu có..."
+            />
+          </label>
+
+          <div className={styles.actionGrid}>
+            {passenger.checkin.status !== "CHECKED_IN" && (
+              <button
+                type="button"
+                className={styles.successButton}
+                disabled={checkinActionDisabled}
+                onClick={() => void submitCheckinAction("CHECK_IN")}
+              >
+                {checkinMutation.isPending ? (
+                  <LoaderCircle size={17} className={styles.spinning} />
+                ) : (
+                  <CheckCircle2 size={17} />
+                )}
+                Check-in
+              </button>
+            )}
+
+            {passenger.checkin.status === "CHECKED_IN" && (
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                disabled={checkinActionDisabled}
+                onClick={() => void submitCheckinAction("UNDO_CHECK_IN")}
+              >
+                {checkinMutation.isPending ? (
+                  <LoaderCircle size={17} className={styles.spinning} />
+                ) : (
+                  <RotateCcw size={17} />
+                )}
+                Hoàn tác
+              </button>
+            )}
+
+            {passenger.checkin.status !== "NO_SHOW" && (
+              <button
+                type="button"
+                className={styles.warningButton}
+                disabled={checkinActionDisabled}
+                onClick={() => void submitCheckinAction("NO_SHOW")}
+              >
+                {checkinMutation.isPending ? (
+                  <LoaderCircle size={17} className={styles.spinning} />
+                ) : (
+                  <Clock3 size={17} />
+                )}
+                No-show
+              </button>
+            )}
+
+            {passenger.checkin.status !== "REJECTED" && (
+              <button
+                type="button"
+                className={styles.dangerButton}
+                disabled={checkinActionDisabled}
+                onClick={() => void submitCheckinAction("REJECT")}
+              >
+                {checkinMutation.isPending ? (
+                  <LoaderCircle size={17} className={styles.spinning} />
+                ) : (
+                  <UserRoundX size={17} />
+                )}
+                Từ chối lên xe
+              </button>
+            )}
+          </div>
+        </div>
+        {pendingCheckinAction && (
+          <div
+            className={`${styles.actionConfirmBox} ${
+              pendingCheckinAction === "REJECT"
+                ? styles.actionConfirmDanger
+                : pendingCheckinAction === "NO_SHOW"
+                  ? styles.actionConfirmWarning
+                  : styles.actionConfirmSecondary
+            }`}
+          >
+            <div className={styles.actionConfirmHeader}>
+              <div className={styles.actionConfirmIcon}>
+                {pendingCheckinAction === "REJECT" ? (
+                  <UserRoundX size={23} />
+                ) : pendingCheckinAction === "NO_SHOW" ? (
+                  <Clock3 size={23} />
+                ) : (
+                  <RotateCcw size={23} />
+                )}
+              </div>
+
+              <div>
+                <span>Xác nhận thao tác</span>
+                <h3>{getActionTitle(pendingCheckinAction)}</h3>
+              </div>
+            </div>
+
+            <p className={styles.actionConfirmDescription}>
+              {getActionDescription(pendingCheckinAction)}
+            </p>
+
+            <div className={styles.actionConfirmPassenger}>
+              <div>
+                <span>Hành khách</span>
+                <strong>{currentPassenger.passenger.name}</strong>
+              </div>
+
+              <div>
+                <span>Ghế</span>
+                <strong>{currentPassenger.seatNumber}</strong>
+              </div>
+
+              <div>
+                <span>Mã đặt vé</span>
+                <strong>{currentPassenger.bookingCode}</strong>
+              </div>
+            </div>
+
+            {checkinNote.trim() && (
+              <div className={styles.actionConfirmNote}>
+                <span>Ghi chú check-in</span>
+                <p>{checkinNote.trim()}</p>
+              </div>
+            )}
+
+            <div className={styles.actionConfirmActions}>
+              <button
+                type="button"
+                className={styles.actionConfirmCancel}
+                disabled={checkinMutation.isPending}
+                onClick={() => setPendingCheckinAction(null)}
+              >
+                Quay lại
+              </button>
+
+              <button
+                type="button"
+                className={
+                  pendingCheckinAction === "REJECT"
+                    ? styles.actionConfirmSubmitDanger
+                    : pendingCheckinAction === "NO_SHOW"
+                      ? styles.actionConfirmSubmitWarning
+                      : styles.actionConfirmSubmitSecondary
+                }
+                disabled={checkinMutation.isPending}
+                onClick={() => void executeCheckinAction(pendingCheckinAction)}
+              >
+                {checkinMutation.isPending ? (
+                  <LoaderCircle size={17} className={styles.spinning} />
+                ) : pendingCheckinAction === "REJECT" ? (
+                  <UserRoundX size={17} />
+                ) : pendingCheckinAction === "NO_SHOW" ? (
+                  <Clock3 size={17} />
+                ) : (
+                  <RotateCcw size={17} />
+                )}
+
+                {checkinMutation.isPending
+                  ? "Đang xử lý..."
+                  : getActionConfirmText(pendingCheckinAction)}
+              </button>
+            </div>
+          </div>
+        )}
+        <div className={styles.section}>
+          <h3>Liên hệ hành khách</h3>
+
+          <div className={styles.formGrid}>
+            <label className={styles.field}>
+              <span>Trạng thái liên hệ</span>
+
+              <select
+                value={contactStatus}
+                disabled={isSubmitting}
+                onChange={(event) =>
+                  setContactStatus(event.target.value as ContactStatus)
+                }
+              >
+                {CONTACT_STATUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className={styles.field}>
+              <span>Dự kiến đến</span>
+
+              <input
+                type="datetime-local"
+                value={expectedArrivalAt}
+                disabled={isSubmitting}
+                onChange={(event) => setExpectedArrivalAt(event.target.value)}
+              />
+            </label>
+          </div>
+
+          <label className={styles.field}>
+            <span>Ghi chú liên hệ</span>
+
+            <textarea
+              value={contactNote}
+              onChange={(event) => setContactNote(event.target.value)}
+              rows={3}
+              maxLength={500}
+              disabled={isSubmitting}
+              placeholder="Ví dụ: khách báo đang cách bến 5 phút..."
+            />
+          </label>
+
+          <button
+            type="button"
+            className={styles.primaryButton}
+            disabled={isSubmitting}
+            onClick={() => void submitContact()}
+          >
+            {contactMutation.isPending && (
+              <LoaderCircle size={17} className={styles.spinning} />
+            )}
+
+            {contactMutation.isPending
+              ? "Đang lưu..."
+              : "Lưu trạng thái liên hệ"}
+          </button>
+        </div>
+
+        {feedback && (
+          <div
+            className={
+              feedback.type === "SUCCESS" ? styles.successBox : styles.errorBox
+            }
+          >
+            {feedback.type === "SUCCESS" ? (
+              <CheckCircle2 size={17} />
+            ) : (
+              <XCircle size={17} />
+            )}
+
+            <span>{feedback.message}</span>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}

@@ -1,5 +1,8 @@
 import { NextRequest } from "next/server";
 
+import { getAdminAuthUserId } from "@/lib/server/admin-auth-user";
+import { successResponse, errorResponse } from "@/lib/server/response";
+
 import {
   deleteAdminPickupPoint,
   getAdminPickupPointDetail,
@@ -11,16 +14,20 @@ import {
   updateAdminPickupPointSchema,
 } from "@/validators/admin/pickup-point.validator";
 
-import { successResponse, errorResponse } from "@/lib/server/response";
-
 interface Context {
   params: Promise<{
     pickupPointId: string;
   }>;
 }
 
-export async function GET(_req: NextRequest, context: Context) {
+function getErrorMessage(error: unknown, fallbackMessage: string): string {
+  return error instanceof Error ? error.message : fallbackMessage;
+}
+
+export async function GET(req: NextRequest, context: Context) {
   try {
+    await getAdminAuthUserId(req);
+
     const params = await context.params;
 
     const parsedParams = pickupPointIdParamsSchema.parse(params);
@@ -28,23 +35,30 @@ export async function GET(_req: NextRequest, context: Context) {
     const data = await getAdminPickupPointDetail(parsedParams.pickupPointId);
 
     return successResponse(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[ADMIN PICKUP POINT DETAIL ERROR]", error);
 
-    if (error.name === "ZodError") {
-      return errorResponse(error.errors?.[0]?.message, null, 400);
+    const message = getErrorMessage(
+      error,
+      "Không thể lấy chi tiết điểm đón trả",
+    );
+
+    if (message === "UNAUTHORIZED") {
+      return errorResponse("Phiên đăng nhập quản trị không hợp lệ", null, 401);
     }
 
-    return errorResponse(
-      error.message || "Không thể lấy chi tiết điểm đón trả",
-      null,
-      500,
-    );
+    if (error instanceof Error && error.name === "ZodError") {
+      return errorResponse(message, null, 400);
+    }
+
+    return errorResponse(message, null, 500);
   }
 }
 
 export async function PATCH(req: NextRequest, context: Context) {
   try {
+    await getAdminAuthUserId(req);
+
     const params = await context.params;
     const body = await req.json();
 
@@ -57,23 +71,27 @@ export async function PATCH(req: NextRequest, context: Context) {
     );
 
     return successResponse(data, "Cập nhật điểm đón trả thành công");
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[UPDATE ADMIN PICKUP POINT ERROR]", error);
 
-    if (error.name === "ZodError") {
-      return errorResponse(error.errors?.[0]?.message, null, 400);
+    const message = getErrorMessage(error, "Không thể cập nhật điểm đón trả");
+
+    if (message === "UNAUTHORIZED") {
+      return errorResponse("Phiên đăng nhập quản trị không hợp lệ", null, 401);
     }
 
-    return errorResponse(
-      error.message || "Không thể cập nhật điểm đón trả",
-      null,
-      500,
-    );
+    if (error instanceof Error && error.name === "ZodError") {
+      return errorResponse(message, null, 400);
+    }
+
+    return errorResponse(message, null, 500);
   }
 }
 
-export async function DELETE(_req: NextRequest, context: Context) {
+export async function DELETE(req: NextRequest, context: Context) {
   try {
+    await getAdminAuthUserId(req);
+
     const params = await context.params;
 
     const parsedParams = pickupPointIdParamsSchema.parse(params);
@@ -81,17 +99,19 @@ export async function DELETE(_req: NextRequest, context: Context) {
     const data = await deleteAdminPickupPoint(parsedParams.pickupPointId);
 
     return successResponse(data, "Đã tạm ngưng điểm đón trả");
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[DELETE ADMIN PICKUP POINT ERROR]", error);
 
-    if (error.name === "ZodError") {
-      return errorResponse(error.errors?.[0]?.message, null, 400);
+    const message = getErrorMessage(error, "Không thể tạm ngưng điểm đón trả");
+
+    if (message === "UNAUTHORIZED") {
+      return errorResponse("Phiên đăng nhập quản trị không hợp lệ", null, 401);
     }
 
-    return errorResponse(
-      error.message || "Không thể tạm ngưng điểm đón trả",
-      null,
-      500,
-    );
+    if (error instanceof Error && error.name === "ZodError") {
+      return errorResponse(message, null, 400);
+    }
+
+    return errorResponse(message, null, 500);
   }
 }

@@ -1,12 +1,16 @@
 import { NextRequest } from "next/server";
 
+import { ZodError } from "zod";
+
+import { getAdminAuthUserId } from "@/lib/server/admin-auth-user";
+import { successResponse, errorResponse } from "@/lib/server/response";
+
 import {
+  getAdminUserDetail,
   updateAdminUser,
-  getAdminUserDetail
 } from "@/services/server/admin/admin-user.service";
 
 import { updateAdminUserSchema } from "@/validators/admin/user.validator";
-import { successResponse, errorResponse } from "@/lib/server/response";
 
 interface Context {
   params: Promise<{
@@ -14,11 +18,13 @@ interface Context {
   }>;
 }
 
-function getZodMessage(error: any, fallback: string) {
-  return error?.issues?.[0]?.message || error?.errors?.[0]?.message || fallback;
+interface MysqlError {
+  code?: string;
+  sqlMessage?: string;
+  message?: string;
 }
 
-function parseUserId(value: string) {
+function parseUserId(value: string): number {
   const userId = Number(value);
 
   if (!Number.isInteger(userId) || userId <= 0) {
@@ -28,8 +34,12 @@ function parseUserId(value: string) {
   return userId;
 }
 
-function getMysqlDuplicateMessage(error: any) {
-  const message = String(error?.sqlMessage || "");
+function isMysqlError(error: unknown): error is MysqlError {
+  return typeof error === "object" && error !== null;
+}
+
+function getMysqlDuplicateMessage(error: MysqlError): string {
+  const message = String(error.sqlMessage || error.message || "").toLowerCase();
 
   if (message.includes("email")) {
     return "Email đã tồn tại trong hệ thống";
@@ -44,8 +54,10 @@ function getMysqlDuplicateMessage(error: any) {
 
 export async function PATCH(req: NextRequest, context: Context) {
   try {
-    const params = await context.params;
-    const userId = parseUserId(params.userId);
+    await getAdminAuthUserId(req);
+
+    const { userId: rawUserId } = await context.params;
+    const userId = parseUserId(rawUserId);
 
     const body = await req.json();
     const parsed = updateAdminUserSchema.parse(body);
@@ -53,44 +65,74 @@ export async function PATCH(req: NextRequest, context: Context) {
     const data = await updateAdminUser(userId, parsed);
 
     return successResponse(data, "Cập nhật tài khoản thành công");
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[UPDATE ADMIN USER ERROR]", error);
 
-    if (error.name === "ZodError") {
+    const message =
+      error instanceof Error ? error.message : "Không thể cập nhật tài khoản";
+
+    if (message === "UNAUTHORIZED") {
+      return errorResponse("Phiên đăng nhập quản trị không hợp lệ", null, 401);
+    }
+
+    if (error instanceof SyntaxError) {
+      return errorResponse("Dữ liệu JSON không hợp lệ", null, 400);
+    }
+
+    if (error instanceof ZodError) {
       return errorResponse(
-        getZodMessage(error, "Dữ liệu cập nhật tài khoản không hợp lệ"),
+        error.issues[0]?.message || "Dữ liệu cập nhật tài khoản không hợp lệ",
         null,
         400,
       );
     }
 
-    if (error.code === "ER_DUP_ENTRY") {
-      return errorResponse(getMysqlDuplicateMessage(error), null, 400);
+    if (isMysqlError(error) && error.code === "ER_DUP_ENTRY") {
+      return errorResponse(getMysqlDuplicateMessage(error), null, 409);
+    }
+
+    if (message === "Không tìm thấy người dùng") {
+      return errorResponse(message, null, 404);
     }
 
     return errorResponse(
-      error.message || "Không thể cập nhật tài khoản",
+      message,
       null,
-      error.message === "userId không hợp lệ" ? 400 : 500,
+      message === "userId không hợp lệ" ? 400 : 500,
     );
   }
 }
 
-export async function GET(_req: NextRequest, context: Context) {
+export async function GET(req: NextRequest, context: Context) {
   try {
-    const params = await context.params;
-    const userId = parseUserId(params.userId);
+    await getAdminAuthUserId(req);
+
+    const { userId: rawUserId } = await context.params;
+    const userId = parseUserId(rawUserId);
 
     const data = await getAdminUserDetail(userId);
 
     return successResponse(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[GET ADMIN USER DETAIL ERROR]", error);
 
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Không thể lấy chi tiết khách hàng";
+
+    if (message === "UNAUTHORIZED") {
+      return errorResponse("Phiên đăng nhập quản trị không hợp lệ", null, 401);
+    }
+
+    if (message === "Không tìm thấy người dùng") {
+      return errorResponse(message, null, 404);
+    }
+
     return errorResponse(
-      error.message || "Không thể lấy chi tiết khách hàng",
+      message,
       null,
-      error.message === "userId không hợp lệ" ? 400 : 500,
+      message === "userId không hợp lệ" ? 400 : 500,
     );
   }
 }

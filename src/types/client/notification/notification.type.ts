@@ -1,9 +1,8 @@
 export type NotificationType =
   | "BOOKING"
   | "PAYMENT"
-  | "TRIP"
-  | "SHUTTLE"
-  | "REFUND";
+  | "CHECKIN"
+  | "SYSTEM";
 
 export interface NotificationItem {
   notificationId: number;

@@ -1,10 +1,15 @@
 import { NextRequest } from "next/server";
-import { getDashboardData } from "@/services/server/client/dashboard.service";
+
+import { getAdminAuthUserId } from "@/lib/server/admin-auth-user";
 import { successResponse, errorResponse } from "@/lib/server/response";
+
+import { getDashboardData } from "@/services/server/client/dashboard.service";
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    await getAdminAuthUserId(req);
+
+    const { searchParams } = req.nextUrl;
 
     const fromDate = searchParams.get("fromDate");
     const toDate = searchParams.get("toDate");
@@ -19,13 +24,20 @@ export async function GET(req: NextRequest) {
     });
 
     return successResponse(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[ADMIN DASHBOARD ERROR]", error);
 
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Không thể tải dữ liệu dashboard";
+
     return errorResponse(
-      error.message || "Không thể tải dữ liệu dashboard",
+      message === "UNAUTHORIZED"
+        ? "Phiên đăng nhập quản trị không hợp lệ"
+        : message,
       null,
-      500,
+      message === "UNAUTHORIZED" ? 401 : 500,
     );
   }
 }

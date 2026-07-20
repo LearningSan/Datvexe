@@ -1,0 +1,270 @@
+.scannerCard {
+  overflow: hidden;
+  border: 1px solid #d9e4ec;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 12px 34px rgba(29, 62, 88, 0.08);
+}
+
+.scannerHeader {
+  min-height: 78px;
+  padding: 17px 19px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  border-bottom: 1px solid #e2e9ef;
+
+  background: linear-gradient(135deg, #f5f9fc, #ebf5fb);
+}
+
+.scannerHeader h3 {
+  margin: 0;
+  color: #173a55;
+  font-size: 17px;
+}
+
+.scannerHeader p {
+  margin: 5px 0 0;
+  color: #718697;
+  font-size: 12px;
+}
+
+.statusBadge {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 7px 11px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.statusActive {
+  background: #e4f8ec;
+  color: #157c45;
+}
+
+.statusWaiting {
+  background: #fff3dc;
+  color: #a76814;
+}
+
+.statusError {
+  background: #ffecea;
+  color: #b73e33;
+}
+
+.videoFrame {
+  position: relative;
+  min-height: 390px;
+  overflow: hidden;
+
+  background: radial-gradient(circle at center, #263747, #0c151e);
+}
+
+.video {
+  width: 100%;
+  height: 390px;
+  display: block;
+  object-fit: cover;
+}
+
+.scanOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cornerTopLeft,
+.cornerTopRight,
+.cornerBottomLeft,
+.cornerBottomRight {
+  position: absolute;
+  width: 62px;
+  height: 62px;
+
+  border-color: #38c9ff;
+  border-style: solid;
+
+  filter: drop-shadow(0 0 5px rgba(56, 201, 255, 0.65));
+}
+
+.cornerTopLeft {
+  top: 56px;
+  left: 74px;
+
+  border-width: 4px 0 0 4px;
+  border-radius: 14px 0 0 0;
+}
+
+.cornerTopRight {
+  top: 56px;
+  right: 74px;
+
+  border-width: 4px 4px 0 0;
+  border-radius: 0 14px 0 0;
+}
+
+.cornerBottomLeft {
+  bottom: 56px;
+  left: 74px;
+
+  border-width: 0 0 4px 4px;
+  border-radius: 0 0 0 14px;
+}
+
+.cornerBottomRight {
+  right: 74px;
+  bottom: 56px;
+
+  border-width: 0 4px 4px 0;
+  border-radius: 0 0 14px 0;
+}
+
+.scanLine {
+  position: absolute;
+  top: 70px;
+  left: 90px;
+  right: 90px;
+
+  height: 2px;
+
+  background: linear-gradient(90deg, transparent, #42d4ff, transparent);
+
+  box-shadow: 0 0 11px rgba(66, 212, 255, 0.9);
+
+  animation: scanMovement 2.1s ease-in-out infinite;
+}
+
+.videoMessage {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+
+  padding: 25px;
+
+  background: rgba(8, 17, 25, 0.82);
+
+  color: #ffffff;
+  text-align: center;
+}
+
+.videoMessage strong {
+  font-size: 15px;
+}
+
+.videoMessage p {
+  max-width: 390px;
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.72);
+
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.scannerFooter {
+  min-height: 66px;
+  padding: 13px 17px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  border-top: 1px solid #e1e9ef;
+  background: #f9fbfd;
+}
+
+.scannerHint,
+.scanningText {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #61788a;
+  font-size: 12px;
+}
+
+.scanningText {
+  color: #147c45;
+  font-weight: 750;
+}
+
+.retryButton {
+  min-height: 39px;
+  padding: 0 13px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: #176fa4;
+  color: #ffffff;
+
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.spinIcon {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes scanMovement {
+  0%,
+  100% {
+    top: 70px;
+    opacity: 0.55;
+  }
+
+  50% {
+    top: calc(100% - 72px);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 600px) {
+  .scannerHeader,
+  .scannerFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .videoFrame,
+  .video {
+    height: 310px;
+    min-height: 310px;
+  }
+
+  .cornerTopLeft,
+  .cornerBottomLeft {
+    left: 38px;
+  }
+
+  .cornerTopRight,
+  .cornerBottomRight {
+    right: 38px;
+  }
+
+  .scanLine {
+    left: 52px;
+    right: 52px;
+  }
+}

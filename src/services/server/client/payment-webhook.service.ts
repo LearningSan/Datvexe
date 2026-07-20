@@ -147,6 +147,7 @@ export async function sendPaymentResultSideEffects(params: {
   });
 
   await sendPaymentSuccessEmail({
+    bookingId: params.bookingId,
     to: bookingInfo.contactEmail,
     customerName: bookingInfo.contactName,
     customerPhone: bookingInfo.contactPhone,

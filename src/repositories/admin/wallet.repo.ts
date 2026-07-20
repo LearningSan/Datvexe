@@ -1,6 +1,9 @@
-import type { ResultSetHeader } from "mysql2/promise";
-
-import { connQuery, query, type PoolConnection } from "@/lib/server/mysql";
+import {
+  connExecute,
+  connQuery,
+  query,
+  type PoolConnection,
+} from "@/lib/server/mysql";
 
 import type {
   AdminWalletItem,
@@ -362,7 +365,8 @@ export async function insertAdminWalletAdjustment(
     description: string;
   },
 ) {
-  const [result] = await conn.query<ResultSetHeader>(
+  const result = await connExecute(
+    conn,
     `
         INSERT INTO wallet_transactions (
           wallet_id,

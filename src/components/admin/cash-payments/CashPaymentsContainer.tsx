@@ -60,6 +60,9 @@ export default function CashPaymentsContainer() {
   const [selectedPayment, setSelectedPayment] =
     useState<AdminCashPaymentItem | null>(null);
 
+  const [confirmPayment, setConfirmPayment] =
+    useState<AdminCashPaymentItem | null>(null);
+
   const listQuery = useAdminCashPayments({
     keyword: appliedKeyword,
 
@@ -180,24 +183,22 @@ export default function CashPaymentsContainer() {
       return;
     }
 
-    if (
-      !window.confirm(
-        `Xác nhận đã thu ${formatCurrency(
-          payment.amount,
-        )} cho vé ${payment.bookingCode}?`,
-      )
-    ) {
+    setConfirmPayment(payment);
+  }
+  function handleSubmitConfirmPayment() {
+    if (!confirmPayment) {
       return;
     }
 
     confirmMutation.mutate(
       {
-        transactionCode: payment.transactionCode,
+        transactionCode: confirmPayment.transactionCode,
       },
       {
         onSuccess: () => {
           toast.success("Đã xác nhận thu tiền thành công");
 
+          setConfirmPayment(null);
           setIsScannerEnabled(false);
 
           window.setTimeout(() => {
@@ -511,6 +512,129 @@ export default function CashPaymentsContainer() {
           )}
         </div>
       </div>
+      {confirmPayment && (
+        <div
+          className={styles.cashConfirmOverlay}
+          onMouseDown={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              !confirmMutation.isPending
+            ) {
+              setConfirmPayment(null);
+            }
+          }}
+        >
+          <div
+            className={styles.cashConfirmModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cash-confirm-title"
+          >
+            <div className={styles.cashConfirmHeader}>
+              <div className={styles.cashConfirmIcon}>
+                <Banknote size={28} />
+              </div>
+
+              <div>
+                <span>Xác nhận giao dịch tiền mặt</span>
+                <h2 id="cash-confirm-title">Xác nhận đã thu tiền</h2>
+              </div>
+
+              <button
+                type="button"
+                className={styles.cashConfirmClose}
+                disabled={confirmMutation.isPending}
+                onClick={() => setConfirmPayment(null)}
+                aria-label="Đóng hộp thoại"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className={styles.cashConfirmBody}>
+              <p className={styles.cashConfirmDescription}>
+                Vui lòng kiểm tra kỹ thông tin trước khi xác nhận đã nhận đủ
+                tiền từ khách hàng.
+              </p>
+
+              <div className={styles.cashConfirmAmount}>
+                <span>Số tiền đã thu</span>
+                <strong>{formatCurrency(confirmPayment.amount)}</strong>
+              </div>
+
+              <div className={styles.cashConfirmInformation}>
+                <div className={styles.cashConfirmInformationRow}>
+                  <span>Mã vé</span>
+                  <strong>{confirmPayment.bookingCode}</strong>
+                </div>
+
+                <div className={styles.cashConfirmInformationRow}>
+                  <span>Mã giao dịch</span>
+                  <strong>{confirmPayment.transactionCode}</strong>
+                </div>
+
+                <div className={styles.cashConfirmInformationRow}>
+                  <span>Khách hàng</span>
+                  <strong>{confirmPayment.customerName}</strong>
+                </div>
+
+                <div className={styles.cashConfirmInformationRow}>
+                  <span>Số điện thoại</span>
+                  <strong>{confirmPayment.customerPhone}</strong>
+                </div>
+
+                <div className={styles.cashConfirmInformationRow}>
+                  <span>Tuyến xe</span>
+                  <strong>{confirmPayment.routeName}</strong>
+                </div>
+
+                <div className={styles.cashConfirmInformationRow}>
+                  <span>Ghế</span>
+                  <strong>
+                    {confirmPayment.seatNumbers.length > 0
+                      ? confirmPayment.seatNumbers.join(", ")
+                      : "Chưa cập nhật"}
+                  </strong>
+                </div>
+              </div>
+
+              <div className={styles.cashConfirmNotice}>
+                <CheckCircle2 size={20} />
+
+                <p>
+                  Sau khi xác nhận, giao dịch sẽ chuyển sang trạng thái{" "}
+                  <strong>Đã thanh toán</strong> và đơn vé sẽ được ghi nhận đã
+                  thu tiền.
+                </p>
+              </div>
+            </div>
+
+            <div className={styles.cashConfirmActions}>
+              <button
+                type="button"
+                className={styles.cashConfirmCancelButton}
+                disabled={confirmMutation.isPending}
+                onClick={() => setConfirmPayment(null)}
+              >
+                Kiểm tra lại
+              </button>
+
+              <button
+                type="button"
+                className={styles.cashConfirmSubmitButton}
+                disabled={confirmMutation.isPending}
+                onClick={handleSubmitConfirmPayment}
+              >
+                <CheckCircle2 size={19} />
+
+                {confirmMutation.isPending
+                  ? "Đang xác nhận..."
+                  : "Xác nhận đã thu đủ tiền"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </BlockErrorBoundary>
   );
 }

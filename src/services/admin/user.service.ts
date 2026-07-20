@@ -1,4 +1,4 @@
-import api from "@/lib/client/api";
+import adminApi from "@/lib/admin/api";
 import type { ApiResponse } from "@/types/common/api.type";
 import type {
   AdminUserListParams,
@@ -17,7 +17,7 @@ function throwApiError(error: any, fallback: string): never {
 
 export async function fetchAdminUsers(params: AdminUserListParams) {
   try {
-    const res = await api.get<ApiResponse<AdminUserListResponse>>(
+    const res = await adminApi.get<ApiResponse<AdminUserListResponse>>(
       "/admin/users",
       { params },
     );
@@ -30,7 +30,7 @@ export async function fetchAdminUsers(params: AdminUserListParams) {
 
 export async function createAdminUserApi(payload: any) {
   try {
-    const res = await api.post("/admin/users", payload);
+    const res = await adminApi.post("/admin/users", payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể tạo tài khoản");
@@ -39,7 +39,7 @@ export async function createAdminUserApi(payload: any) {
 
 export async function updateAdminUserApi(userId: number, payload: any) {
   try {
-    const res = await api.patch(`/admin/users/${userId}`, payload);
+    const res = await adminApi.patch(`/admin/users/${userId}`, payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể cập nhật tài khoản");
@@ -51,7 +51,7 @@ export async function updateAdminUserStatusApi(
   status: "ACTIVE" | "BLOCKED",
 ) {
   try {
-    const res = await api.patch(`/admin/users/${userId}/status`, { status });
+    const res = await adminApi.patch(`/admin/users/${userId}/status`, { status });
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể cập nhật trạng thái tài khoản");
@@ -60,7 +60,7 @@ export async function updateAdminUserStatusApi(
 
 export async function fetchAdminUserDetail(userId: number) {
   try {
-    const res = await api.get(`/admin/users/${userId}`);
+    const res = await adminApi.get(`/admin/users/${userId}`);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể tải chi tiết khách hàng");
@@ -72,7 +72,7 @@ export async function fetchAdminGuestDetail(params: {
   phone?: string | null;
 }) {
   try {
-    const res = await api.get("/admin/users/guest-detail", { params });
+    const res = await adminApi.get("/admin/users/guest-detail", { params });
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể tải chi tiết khách vãng lai");
@@ -84,7 +84,7 @@ export async function resetAdminUserPasswordApi(
   payload: { newPassword: string },
 ) {
   try {
-    const res = await api.patch(
+    const res = await adminApi.patch(
       `/admin/users/${userId}/reset-password`,
       payload,
     );

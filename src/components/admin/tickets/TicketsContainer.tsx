@@ -90,7 +90,8 @@ export default function TicketsContainer() {
   const [cancelTicketTarget, setCancelTicketTarget] =
     useState<AdminTicketItem | null>(null);
   const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
-
+  const [confirmTicketTarget, setConfirmTicketTarget] =
+    useState<AdminTicketItem | null>(null);
   // Các Hooks gọi API (React Query)
   const { data: options } = useAdminTicketOptions();
   const { data, isLoading, isError } = useAdminTickets({
@@ -158,25 +159,33 @@ export default function TicketsContainer() {
 
   // Các nghiệp vụ tương tác trực tiếp trên dòng (Row Actions)
   const handleConfirmTicket = (ticket: AdminTicketItem) => {
-    if (
-      confirm(
-        `Xác nhận duyệt và cập nhật trạng thái cho mã đơn ${ticket.bookingCode}?`,
-      )
-    ) {
-      statusMutation.mutate(
-        {
-          bookingId: ticket.bookingId,
-          payload: {
-            status: "CONFIRMED",
-            markPaymentPaid: ticket.paymentStatus !== "PAID",
-          },
-        },
-        {
-          onSuccess: () =>
-            toast.success("Phê duyệt và xác nhận đơn vé thành công"),
-        },
-      );
+    setConfirmTicketTarget(ticket);
+  };
+  const handleSubmitConfirmTicket = () => {
+    if (!confirmTicketTarget) {
+      return;
     }
+
+    statusMutation.mutate(
+      {
+        bookingId: confirmTicketTarget.bookingId,
+        payload: {
+          status: "CONFIRMED",
+          markPaymentPaid: confirmTicketTarget.paymentStatus !== "PAID",
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Phê duyệt và xác nhận đơn vé thành công");
+          setConfirmTicketTarget(null);
+        },
+        onError: (error: unknown) => {
+          toast.error(
+            error instanceof Error ? error.message : "Không thể duyệt đơn vé",
+          );
+        },
+      },
+    );
   };
 
   const handleCheckinTicket = (ticket: AdminTicketItem) => {
@@ -734,7 +743,89 @@ export default function TicketsContainer() {
           );
         }}
       />
+      {confirmTicketTarget && (
+        <div
+          className={styles.confirmOverlay}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              !statusMutation.isPending
+            ) {
+              setConfirmTicketTarget(null);
+            }
+          }}
+        >
+          <section
+            className={styles.confirmModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-ticket-title"
+          >
+            <div className={styles.confirmIcon}>✓</div>
 
+            <div className={styles.confirmContent}>
+              <h2 id="confirm-ticket-title">Xác nhận duyệt đơn</h2>
+
+              <p>
+                Bạn có chắc chắn muốn duyệt đơn vé{" "}
+                <strong>{confirmTicketTarget.bookingCode}</strong>?
+              </p>
+
+              <div className={styles.confirmTicketInfo}>
+                <div>
+                  <span>Khách hàng</span>
+                  <strong>{confirmTicketTarget.customerName}</strong>
+                </div>
+
+                <div>
+                  <span>Số điện thoại</span>
+                  <strong>{confirmTicketTarget.customerPhone}</strong>
+                </div>
+
+                <div>
+                  <span>Số ghế</span>
+                  <strong>{confirmTicketTarget.seatNumbers || "—"}</strong>
+                </div>
+
+                <div>
+                  <span>Tổng tiền</span>
+                  <strong>
+                    {formatCurrency(confirmTicketTarget.totalAmount)}
+                  </strong>
+                </div>
+              </div>
+
+              {confirmTicketTarget.paymentStatus !== "PAID" && (
+                <div className={styles.confirmWarning}>
+                  Đơn chưa được ghi nhận thanh toán. Khi duyệt, hệ thống sẽ đồng
+                  thời chuyển thanh toán sang trạng thái đã thanh toán.
+                </div>
+              )}
+            </div>
+
+            <div className={styles.confirmActions}>
+              <button
+                type="button"
+                className={styles.confirmCancelButton}
+                disabled={statusMutation.isPending}
+                onClick={() => setConfirmTicketTarget(null)}
+              >
+                Quay lại
+              </button>
+
+              <button
+                type="button"
+                className={styles.confirmApproveButton}
+                disabled={statusMutation.isPending}
+                onClick={handleSubmitConfirmTicket}
+              >
+                {statusMutation.isPending ? "Đang xử lý..." : "Xác nhận duyệt"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       <OfflineTicketModal
         open={isOfflineModalOpen}
         options={options}

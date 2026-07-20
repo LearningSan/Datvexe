@@ -1,4 +1,4 @@
-import api from "@/lib/client/api";
+import adminApi from "@/lib/admin/api";
 import type { ApiResponse } from "@/types/common/api.type";
 
 import type {
@@ -15,7 +15,7 @@ export async function generateTripsFromScheduleApi(
   payload: GenerateTripsFromSchedulePayload,
 ) {
   try {
-    const res = await api.post<ApiResponse<GenerateTripsFromScheduleResult>>(
+    const res = await adminApi.post<ApiResponse<GenerateTripsFromScheduleResult>>(
       "/admin/schedule-templates/generate-trips",
       payload,
     );
@@ -39,7 +39,7 @@ export async function fetchAdminScheduleTemplates(
   params: AdminScheduleTemplateListParams,
 ) {
   try {
-    const res = await api.get<ApiResponse<AdminScheduleTemplateListResponse>>(
+    const res = await adminApi.get<ApiResponse<AdminScheduleTemplateListResponse>>(
       "/admin/schedule-templates",
       { params },
     );
@@ -52,7 +52,7 @@ export async function fetchAdminScheduleTemplates(
 
 export async function fetchAdminScheduleOptions() {
   try {
-    const res = await api.get<
+    const res = await adminApi.get<
       ApiResponse<AdminScheduleTemplateOptionsResponse>
     >("/admin/schedule-templates/options");
 
@@ -66,7 +66,7 @@ export async function createAdminScheduleTemplateApi(
   payload: CreateAdminScheduleTemplatePayload,
 ) {
   try {
-    const res = await api.post("/admin/schedule-templates", payload);
+    const res = await adminApi.post("/admin/schedule-templates", payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể tạo lịch chạy mẫu");
@@ -78,7 +78,7 @@ export async function updateAdminScheduleTemplateApi(
   payload: UpdateAdminScheduleTemplatePayload,
 ) {
   try {
-    const res = await api.patch(
+    const res = await adminApi.patch(
       `/admin/schedule-templates/${scheduleTemplateId}`,
       payload,
     );
@@ -94,7 +94,7 @@ export async function updateAdminScheduleTemplateStatusApi(
   isActive: boolean,
 ) {
   try {
-    const res = await api.patch(
+    const res = await adminApi.patch(
       `/admin/schedule-templates/${scheduleTemplateId}/status`,
       { isActive },
     );

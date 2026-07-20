@@ -1,4 +1,4 @@
-import api from "@/lib/client/api";
+import adminApi from "@/lib/admin/api";
 import type { ApiResponse } from "@/types/common/api.type";
 import type {
   DuplicateSeatLayoutPayload,
@@ -18,7 +18,7 @@ function throwApiError(error: any, fallback: string): never {
 
 export async function fetchAdminSeatLayouts() {
   try {
-    const res = await api.get<ApiResponse<SeatLayoutItem[]>>(
+    const res = await adminApi.get<ApiResponse<SeatLayoutItem[]>>(
       "/admin/seat-layouts",
     );
 
@@ -30,7 +30,7 @@ export async function fetchAdminSeatLayouts() {
 
 export async function fetchAdminSeatLayoutDetail(seatLayoutId: number) {
   try {
-    const res = await api.get<ApiResponse<SeatLayoutDetailResponse>>(
+    const res = await adminApi.get<ApiResponse<SeatLayoutDetailResponse>>(
       `/admin/seat-layouts/${seatLayoutId}`,
     );
 
@@ -45,7 +45,7 @@ export async function duplicateAdminSeatLayoutApi(
   payload: DuplicateSeatLayoutPayload,
 ) {
   try {
-    const res = await api.post(
+    const res = await adminApi.post(
       `/admin/seat-layouts/${seatLayoutId}/duplicate`,
       payload,
     );
@@ -61,7 +61,7 @@ export async function updateAdminSeatLayoutStatusApi(
   isActive: boolean,
 ) {
   try {
-    const res = await api.patch(`/admin/seat-layouts/${seatLayoutId}/status`, {
+    const res = await adminApi.patch(`/admin/seat-layouts/${seatLayoutId}/status`, {
       isActive,
     });
 

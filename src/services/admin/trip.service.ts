@@ -1,4 +1,4 @@
-import api from "@/lib/client/api";
+import adminApi from "@/lib/admin/api";
 import type { ApiResponse } from "@/types/common/api.type";
 
 import type {
@@ -14,7 +14,7 @@ import type {
 
 export async function copyAdminTripsApi(payload: CopyTripsPayload) {
   try {
-    const res = await api.post("/admin/trips/copy", payload);
+    const res = await adminApi.post("/admin/trips/copy", payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể sao chép lịch chuyến");
@@ -25,7 +25,7 @@ export async function bulkUpdateTripPriceApi(
   payload: BulkUpdateTripPricePayload,
 ) {
   try {
-    const res = await api.patch("/admin/trips/bulk-price", payload);
+    const res = await adminApi.patch("/admin/trips/bulk-price", payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể cập nhật giá hàng loạt");
@@ -43,7 +43,7 @@ function throwApiError(error: any, fallback: string): never {
 
 export async function fetchAdminTrips(params: AdminTripListParams) {
   try {
-    const res = await api.get<ApiResponse<AdminTripListResponse>>(
+    const res = await adminApi.get<ApiResponse<AdminTripListResponse>>(
       "/admin/trips",
       { params },
     );
@@ -56,7 +56,7 @@ export async function fetchAdminTrips(params: AdminTripListParams) {
 
 export async function fetchAdminTripOptions() {
   try {
-    const res = await api.get<ApiResponse<AdminTripOptionsResponse>>(
+    const res = await adminApi.get<ApiResponse<AdminTripOptionsResponse>>(
       "/admin/trips/options",
     );
 
@@ -68,7 +68,7 @@ export async function fetchAdminTripOptions() {
 
 export async function createAdminTripApi(payload: CreateAdminTripPayload) {
   try {
-    const res = await api.post("/admin/trips", payload);
+    const res = await adminApi.post("/admin/trips", payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể tạo chuyến xe");
@@ -80,7 +80,7 @@ export async function updateAdminTripApi(
   payload: UpdateAdminTripPayload,
 ) {
   try {
-    const res = await api.patch(`/admin/trips/${tripId}`, payload);
+    const res = await adminApi.patch(`/admin/trips/${tripId}`, payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể cập nhật chuyến xe");
@@ -92,7 +92,7 @@ export async function updateAdminTripStatusApi(
   payload: UpdateTripStatusPayload,
 ) {
   try {
-    const res = await api.patch(`/admin/trips/${tripId}/status`, payload);
+    const res = await adminApi.patch(`/admin/trips/${tripId}/status`, payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể cập nhật trạng thái chuyến xe");

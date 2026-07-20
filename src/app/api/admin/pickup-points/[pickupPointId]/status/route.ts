@@ -1,13 +1,14 @@
 import { NextRequest } from "next/server";
 
+import { getAdminAuthUserId } from "@/lib/server/admin-auth-user";
+import { successResponse, errorResponse } from "@/lib/server/response";
+
 import { updateAdminPickupPointStatus } from "@/services/server/admin/admin-pickup-point.service";
 
 import {
   pickupPointIdParamsSchema,
   updatePickupPointStatusSchema,
 } from "@/validators/admin/pickup-point.validator";
-
-import { successResponse, errorResponse } from "@/lib/server/response";
 
 interface Context {
   params: Promise<{
@@ -17,6 +18,8 @@ interface Context {
 
 export async function PATCH(req: NextRequest, context: Context) {
   try {
+    await getAdminAuthUserId(req);
+
     const params = await context.params;
     const body = await req.json();
 
@@ -29,17 +32,22 @@ export async function PATCH(req: NextRequest, context: Context) {
     );
 
     return successResponse(data, "Cập nhật trạng thái điểm thành công");
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[UPDATE PICKUP POINT STATUS ERROR]", error);
 
-    if (error.name === "ZodError") {
-      return errorResponse(error.errors?.[0]?.message, null, 400);
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Không thể cập nhật trạng thái điểm";
+
+    if (message === "UNAUTHORIZED") {
+      return errorResponse("Phiên đăng nhập quản trị không hợp lệ", null, 401);
     }
 
-    return errorResponse(
-      error.message || "Không thể cập nhật trạng thái điểm",
-      null,
-      500,
-    );
+    if (error instanceof Error && error.name === "ZodError") {
+      return errorResponse(message, null, 400);
+    }
+
+    return errorResponse(message, null, 500);
   }
 }

@@ -1,4 +1,4 @@
-import api from "@/lib/client/api";
+import adminApi from "@/lib/admin/api";
 import type { ApiResponse } from "@/types/common/api.type";
 import type {
   AdminVehicleListParams,
@@ -21,7 +21,7 @@ function throwApiError(error: any, fallback: string): never {
 
 export async function fetchAdminVehicles(params: AdminVehicleListParams) {
   try {
-    const res = await api.get<ApiResponse<AdminVehicleListResponse>>(
+    const res = await adminApi.get<ApiResponse<AdminVehicleListResponse>>(
       "/admin/vehicles",
       { params },
     );
@@ -34,7 +34,7 @@ export async function fetchAdminVehicles(params: AdminVehicleListParams) {
 
 export async function fetchAdminVehicleOptions() {
   try {
-    const res = await api.get<ApiResponse<AdminVehicleOptionsResponse>>(
+    const res = await adminApi.get<ApiResponse<AdminVehicleOptionsResponse>>(
       "/admin/vehicles/options",
     );
 
@@ -48,7 +48,7 @@ export async function createAdminVehicleApi(
   payload: CreateAdminVehiclePayload,
 ) {
   try {
-    const res = await api.post("/admin/vehicles", payload);
+    const res = await adminApi.post("/admin/vehicles", payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể thêm xe");
@@ -60,7 +60,7 @@ export async function updateAdminVehicleApi(
   payload: UpdateAdminVehiclePayload,
 ) {
   try {
-    const res = await api.patch(`/admin/vehicles/${vehicleId}`, payload);
+    const res = await adminApi.patch(`/admin/vehicles/${vehicleId}`, payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể cập nhật xe");
@@ -72,7 +72,7 @@ export async function updateAdminVehicleStatusApi(
   payload: UpdateVehicleStatusPayload,
 ) {
   try {
-    const res = await api.patch(`/admin/vehicles/${vehicleId}/status`, payload);
+    const res = await adminApi.patch(`/admin/vehicles/${vehicleId}/status`, payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể cập nhật trạng thái xe");

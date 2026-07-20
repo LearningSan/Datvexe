@@ -1,8 +1,12 @@
 import { NextRequest } from "next/server";
 
+import { ZodError } from "zod";
+
+import { getAdminAuthUserId } from "@/lib/server/admin-auth-user";
+import { successResponse, errorResponse } from "@/lib/server/response";
+
 import { updateAdminUserStatus } from "@/services/server/admin/admin-user.service";
 import { updateAdminUserStatusSchema } from "@/validators/admin/user.validator";
-import { successResponse, errorResponse } from "@/lib/server/response";
 
 interface Context {
   params: Promise<{
@@ -10,11 +14,7 @@ interface Context {
   }>;
 }
 
-function getZodMessage(error: any, fallback: string) {
-  return error?.issues?.[0]?.message || error?.errors?.[0]?.message || fallback;
-}
-
-function parseUserId(value: string) {
+function parseUserId(value: string): number {
   const userId = Number(value);
 
   if (!Number.isInteger(userId) || userId <= 0) {
@@ -26,30 +26,51 @@ function parseUserId(value: string) {
 
 export async function PATCH(req: NextRequest, context: Context) {
   try {
-    const params = await context.params;
-    const userId = parseUserId(params.userId);
+    await getAdminAuthUserId(req);
+
+    const { userId: rawUserId } = await context.params;
+    const userId = parseUserId(rawUserId);
 
     const body = await req.json();
     const parsed = updateAdminUserStatusSchema.parse(body);
 
-    const data = await updateAdminUserStatus(userId, parsed.status);
+    const data = await updateAdminUserStatus(
+      userId,
+      parsed.status,
+   
+    );
 
     return successResponse(data, "Cập nhật trạng thái tài khoản thành công");
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[UPDATE USER STATUS ERROR]", error);
 
-    if (error.name === "ZodError") {
+    const message =
+      error instanceof Error ? error.message : "Không thể cập nhật trạng thái";
+
+    if (message === "UNAUTHORIZED") {
+      return errorResponse("Phiên đăng nhập quản trị không hợp lệ", null, 401);
+    }
+
+    if (error instanceof SyntaxError) {
+      return errorResponse("Dữ liệu JSON không hợp lệ", null, 400);
+    }
+
+    if (error instanceof ZodError) {
       return errorResponse(
-        getZodMessage(error, "Trạng thái tài khoản không hợp lệ"),
+        error.issues[0]?.message || "Trạng thái tài khoản không hợp lệ",
         null,
         400,
       );
     }
 
+    if (message === "Không tìm thấy người dùng") {
+      return errorResponse(message, null, 404);
+    }
+
     return errorResponse(
-      error.message || "Không thể cập nhật trạng thái",
+      message,
       null,
-      error.message === "userId không hợp lệ" ? 400 : 500,
+      message === "userId không hợp lệ" ? 400 : 500,
     );
   }
 }

@@ -1,4 +1,4 @@
-import api from "@/lib/client/api";
+import adminApi from "@/lib/admin/api";
 
 import type { ApiResponse } from "@/types/common/api.type";
 
@@ -34,7 +34,7 @@ export async function fetchAdminCashPayments(
   params: AdminCashPaymentListParams,
 ) {
   try {
-    const response = await api.get<ApiResponse<AdminCashPaymentListResponse>>(
+    const response = await adminApi.get<ApiResponse<AdminCashPaymentListResponse>>(
       "/admin/cash-payments",
       {
         params,
@@ -49,7 +49,7 @@ export async function fetchAdminCashPayments(
 
 export async function lookupCashPaymentApi(payload: LookupCashPaymentPayload) {
   try {
-    const response = await api.post<ApiResponse<AdminCashPaymentItem>>(
+    const response = await adminApi.post<ApiResponse<AdminCashPaymentItem>>(
       "/admin/cash-payments/lookup",
       payload,
     );
@@ -64,7 +64,7 @@ export async function confirmCashPaymentApi(
   payload: ConfirmCashPaymentPayload,
 ) {
   try {
-    const response = await api.post<ApiResponse<ConfirmCashPaymentResponse>>(
+    const response = await adminApi.post<ApiResponse<ConfirmCashPaymentResponse>>(
       "/admin/cash-payments/confirm",
       payload,
     );

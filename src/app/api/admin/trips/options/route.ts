@@ -1,18 +1,29 @@
-import { getAdminTripOptions } from "@/services/server/admin/admin-trip.service";
+import { NextRequest } from "next/server";
+
+import { getAdminAuthUserId } from "@/lib/server/admin-auth-user";
 import { successResponse, errorResponse } from "@/lib/server/response";
 
-export async function GET() {
+import { getAdminTripOptions } from "@/services/server/admin/admin-trip.service";
+
+export async function GET(req: NextRequest) {
   try {
+    await getAdminAuthUserId(req);
+
     const data = await getAdminTripOptions();
 
     return successResponse(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[ADMIN TRIP OPTIONS ERROR]", error);
 
-    return errorResponse(
-      error.message || "Không thể lấy dữ liệu bộ lọc chuyến xe",
-      null,
-      500,
-    );
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Không thể lấy dữ liệu bộ lọc chuyến xe";
+
+    if (message === "UNAUTHORIZED") {
+      return errorResponse("Phiên đăng nhập quản trị không hợp lệ", null, 401);
+    }
+
+    return errorResponse(message, null, 500);
   }
 }

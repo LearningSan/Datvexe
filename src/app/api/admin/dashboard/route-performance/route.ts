@@ -1,11 +1,17 @@
 // src/app/api/admin/dashboard/route-performance/route.ts
+
 import { NextRequest } from "next/server";
-import { getRoutePerformance } from "@/services/server/client/dashboard.service";
+
+import { getAdminAuthUserId } from "@/lib/server/admin-auth-user";
 import { successResponse, errorResponse } from "@/lib/server/response";
+
+import { getRoutePerformance } from "@/services/server/client/dashboard.service";
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    await getAdminAuthUserId(req);
+
+    const { searchParams } = req.nextUrl;
 
     const originCityId = Number(searchParams.get("originCityId"));
     const destinationCityId = Number(searchParams.get("destinationCityId"));
@@ -32,13 +38,18 @@ export async function GET(req: NextRequest) {
     });
 
     return successResponse(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[ROUTE PERFORMANCE ERROR]", error);
 
+    const message =
+      error instanceof Error ? error.message : "Không thể tải hiệu suất tuyến";
+
     return errorResponse(
-      error.message || "Không thể tải hiệu suất tuyến",
+      message === "UNAUTHORIZED"
+        ? "Phiên đăng nhập quản trị không hợp lệ"
+        : message,
       null,
-      500,
+      message === "UNAUTHORIZED" ? 401 : 500,
     );
   }
 }

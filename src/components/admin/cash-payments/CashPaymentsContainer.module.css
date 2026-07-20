@@ -679,3 +679,299 @@
     }
   }
 }
+.cashConfirmOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.62);
+  backdrop-filter: blur(4px);
+}
+
+.cashConfirmModal {
+  width: min(100%, 560px);
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.3);
+  animation: cashConfirmOpen 0.18s ease-out;
+}
+
+.cashConfirmHeader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 24px;
+  background: linear-gradient(135deg, #eff6ff 0%, #ecfeff 100%);
+  border-bottom: 1px solid #dbeafe;
+}
+
+.cashConfirmIcon {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0369a1;
+  background: #ffffff;
+  border: 1px solid #bae6fd;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.12);
+}
+
+.cashConfirmHeader span {
+  display: block;
+  margin-bottom: 3px;
+  color: #0284c7;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cashConfirmHeader h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.cashConfirmClose {
+  position: absolute;
+  top: 17px;
+  right: 18px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #64748b;
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cashConfirmClose:hover:not(:disabled) {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.cashConfirmBody {
+  padding: 24px;
+}
+
+.cashConfirmDescription {
+  margin: 0 0 18px;
+  color: #64748b;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.cashConfirmAmount {
+  padding: 20px;
+  text-align: center;
+  background: linear-gradient(135deg, #f0f9ff 0%, #ecfeff 100%);
+  border: 1px solid #bae6fd;
+  border-radius: 14px;
+}
+
+.cashConfirmAmount span {
+  display: block;
+  margin-bottom: 7px;
+  color: #0369a1;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.cashConfirmAmount strong {
+  display: block;
+  color: #0c4a6e;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.cashConfirmInformation {
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.cashConfirmInformationRow {
+  display: grid;
+  grid-template-columns: 135px minmax(0, 1fr);
+  gap: 16px;
+  padding: 12px 15px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cashConfirmInformationRow:last-child {
+  border-bottom: 0;
+}
+
+.cashConfirmInformationRow span {
+  color: #64748b;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.cashConfirmInformationRow strong {
+  color: #0f172a;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.cashConfirmNotice {
+  margin-top: 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px 14px;
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+}
+
+.cashConfirmNotice svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.cashConfirmNotice p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.cashConfirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 11px;
+  padding: 18px 24px 22px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.cashConfirmActions button {
+  min-height: 43px;
+  padding: 10px 17px;
+  border-radius: 9px;
+  font-size: 0.88rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.cashConfirmActions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.cashConfirmCancelButton {
+  color: #475569;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+}
+
+.cashConfirmCancelButton:hover:not(:disabled) {
+  color: #0f172a;
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.cashConfirmSubmitButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #ffffff;
+  background: #0284c7;
+  border: 1px solid #0369a1;
+}
+
+.cashConfirmSubmitButton:hover:not(:disabled) {
+  background: #0369a1;
+  border-color: #075985;
+}
+
+.cashConfirmActions button:disabled,
+.cashConfirmClose:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@keyframes cashConfirmOpen {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 600px) {
+  .cashConfirmOverlay {
+    padding: 12px;
+    align-items: flex-end;
+  }
+
+  .cashConfirmModal {
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+    border-radius: 18px 18px 12px 12px;
+  }
+
+  .cashConfirmHeader,
+  .cashConfirmBody {
+    padding: 18px;
+  }
+
+  .cashConfirmHeader {
+    padding-right: 54px;
+  }
+
+  .cashConfirmAmount strong {
+    font-size: 1.65rem;
+  }
+
+  .cashConfirmInformationRow {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .cashConfirmInformationRow strong {
+    text-align: left;
+  }
+
+  .cashConfirmActions {
+    position: sticky;
+    bottom: 0;
+    flex-direction: column-reverse;
+    padding: 14px 18px 18px;
+  }
+
+  .cashConfirmActions button {
+    width: 100%;
+  }
+}

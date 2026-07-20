@@ -1,4 +1,4 @@
-import api from "@/lib/client/api";
+import adminApi from "@/lib/admin/api";
 import type { ApiResponse } from "@/types/common/api.type";
 import type {
   AdminRouteListParams,
@@ -17,7 +17,7 @@ function getApiErrorMessage(error: any, fallback: string) {
 }
 
 export async function fetchAdminRoutes(params: AdminRouteListParams) {
-  const res = await api.get<ApiResponse<AdminRouteListResponse>>(
+  const res = await adminApi.get<ApiResponse<AdminRouteListResponse>>(
     "/admin/routes",
     {
       params,
@@ -28,7 +28,7 @@ export async function fetchAdminRoutes(params: AdminRouteListParams) {
 }
 
 export async function fetchAdminRouteOptions() {
-  const res = await api.get<ApiResponse<AdminRouteOptionsResponse>>(
+  const res = await adminApi.get<ApiResponse<AdminRouteOptionsResponse>>(
     "/admin/routes/options",
   );
 
@@ -37,7 +37,7 @@ export async function fetchAdminRouteOptions() {
 
 export async function createAdminRouteApi(payload: AdminRoutePayload) {
   try {
-    const res = await api.post("/admin/routes", payload);
+    const res = await adminApi.post("/admin/routes", payload);
     return res.data.data;
   } catch (error: any) {
     throw new Error(getApiErrorMessage(error, "Không thể tạo tuyến xe"));
@@ -49,7 +49,7 @@ export async function updateAdminRouteApi(
   payload: AdminRoutePayload,
 ) {
   try {
-    const res = await api.patch(`/admin/routes/${routeId}`, payload);
+    const res = await adminApi.patch(`/admin/routes/${routeId}`, payload);
     return res.data.data;
   } catch (error: any) {
     throw new Error(getApiErrorMessage(error, "Không thể cập nhật tuyến xe"));
@@ -64,7 +64,7 @@ export async function updateAdminRouteStatusApi(
   },
 ) {
   try {
-    const res = await api.patch(`/admin/routes/${routeId}/status`, payload);
+    const res = await adminApi.patch(`/admin/routes/${routeId}/status`, payload);
     return res.data.data;
   } catch (error: any) {
     throw new Error(
@@ -75,7 +75,7 @@ export async function updateAdminRouteStatusApi(
 
 export async function duplicateReverseRouteApi(routeId: number) {
   try {
-    const res = await api.post(`/admin/routes/${routeId}/duplicate-reverse`);
+    const res = await adminApi.post(`/admin/routes/${routeId}/duplicate-reverse`);
     return res.data.data;
   } catch (error: any) {
     throw new Error(

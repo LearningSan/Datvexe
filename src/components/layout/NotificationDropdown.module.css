@@ -248,3 +248,10 @@
     transform: rotate(360deg);
   }
 }
+.notificationContent {
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-line; /* <--- Thuộc tính quan trọng nhất để render dấu xuống dòng */
+}

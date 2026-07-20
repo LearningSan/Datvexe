@@ -23,7 +23,7 @@ function shiftDate(baseDate: string, days: number) {
   date.setDate(date.getDate() + days);
   return date.toISOString().slice(0, 10);
 }
-
+type CopyMode = "YESTERDAY" | "LAST_WEEK" | "LAST_MONTH" | "CUSTOM";
 export default function CopyTripsModal({
   open,
   options,
@@ -33,9 +33,7 @@ export default function CopyTripsModal({
 }: Props) {
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
-  const [copyMode, setCopyMode] = useState<
-    "YESTERDAY" | "LAST_WEEK" | "LAST_MONTH" | "CUSTOM"
-  >("CUSTOM");
+  const [copyMode, setCopyMode] = useState<CopyMode>("CUSTOM");
 
   const [copyTargetMode, setCopyTargetMode] = useState<"SINGLE" | "RANGE">(
     "SINGLE",
@@ -49,7 +47,7 @@ export default function CopyTripsModal({
   const [keepVehicle, setKeepVehicle] = useState(true);
   const [keepPrice, setKeepPrice] = useState(true);
   const [overwriteExisting, setOverwriteExisting] = useState(false);
-
+  const [showOverwriteConfirm, setShowOverwriteConfirm] = useState(false);
   if (!open) return null;
 
   const handleModeChange = (mode: typeof copyMode) => {
@@ -59,9 +57,31 @@ export default function CopyTripsModal({
     if (mode === "LAST_WEEK") setSourceDate(shiftDate(targetDateFrom, -7));
     if (mode === "LAST_MONTH") setSourceDate(shiftDate(targetDateFrom, -30));
   };
+  const handleOverwriteChange = (checked: boolean) => {
+    if (!checked) {
+      setOverwriteExisting(false);
+      setShowOverwriteConfirm(false);
+      return;
+    }
 
+    setShowOverwriteConfirm(true);
+  };
+
+  const confirmOverwrite = () => {
+    setOverwriteExisting(true);
+    setShowOverwriteConfirm(false);
+  };
+
+  const cancelOverwrite = () => {
+    setOverwriteExisting(false);
+    setShowOverwriteConfirm(false);
+  };
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (showOverwriteConfirm) {
+      return;
+    }
 
     onSubmit({
       sourceDate,
@@ -75,19 +95,54 @@ export default function CopyTripsModal({
   };
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div
+      className={styles.overlay}
+      role="presentation"
+      onMouseDown={(e) => {
+        if (e.target !== e.currentTarget || loading) {
+          return;
+        }
+
+        if (showOverwriteConfirm) {
+          cancelOverwrite();
+          return;
+        }
+
+        onClose();
+      }}
+    >
+      <div
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="copy-trips-modal-title"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         <div className={styles.header}>
           <div>
-            <h2>📋 Sao chép lịch trình chuyến xe</h2>
+            <h2 id="copy-trips-modal-title">
+              📋 Sao chép lịch trình chuyến xe
+            </h2>{" "}
             <p>
               Nhân bản nhanh toàn bộ cấu trúc chuyến chạy từ một ngày có sẵn
               sang ngày hoặc khoảng ngày mong muốn.
             </p>
           </div>
 
-          <button type="button" className={styles.closeBtn} onClick={onClose}>
-            &times;
+          <button
+            type="button"
+            className={styles.cancelBtn}
+            disabled={loading}
+            onClick={() => {
+              if (showOverwriteConfirm) {
+                cancelOverwrite();
+                return;
+              }
+
+              onClose();
+            }}
+          >
+            Hủy bỏ
           </button>
         </div>
 
@@ -96,7 +151,7 @@ export default function CopyTripsModal({
             <label className={styles.label}>Cấu hình ngày nguồn</label>
             <select
               value={copyMode}
-              onChange={(e) => handleModeChange(e.target.value as any)}
+              onChange={(e) => handleModeChange(e.target.value as CopyMode)}
               className={styles.selectInput}
             >
               <option value="YESTERDAY">⏱️ Lấy ngày hôm trước làm mẫu</option>
@@ -258,19 +313,8 @@ export default function CopyTripsModal({
               <input
                 type="checkbox"
                 checked={overwriteExisting}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-
-                  if (checked) {
-                    const ok = window.confirm(
-                      "Cảnh báo: Ghi đè sẽ cập nhật lại các chuyến đã tồn tại nhưng chưa có booking. Các chuyến đã có khách đặt sẽ bị bỏ qua để tránh sai dữ liệu. Bạn có chắc muốn bật không?",
-                    );
-
-                    if (!ok) return;
-                  }
-
-                  setOverwriteExisting(checked);
-                }}
+                disabled={loading || showOverwriteConfirm}
+                onChange={(e) => handleOverwriteChange(e.target.checked)}
                 className={styles.checkboxInput}
               />
 
@@ -279,6 +323,75 @@ export default function CopyTripsModal({
                 ghế trống và giá vé cho các chuyến chưa có booking.
               </span>
             </label>
+            {showOverwriteConfirm && (
+              <div className={styles.overwriteConfirmBox}>
+                <div className={styles.overwriteConfirmHeader}>
+                  <div className={styles.overwriteConfirmIcon}>!</div>
+
+                  <div>
+                    <span>Xác nhận tùy chọn</span>
+                    <h3>Bật ghi đè chuyến đã tồn tại</h3>
+                  </div>
+                </div>
+
+                <p className={styles.overwriteConfirmDescription}>
+                  Các chuyến đã tồn tại nhưng chưa có booking sẽ được cập nhật
+                  lại xe, số ghế trống và giá vé theo dữ liệu sao chép.
+                </p>
+
+                <div className={styles.overwriteConfirmWarning}>
+                  Các chuyến đã có hành khách đặt vé sẽ được bỏ qua để tránh làm
+                  sai dữ liệu booking.
+                </div>
+
+                <div className={styles.overwriteConfirmInfo}>
+                  <div>
+                    <span>Ngày mẫu</span>
+                    <strong>{sourceDate}</strong>
+                  </div>
+
+                  <div>
+                    <span>Ngày áp dụng</span>
+                    <strong>
+                      {copyTargetMode === "SINGLE"
+                        ? targetDateFrom
+                        : `${targetDateFrom} đến ${targetDateTo}`}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Phạm vi tuyến</span>
+                    <strong>
+                      {routeId
+                        ? (options?.routes.find(
+                            (route) => route.routeId === Number(routeId),
+                          )?.routeName ?? "Tuyến đã chọn")
+                        : "Tất cả tuyến"}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className={styles.overwriteConfirmActions}>
+                  <button
+                    type="button"
+                    className={styles.overwriteConfirmCancel}
+                    disabled={loading}
+                    onClick={cancelOverwrite}
+                  >
+                    Không bật
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.overwriteConfirmSubmit}
+                    disabled={loading}
+                    onClick={confirmOverwrite}
+                  >
+                    Xác nhận bật ghi đè
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className={styles.noteBox}>
@@ -292,7 +405,7 @@ export default function CopyTripsModal({
               type="button"
               className={styles.cancelBtn}
               onClick={onClose}
-              disabled={loading}
+              disabled={loading || showOverwriteConfirm}
             >
               Hủy bỏ
             </button>
@@ -300,7 +413,7 @@ export default function CopyTripsModal({
             <button
               type="submit"
               className={styles.submitBtn}
-              disabled={loading}
+              disabled={loading || showOverwriteConfirm}
             >
               {loading ? (
                 <span className={styles.loadingFlex}>

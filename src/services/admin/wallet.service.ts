@@ -1,4 +1,4 @@
-import api from "@/lib/client/api";
+import adminApi from "@/lib/admin/api";
 
 import type { ApiResponse } from "@/types/common/api.type";
 
@@ -30,7 +30,7 @@ function throwApiError(error: unknown, fallback: string): never {
 
 export async function fetchAdminWallets(params: AdminWalletListParams) {
   try {
-    const response = await api.get<ApiResponse<AdminWalletListResponse>>(
+    const response = await adminApi.get<ApiResponse<AdminWalletListResponse>>(
       "/admin/wallets",
       {
         params,
@@ -48,7 +48,7 @@ export async function updateAdminWalletStatusApi(
   payload: UpdateAdminWalletStatusPayload,
 ) {
   try {
-    const response = await api.patch(
+    const response = await adminApi.patch(
       `/admin/wallets/${walletId}/status`,
       payload,
     );
@@ -64,7 +64,7 @@ export async function adjustAdminWalletApi(
   payload: AdjustAdminWalletPayload,
 ) {
   try {
-    const response = await api.post(
+    const response = await adminApi.post(
       `/admin/wallets/${walletId}/adjustment`,
       payload,
     );

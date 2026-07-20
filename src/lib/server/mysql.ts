@@ -1,9 +1,6 @@
-// src/lib/server/db.ts
-
-import type { PoolConnection } from "mysql2/promise";
+import type { PoolConnection, ResultSetHeader } from "mysql2/promise";
 
 import pool from "@/db/db";
-
 
 export async function query<T = unknown>(
   sql: string,
@@ -50,5 +47,21 @@ export async function connQuery<T = unknown>(
 
   return rows as T[];
 }
+export async function connExecute(
+  conn: PoolConnection,
+  sql: string,
+  params?: Record<string, any> | any[],
+): Promise<ResultSetHeader> {
+  const [result] = await conn.execute(sql, params);
 
+  return result as ResultSetHeader;
+}
 export type { PoolConnection };
+export async function execute(
+  sql: string,
+  params?: Record<string, any> | any[],
+): Promise<ResultSetHeader> {
+  const [result] = await pool.execute(sql, params);
+
+  return result as ResultSetHeader;
+}

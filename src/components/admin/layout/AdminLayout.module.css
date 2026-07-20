@@ -305,3 +305,53 @@
     background: rgba(255, 255, 255, 0.1);
   }
 }
+.authLoading {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  background: #f8fafc;
+  font-size: 15px;
+  font-weight: 600;
+}
+.main {
+  position: relative;
+  min-width: 0;
+  flex: 1;
+}
+
+.logoutBtn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 11px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+
+  background: #ffffff;
+  color: #dc2626;
+
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  box-shadow: 0 8px 24px rgb(15 23 42 / 12%);
+}
+
+.logoutBtn:hover {
+  background: #fef2f2;
+}
+
+@media (max-width: 768px) {
+  .logoutBtn {
+    right: 16px;
+    bottom: 16px;
+  }
+}

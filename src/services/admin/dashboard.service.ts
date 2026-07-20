@@ -1,5 +1,5 @@
 // src/services/admin/dashboard.service.ts
-import api from "@/lib/client/api";
+import adminApi from "@/lib/admin/api";
 import type { ApiResponse } from "@/types/common/api.type";
 import type {
   DashboardData,
@@ -7,7 +7,7 @@ import type {
 } from "@/types/admin/dashboard/dashboard.type";
 
 export async function fetchDashboardData(fromDate: string, toDate: string) {
-  const res = await api.get<ApiResponse<DashboardData>>("/admin/dashboard", {
+  const res = await adminApi.get<ApiResponse<DashboardData>>("/admin/dashboard", {
     params: { fromDate, toDate },
   });
 
@@ -20,7 +20,7 @@ export async function fetchRoutePerformance(params: {
   fromDate: string;
   toDate: string;
 }) {
-  const res = await api.get<ApiResponse<RoutePerformanceData>>(
+  const res = await adminApi.get<ApiResponse<RoutePerformanceData>>(
     "/admin/dashboard/route-performance",
     { params },
   );

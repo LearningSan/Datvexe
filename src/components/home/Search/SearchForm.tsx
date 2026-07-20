@@ -184,30 +184,6 @@ export default function SearchForm({
             </div>
           </div>
 
-          {isRoundTrip && (
-            <div className={styles.inputBlock}>
-              <label className={styles.inputLabel}>Ngày về</label>
-
-              <div className={styles.dateField}>
-                <CalendarIcon size={18} className={styles.inputIcon} />
-
-                <div className={styles.dateContent}>
-                  <input
-                    type="date"
-                    className={styles.dateInput}
-                    value={returnDate}
-                    min={departureDate || today}
-                    onChange={(e) => setReturnDate(e.target.value)}
-                  />
-
-                  <div className={styles.weekday}>
-                    {returnDate ? getWeekday(returnDate) : ""}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* KHỨ HỒI (NGÀY VỀ) */}
           {isRoundTrip && (
             <div className={styles.inputBlock}>

@@ -1,10 +1,8 @@
-import pool from "@/db/db";
-import { query, connQuery } from "@/lib/server/mysql";
-import mysql from "mysql2/promise";
-import { ResultSetHeader, RowDataPacket } from "mysql2";
-import { SearchTripsRepoInput } from "@/types/client/trip/trip-repo.type";
+import { connQuery, query, type PoolConnection } from "@/lib/server/mysql";
 
-export const searchTripsRepo = async (query: SearchTripsRepoInput) => {
+import type { SearchTripsRepoInput } from "@/types/client/trip/trip-repo.type";
+
+export const searchTripsRepo = async (input: SearchTripsRepoInput) => {
   const {
     origin,
     destination,
@@ -17,11 +15,10 @@ export const searchTripsRepo = async (query: SearchTripsRepoInput) => {
     floors = [],
     sort,
     onlyAvailable = false,
-  } = query;
+  } = input;
 
-  const safePage = Number(page);
-  const safeLimit = Number(limit);
-
+  const safePage = Math.max(Number(page) || 1, 1);
+  const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 50);
   const offset = (safePage - 1) * safeLimit;
 
   const startDate = `${date} 00:00:00`;
@@ -285,65 +282,65 @@ COALESCE(t.ticket_price, st.base_price, r.base_price, 0) AS price,
     LIMIT ${offset}, ${safeLimit}
   `;
 
-  const [rows]: any = await pool.execute(sql, params);
-
-  // =========================
-  // COUNT QUERY
+  const rows = await query<Record<string, unknown>>(sql, params); // COUNT QUERY
   // =========================
   const countSql = `
-    SELECT COUNT(*) AS total
+  SELECT COUNT(*) AS total
 
-    FROM trips t
+  FROM trips t
 
-    INNER JOIN routes r
-      ON r.route_id = t.route_id
+  INNER JOIN routes r
+    ON r.route_id = t.route_id
 
-    INNER JOIN cities oc
-      ON oc.city_id = r.origin_city_id
+  INNER JOIN cities oc
+    ON oc.city_id = r.origin_city_id
 
-    INNER JOIN cities dc
-      ON dc.city_id = r.destination_city_id
+  INNER JOIN cities dc
+    ON dc.city_id = r.destination_city_id
 
-    LEFT JOIN zones oz
-      ON oz.zone_id = r.origin_hub_id
+  LEFT JOIN zones oz
+    ON oz.zone_id = r.origin_hub_id
 
-    LEFT JOIN zones dz
-      ON dz.zone_id = r.destination_hub_id
+  LEFT JOIN zones dz
+    ON dz.zone_id = r.destination_hub_id
 
-    INNER JOIN vehicles v
-      ON v.vehicle_id = t.vehicle_id
+  INNER JOIN vehicles v
+    ON v.vehicle_id = t.vehicle_id
 
-    INNER JOIN vehicle_types vt
-      ON vt.vehicle_type_id = v.vehicle_type_id
+  INNER JOIN vehicle_types vt
+    ON vt.vehicle_type_id = v.vehicle_type_id
 
-    INNER JOIN seat_layouts sl
-      ON sl.seat_layout_id = v.seat_layout_id
+  INNER JOIN seat_layouts sl
+    ON sl.seat_layout_id = v.seat_layout_id
 
-    ${whereSql}
-  `;
+  INNER JOIN schedule_templates st
+    ON st.schedule_template_id = t.schedule_template_id
 
-  const [countRows]: any = await pool.execute(countSql, params);
-
+  ${whereSql}
+`;
+  const countRows = await query<{
+    total: string | number;
+  }>(countSql, params);
   return {
     trips: rows,
-
-    total: countRows[0].total,
-
+    total: Number(countRows[0]?.total ?? 0),
     page: safePage,
     limit: safeLimit,
   };
 };
-export async function findTripById(conn: mysql.PoolConnection, tripId: number) {
-  const [rows] = await conn.execute<RowDataPacket[]>(
+export async function findTripById(conn: PoolConnection, tripId: number) {
+  const rows = await connQuery<Record<string, unknown>>(
+    conn,
     `
       SELECT *
       FROM trips
       WHERE trip_id = ?
+      LIMIT 1
     `,
     [tripId],
   );
 
-  return rows[0];
+  return rows[0] ?? null;
 }
 export async function getTripFilterOptionsRepo(input: {
   origin: number;
@@ -364,15 +361,11 @@ export async function getTripFilterOptionsRepo(input: {
       AND t.status = 'OPEN'
     ORDER BY departureHour ASC
   `;
+  const rows = await query<{
+    departureHour: string | number;
+  }>(sql, [input.origin, input.destination, startDate, endDate]);
 
-  const [rows]: any = await pool.execute(sql, [
-    input.origin,
-    input.destination,
-    startDate,
-    endDate,
-  ]);
-
-  const timeSlots = rows.map((row: any) => {
+  const timeSlots = rows.map((row) => {
     const hour = Number(row.departureHour);
     const nextHour = hour + 1;
 
@@ -394,9 +387,7 @@ interface ScheduleRouteRepoInput {
   limit?: number;
 }
 
-export async function getScheduleRoutesRepo(
-  input: ScheduleRouteRepoInput,
-) {
+export async function getScheduleRoutesRepo(input: ScheduleRouteRepoInput) {
   const {
     originCityId,
     destinationCityId,
@@ -581,9 +572,11 @@ GROUP_CONCAT(
 
     ${whereSql}
   `;
+  const rows = await query<Record<string, unknown>>(sql, params);
 
-  const [rows]: any = await pool.execute(sql, params);
-  const [countRows]: any = await pool.execute(countSql, params);
+  const countRows = await query<{
+    total: string | number;
+  }>(countSql, params);
 
   return {
     rows,
@@ -593,15 +586,16 @@ GROUP_CONCAT(
   };
 }
 export async function getScheduleVehicleTypesRepo() {
-    const sql = `
-        SELECT
-            vehicle_type_id AS id,
-            type_name AS name
-        FROM vehicle_types
-        ORDER BY type_name
-    `;
-
-    const [rows]: any = await pool.execute(sql);
-
-    return rows;
+  return query<{
+    id: number;
+    name: string;
+  }>(
+    `
+      SELECT
+        vehicle_type_id AS id,
+        type_name AS name
+      FROM vehicle_types
+      ORDER BY type_name
+    `,
+  );
 }

@@ -1,18 +1,29 @@
-import { getAdminScheduleOptions } from "@/services/server/admin/admin-schedule.service";
+import { NextRequest } from "next/server";
+
+import { getAdminAuthUserId } from "@/lib/server/admin-auth-user";
 import { successResponse, errorResponse } from "@/lib/server/response";
 
-export async function GET() {
+import { getAdminScheduleOptions } from "@/services/server/admin/admin-schedule.service";
+
+export async function GET(req: NextRequest) {
   try {
+    await getAdminAuthUserId(req);
+
     const data = await getAdminScheduleOptions();
 
     return successResponse(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[ADMIN SCHEDULE OPTIONS ERROR]", error);
 
+    const message =
+      error instanceof Error ? error.message : "Không thể lấy dữ liệu tuyến xe";
+
     return errorResponse(
-      error.message || "Không thể lấy dữ liệu tuyến xe",
+      message === "UNAUTHORIZED"
+        ? "Phiên đăng nhập quản trị không hợp lệ"
+        : message,
       null,
-      500,
+      message === "UNAUTHORIZED" ? 401 : 500,
     );
   }
 }

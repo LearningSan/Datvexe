@@ -1,21 +1,53 @@
 import { NextRequest } from "next/server";
+
+import { getAdminAuthUserId } from "@/lib/server/admin-auth-user";
 import { successResponse, errorResponse } from "@/lib/server/response";
 
 import { getCancelAdminTicketPreview } from "@/services/server/admin/admin-ticket.service";
 
-export async function GET(
-  _: NextRequest,
-  context: { params: Promise<{ bookingId: string }> },
-) {
-  try {
-    const { bookingId } = await context.params;
+interface Context {
+  params: Promise<{
+    bookingId: string;
+  }>;
+}
 
-    return successResponse(await getCancelAdminTicketPreview(Number(bookingId)));
-  } catch (error: any) {
+function parseBookingId(value: string): number {
+  const bookingId = Number(value);
+
+  if (!Number.isInteger(bookingId) || bookingId <= 0) {
+    throw new Error("bookingId không hợp lệ");
+  }
+
+  return bookingId;
+}
+
+export async function GET(req: NextRequest, context: Context) {
+  try {
+    await getAdminAuthUserId(req);
+
+    const { bookingId: rawBookingId } = await context.params;
+
+    const bookingId = parseBookingId(rawBookingId);
+
+    const data = await getCancelAdminTicketPreview(bookingId);
+
+    return successResponse(data);
+  } catch (error: unknown) {
+    console.error("[ADMIN CANCEL PREVIEW ERROR]", error);
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Không thể kiểm tra điều kiện hủy vé";
+
+    if (message === "UNAUTHORIZED") {
+      return errorResponse("Phiên đăng nhập quản trị không hợp lệ", null, 401);
+    }
+
     return errorResponse(
-      error.message || "Không thể kiểm tra điều kiện hủy vé",
+      message,
       null,
-      500,
+      message === "bookingId không hợp lệ" ? 400 : 500,
     );
   }
 }

@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { Menu, X } from "lucide-react"; // Import thêm icon đóng/mở
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+
+import { LogOut, Menu } from "lucide-react";
 import AdminSidebar from "@/components/admin/layout/AdminSidebar";
+
+import { useAdminAuth } from "@/hooks/admin/useAuth";
 import styles from "@/components/admin/layout/AdminLayout.module.css";
 
 export default function AdminLayout({
@@ -10,31 +14,85 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const { initialized, isAuthenticated, logout } = useAdminAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-  const closeSidebar = () => setIsSidebarOpen(false);
+  const isLoginPage = pathname === "/admin/login";
 
+  useEffect(() => {
+    if (!initialized) {
+      return;
+    }
+
+    if (isLoginPage && isAuthenticated) {
+      router.replace("/admin/dashboard");
+      return;
+    }
+
+    if (!isLoginPage && !isAuthenticated) {
+      router.replace("/admin/login");
+    }
+  }, [initialized, isAuthenticated, isLoginPage, router]);
+
+  if (!initialized) {
+    return (
+      <div className={styles.authLoading}>Đang kiểm tra phiên quản trị...</div>
+    );
+  }
+
+  if (isLoginPage) {
+    if (isAuthenticated) {
+      return null;
+    }
+
+    return <>{children}</>;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/admin/login");
+  };
   return (
     <div className={styles.layout}>
-      {/* Nút bấm mở Menu chỉ hiện trên điện thoại */}
       <button
+        type="button"
         className={styles.mobileMenuBtn}
-        onClick={toggleSidebar}
-        aria-label="Toggle Menu"
+        onClick={() => setIsSidebarOpen((current) => !current)}
+        aria-label="Mở menu quản trị"
+        aria-expanded={isSidebarOpen}
       >
         <Menu size={24} />
       </button>
-
-      {/* Lớp phủ mờ phía sau khi mở Sidebar trên mobile */}
       {isSidebarOpen && (
-        <div className={styles.overlay} onClick={closeSidebar} />
+        <button
+          type="button"
+          className={styles.overlay}
+          onClick={() => setIsSidebarOpen(false)}
+          aria-label="Đóng menu quản trị"
+        />
       )}
+      <AdminSidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
+      <main className={styles.main}>
+        <button
+          type="button"
+          className={styles.logoutBtn}
+          onClick={handleLogout}
+        >
+          <LogOut size={18} />
+          Đăng xuất
+        </button>
 
-      {/* Truyền state và hàm đóng vào Sidebar */}
-      <AdminSidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
-
-      <main className={styles.main}>{children}</main>
+        {children}
+      </main>
     </div>
   );
 }

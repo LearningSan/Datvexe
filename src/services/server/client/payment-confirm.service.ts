@@ -113,6 +113,7 @@ export async function sendPaymentResultSideEffects(params: {
 
   if (params.isPaid && bookingInfo?.contactEmail) {
     await sendPaymentSuccessEmail({
+      bookingId: params.bookingId,
       to: bookingInfo.contactEmail,
       customerName: bookingInfo.contactName,
       customerPhone: bookingInfo.contactPhone,

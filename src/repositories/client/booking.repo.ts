@@ -1,6 +1,9 @@
-import { query, connQuery } from "@/lib/server/mysql";
-import mysql from "mysql2/promise";
-import { ResultSetHeader, RowDataPacket } from "mysql2";
+import {
+  connExecute,
+  connQuery,
+  query,
+  type PoolConnection,
+} from "@/lib/server/mysql";
 
 export async function insertBookingShuttleBulk(data: any) {
   const bookingId = data.bookingId;
@@ -48,7 +51,7 @@ export async function insertBookingShuttleBulk(data: any) {
   };
 }
 export async function findBookingByIdForUpdate(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   bookingId: number,
 ) {
   const rows = await connQuery<any>(
@@ -146,9 +149,10 @@ LEFT JOIN vehicles v
 
 LEFT JOIN vehicle_types vt
   ON vt.vehicle_type_id = v.vehicle_type_id
-WHERE b.booking_id = ?
 LEFT JOIN payments p
   ON p.booking_id = b.booking_id
+WHERE b.booking_id = ?
+
 GROUP BY
     b.booking_id,
     b.booking_code,
@@ -180,7 +184,7 @@ type BookingRow = {
 };
 
 export async function findBookingForHoldCancel(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   bookingId: number,
 ): Promise<BookingRow[]> {
   return connQuery<BookingRow>(
@@ -198,7 +202,7 @@ export async function findBookingForHoldCancel(
 }
 
 export async function deleteSeatHoldsByBookingAndSession(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   bookingId: number,
   sessionId: string,
 ): Promise<void> {
@@ -214,7 +218,7 @@ export async function deleteSeatHoldsByBookingAndSession(
 }
 
 export async function checkSeatsAlreadyBooked(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   tripId: number,
   seatIds: number[],
 ) {
@@ -245,7 +249,7 @@ export async function checkSeatsAlreadyBooked(
   );
 }
 export async function checkSeatsAlreadyHeld(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   tripId: number,
   seatIds: number[],
   sessionId: string,
@@ -272,7 +276,7 @@ export async function checkSeatsAlreadyHeld(
   return rows;
 }
 export async function insertSeatHolds(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   data: {
     tripId: number;
     seatIds: number[];
@@ -322,7 +326,7 @@ export async function insertSeatHolds(
   );
 }
 export async function updateTripHoldCount(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   tripId: number,
   count: number,
 ) {
@@ -339,7 +343,7 @@ export async function updateTripHoldCount(
 }
 
 export async function cancelPendingBooking(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   bookingId: number,
 ) {
   await connQuery(
@@ -353,7 +357,7 @@ export async function cancelPendingBooking(
   );
 }
 export async function deleteBookingPromotionsByBooking(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   bookingId: number | null,
 ) {
   await connQuery(
@@ -367,7 +371,7 @@ export async function deleteBookingPromotionsByBooking(
 }
 
 export async function countHeldSeatsBySession(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   sessionId: string,
   tripId: number,
 ): Promise<number> {
@@ -387,7 +391,7 @@ export async function countHeldSeatsBySession(
 }
 
 export async function deleteSeatHoldsBySession(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   sessionId: string,
   tripId: number,
 ): Promise<void> {
@@ -403,7 +407,7 @@ export async function deleteSeatHoldsBySession(
 }
 
 export async function restoreTripAvailableSeats(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   tripId: number,
   count: number,
 ) {
@@ -419,7 +423,7 @@ export async function restoreTripAvailableSeats(
 }
 
 export async function findExistingSeatHolds(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   tripId: number,
   seatIds: number[],
 ): Promise<
@@ -449,7 +453,7 @@ export async function findExistingSeatHolds(
   );
 }
 export async function createBooking(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   payload: {
     bookingCode: string;
     userId: number | null;
@@ -466,7 +470,8 @@ export async function createBooking(
     holdExpiredAt: Date;
   },
 ) {
-  const [result] = await conn.execute<ResultSetHeader>(
+  const result = await connExecute(
+    conn,
     `
       INSERT INTO bookings
       (
@@ -511,8 +516,9 @@ export async function createBooking(
   return result.insertId;
 }
 
-export async function findTripById(conn: mysql.PoolConnection, tripId: number) {
-  const [rows] = await conn.execute<RowDataPacket[]>(
+export async function findTripById(conn: PoolConnection, tripId: number) {
+  const rows = await connQuery<Record<string, unknown>>(
+    conn,
     `
       SELECT *
       FROM trips
@@ -521,10 +527,10 @@ export async function findTripById(conn: mysql.PoolConnection, tripId: number) {
     [tripId],
   );
 
-  return rows[0];
+  return rows[0] ?? null;
 }
 export async function findPromotionByCode(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   promoCode: string,
 ) {
   const rows = await connQuery<{
@@ -552,7 +558,7 @@ export async function findPromotionByCode(
   return rows[0] ?? null;
 }
 export async function insertBookingPromotion(
-  conn: mysql.PoolConnection,
+  conn: PoolConnection,
   data: {
     bookingId: number;
     promotionId: number;

@@ -1,4 +1,4 @@
-import api from "@/lib/client/api";
+import adminApi from "@/lib/admin/api";
 
 import type { ApiResponse } from "@/types/common/api.type";
 
@@ -17,7 +17,7 @@ import type {
 
 export async function fetchAdminPickupPointLocationOptions(cityId?: number) {
   try {
-    const res = await api.get<
+    const res = await adminApi.get<
       ApiResponse<{
         cities: AdminCityOption[];
         zones: AdminZoneOption[];
@@ -48,7 +48,7 @@ export async function fetchAdminPickupPoints(
   params: AdminPickupPointListParams,
 ) {
   try {
-    const res = await api.get<ApiResponse<AdminPickupPointListResponse>>(
+    const res = await adminApi.get<ApiResponse<AdminPickupPointListResponse>>(
       "/admin/pickup-points",
       { params },
     );
@@ -61,7 +61,7 @@ export async function fetchAdminPickupPoints(
 
 export async function fetchAdminPickupPointDetail(pickupPointId: number) {
   try {
-    const res = await api.get<ApiResponse<AdminPickupPointDetail>>(
+    const res = await adminApi.get<ApiResponse<AdminPickupPointDetail>>(
       `/admin/pickup-points/${pickupPointId}`,
     );
 
@@ -75,7 +75,7 @@ export async function createAdminPickupPointApi(
   payload: CreateAdminPickupPointPayload,
 ) {
   try {
-    const res = await api.post("/admin/pickup-points", payload);
+    const res = await adminApi.post("/admin/pickup-points", payload);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể tạo điểm đón trả");
@@ -87,7 +87,7 @@ export async function updateAdminPickupPointApi(
   payload: UpdateAdminPickupPointPayload,
 ) {
   try {
-    const res = await api.patch(
+    const res = await adminApi.patch(
       `/admin/pickup-points/${pickupPointId}`,
       payload,
     );
@@ -103,7 +103,7 @@ export async function updateAdminPickupPointStatusApi(
   isActive: boolean,
 ) {
   try {
-    const res = await api.patch(
+    const res = await adminApi.patch(
       `/admin/pickup-points/${pickupPointId}/status`,
       { isActive },
     );
@@ -116,7 +116,7 @@ export async function updateAdminPickupPointStatusApi(
 
 export async function deleteAdminPickupPointApi(pickupPointId: number) {
   try {
-    const res = await api.delete(`/admin/pickup-points/${pickupPointId}`);
+    const res = await adminApi.delete(`/admin/pickup-points/${pickupPointId}`);
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể tạm ngưng điểm đón trả");

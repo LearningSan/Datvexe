@@ -1,6 +1,9 @@
-import type { ResultSetHeader } from "mysql2/promise";
-
-import { connQuery, type PoolConnection } from "@/lib/server/mysql";
+import {
+  connExecute,
+  connQuery,
+  query,
+  type PoolConnection,
+} from "@/lib/server/mysql";
 
 import type {
   WalletStatus,
@@ -74,7 +77,8 @@ export async function createWalletIfMissing(
   conn: PoolConnection,
   userId: number,
 ): Promise<void> {
-  await conn.query<ResultSetHeader>(
+  await connExecute(
+    conn,
     `
       INSERT IGNORE INTO wallets (
         user_id,
@@ -284,7 +288,8 @@ export async function insertWalletTransaction(
     description?: string | null;
   },
 ): Promise<number> {
-  const [result] = await conn.query<ResultSetHeader>(
+  const result = await connExecute(
+    conn,
     `
       INSERT INTO wallet_transactions (
         wallet_id,

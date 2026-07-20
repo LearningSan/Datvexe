@@ -1,6 +1,9 @@
-import type { ResultSetHeader } from "mysql2/promise";
-
-import { connQuery, query, type PoolConnection } from "@/lib/server/mysql";
+import {
+  connExecute,
+  connQuery,
+  query,
+  type PoolConnection,
+} from "@/lib/server/mysql";
 
 export type DemoPaymentProvider = "VNPAY" | "MOMO" | "ZALOPAY";
 
@@ -70,7 +73,8 @@ export async function insertDemoPaymentSession(
     expiredAt: Date;
   },
 ): Promise<number> {
-  const [result] = await conn.query<ResultSetHeader>(
+  const result = await connExecute(
+    conn,
     `
       INSERT INTO payment_demo_sessions (
         payment_id,

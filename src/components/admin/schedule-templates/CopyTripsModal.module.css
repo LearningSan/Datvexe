@@ -258,3 +258,160 @@
     transform: rotate(360deg);
   }
 }
+.overwriteConfirmBox {
+  margin-top: 14px;
+  padding: 18px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+}
+
+.overwriteConfirmHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.overwriteConfirmIcon {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: #ea580c;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.overwriteConfirmHeader span {
+  display: block;
+  margin-bottom: 3px;
+  color: #9a3412;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.overwriteConfirmHeader h3 {
+  margin: 0;
+  color: #431407;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.overwriteConfirmDescription {
+  margin: 14px 0 0;
+  color: #7c2d12;
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.overwriteConfirmWarning {
+  margin-top: 12px;
+  padding: 10px 12px;
+  color: #9a3412;
+  background: #ffedd5;
+  border-radius: 9px;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.overwriteConfirmInfo {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+}
+
+.overwriteConfirmInfo > div {
+  min-width: 0;
+  padding: 11px 12px;
+  border-right: 1px solid #ffedd5;
+}
+
+.overwriteConfirmInfo > div:last-child {
+  border-right: 0;
+}
+
+.overwriteConfirmInfo span {
+  display: block;
+  margin-bottom: 4px;
+  color: #9a3412;
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.overwriteConfirmInfo strong {
+  display: block;
+  color: #431407;
+  font-size: 0.84rem;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.overwriteConfirmActions {
+  margin-top: 15px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.overwriteConfirmActions button {
+  min-height: 39px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.overwriteConfirmActions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.overwriteConfirmCancel {
+  color: #475569;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+}
+
+.overwriteConfirmSubmit {
+  color: #ffffff;
+  background: #ea580c;
+  border: 1px solid #c2410c;
+}
+
+.overwriteConfirmSubmit:hover:not(:disabled) {
+  background: #c2410c;
+}
+
+@media (max-width: 640px) {
+  .overwriteConfirmInfo {
+    grid-template-columns: 1fr;
+  }
+
+  .overwriteConfirmInfo > div {
+    border-right: 0;
+    border-bottom: 1px solid #ffedd5;
+  }
+
+  .overwriteConfirmInfo > div:last-child {
+    border-bottom: 0;
+  }
+
+  .overwriteConfirmActions {
+    flex-direction: column-reverse;
+  }
+
+  .overwriteConfirmActions button {
+    width: 100%;
+  }
+}

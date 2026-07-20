@@ -1,6 +1,9 @@
 import { NextRequest } from "next/server";
-import { resetAdminDriverPassword } from "@/services/server/admin/admin-driver.service";
+
+import { getAdminAuthUserId } from "@/lib/server/admin-auth-user";
 import { successResponse, errorResponse } from "@/lib/server/response";
+
+import { resetAdminDriverPassword } from "@/services/server/admin/admin-driver.service";
 
 interface Context {
   params: Promise<{
@@ -20,6 +23,8 @@ function parseDriverId(value: string) {
 
 export async function PATCH(req: NextRequest, context: Context) {
   try {
+    await getAdminAuthUserId(req);
+
     const params = await context.params;
     const driverId = parseDriverId(params.driverId);
 
@@ -29,13 +34,22 @@ export async function PATCH(req: NextRequest, context: Context) {
     const data = await resetAdminDriverPassword(driverId, newPassword);
 
     return successResponse(data, "Reset mật khẩu tài xế thành công");
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[RESET DRIVER PASSWORD ERROR]", error);
 
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Không thể reset mật khẩu tài xế";
+
+    if (message === "UNAUTHORIZED") {
+      return errorResponse("Phiên đăng nhập quản trị không hợp lệ", null, 401);
+    }
+
     return errorResponse(
-      error.message || "Không thể reset mật khẩu tài xế",
+      message,
       null,
-      error.message === "driverId không hợp lệ" ? 400 : 500,
+      message === "driverId không hợp lệ" ? 400 : 500,
     );
   }
 }

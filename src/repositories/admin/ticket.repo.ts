@@ -14,7 +14,240 @@ import type {
   CreateOfflineTicketPayload,
   TicketWarning,
 } from "@/types/admin/tickets/ticket-management.type";
+type ConfirmAdminTicketOptions = {
+  markPaymentPaid: boolean;
+};
 
+/**
+ * Xác nhận booking:
+ * - Chuyển ghế đang giữ thành ghế đã đặt.
+ * - Xóa dữ liệu giữ chỗ.
+ * - Cập nhật booking thành CONFIRMED.
+ * - Có thể đánh dấu thanh toán PAID.
+ * - Đồng bộ lại số ghế trống của chuyến.
+ */
+export async function confirmAdminTicketRepo(
+  bookingId: number,
+  options: ConfirmAdminTicketOptions,
+) {
+  const booking = await findTicketBase(bookingId);
+
+  if (!booking) {
+    throw new Error("Không tìm thấy booking");
+  }
+
+  if (booking.status === "CANCELLED") {
+    throw new Error("Không thể duyệt booking đã bị hủy");
+  }
+
+  if (booking.status === "REFUNDED") {
+    throw new Error("Không thể duyệt booking đã hoàn tiền");
+  }
+
+  if (booking.status === "CONFIRMED") {
+    // Dọn dữ liệu hold cũ nếu trước đây booking đã xác nhận
+    // nhưng hold_expired_at hoặc seat_holds chưa được xóa.
+    await query(`DELETE FROM seat_holds WHERE booking_id = ?`, [bookingId]);
+
+    await query(
+      `
+      UPDATE bookings
+      SET hold_expired_at = NULL
+      WHERE booking_id = ?
+      `,
+      [bookingId],
+    );
+
+    await syncTripAvailableSeatsRepo(booking.trip_id);
+
+    return {
+      bookingId,
+      tripId: booking.trip_id,
+      status: "CONFIRMED" as const,
+      alreadyConfirmed: true,
+    };
+  }
+
+  /*
+   * Kiểm tra booking đã có ghế chính thức hay chưa.
+   *
+   * Có hai trường hợp:
+   * 1. Ghế đã được tạo trong booking_seats từ trước.
+   * 2. Ghế mới chỉ đang nằm trong seat_holds.
+   */
+  const existingSeats = await query<{ seatCount: number }>(
+    `
+    SELECT COUNT(*) AS seatCount
+    FROM booking_seats
+    WHERE booking_id = ?
+    `,
+    [bookingId],
+  );
+
+  const existingSeatCount = Number(existingSeats[0]?.seatCount ?? 0);
+
+  const holdRows = await query<{
+    tripId: number;
+    seatLayoutDetailId: number;
+  }>(
+    `
+    SELECT
+      trip_id AS tripId,
+      seat_layout_detail_id AS seatLayoutDetailId
+    FROM seat_holds
+    WHERE booking_id = ?
+    ORDER BY seat_hold_id ASC
+    `,
+    [bookingId],
+  );
+
+  /*
+   * Nếu booking chưa có booking_seats thì chuyển seat_holds
+   * thành ghế chính thức.
+   */
+  if (existingSeatCount === 0) {
+    if (holdRows.length === 0) {
+      throw new Error(
+        "Booking không có ghế đang giữ để xác nhận. Vui lòng chọn lại ghế",
+      );
+    }
+
+    const invalidTripHold = holdRows.some(
+      (hold) => Number(hold.tripId) !== Number(booking.trip_id),
+    );
+
+    if (invalidTripHold) {
+      throw new Error("Dữ liệu giữ ghế không thuộc chuyến của booking");
+    }
+
+    /*
+     * Kiểm tra ghế đã bị booking khác đặt hay chưa.
+     */
+    const conflictingSeats = await query<{
+      seatLayoutDetailId: number;
+    }>(
+      `
+      SELECT
+        sh.seat_layout_detail_id AS seatLayoutDetailId
+      FROM seat_holds sh
+      INNER JOIN booking_seats bs
+        ON bs.trip_id = sh.trip_id
+       AND bs.seat_layout_detail_id = sh.seat_layout_detail_id
+       AND bs.booking_id <> sh.booking_id
+      WHERE sh.booking_id = ?
+      LIMIT 1
+      `,
+      [bookingId],
+    );
+
+    if (conflictingSeats.length > 0) {
+      throw new Error(
+        "Có ghế trong booking đã được đặt bởi đơn khác. Không thể duyệt",
+      );
+    }
+
+    /*
+     * Chuyển toàn bộ seat_holds của booking sang booking_seats.
+     *
+     * NOT EXISTS giúp tránh insert trùng nếu thao tác được gọi lại.
+     */
+    await query(
+      `
+      INSERT INTO booking_seats (
+        booking_id,
+        trip_id,
+        seat_layout_detail_id,
+        seat_price,
+        checkin_status
+      )
+      SELECT
+        sh.booking_id,
+        sh.trip_id,
+        sh.seat_layout_detail_id,
+        b.seat_price,
+        'NOT_CHECKED_IN'
+      FROM seat_holds sh
+      INNER JOIN bookings b
+        ON b.booking_id = sh.booking_id
+      WHERE sh.booking_id = ?
+        AND NOT EXISTS (
+          SELECT 1
+          FROM booking_seats bs
+          WHERE bs.booking_id = sh.booking_id
+            AND bs.trip_id = sh.trip_id
+            AND bs.seat_layout_detail_id = sh.seat_layout_detail_id
+        )
+      `,
+      [bookingId],
+    );
+  }
+
+  /*
+   * Kiểm tra lại sau khi chuyển hold.
+   */
+  const confirmedSeats = await query<{ seatCount: number }>(
+    `
+    SELECT COUNT(*) AS seatCount
+    FROM booking_seats
+    WHERE booking_id = ?
+    `,
+    [bookingId],
+  );
+
+  const confirmedSeatCount = Number(confirmedSeats[0]?.seatCount ?? 0);
+
+  if (confirmedSeatCount <= 0) {
+    throw new Error("Không thể tạo ghế chính thức cho booking");
+  }
+
+  /*
+   * Admin có thể đánh dấu giao dịch gần nhất là PAID.
+   */
+  if (options.markPaymentPaid) {
+    await query(
+      `
+      UPDATE payments
+      SET
+        status = 'PAID',
+        paid_at = COALESCE(paid_at, NOW())
+      WHERE booking_id = ?
+      ORDER BY payment_id DESC
+      LIMIT 1
+      `,
+      [bookingId],
+    );
+  }
+
+  /*
+   * Cập nhật booking thành CONFIRMED và xóa thời hạn giữ.
+   */
+  await query(
+    `
+    UPDATE bookings
+    SET
+      status = 'CONFIRMED',
+      hold_expired_at = NULL,
+      cancel_reason = NULL
+    WHERE booking_id = ?
+    `,
+    [bookingId],
+  );
+
+  /*
+   * Ghế đã trở thành booking_seats nên không cần giữ nữa.
+   */
+  await query(`DELETE FROM seat_holds WHERE booking_id = ?`, [bookingId]);
+
+  await syncTripAvailableSeatsRepo(booking.trip_id);
+
+  return {
+    bookingId,
+    tripId: booking.trip_id,
+    status: "CONFIRMED" as const,
+    seatCount: confirmedSeatCount,
+    alreadyConfirmed: false,
+  };
+}
 export async function ensureBookingHistoryTable() {
   await query(`
     CREATE TABLE IF NOT EXISTS booking_histories (
@@ -181,14 +414,27 @@ export async function findAdminTickets(params: AdminTicketListParams) {
     values.push(params.paymentStatus);
   }
   if (params.holdStatus === "HOLDING" || params.onlyHolding) {
-    where += ` AND b.hold_expired_at IS NOT NULL AND b.hold_expired_at > NOW()`;
-  }
-  if (params.holdStatus === "EXPIRED") {
-    where += ` AND b.hold_expired_at IS NOT NULL AND b.hold_expired_at <= NOW()`;
-  }
+  where += `
+    AND b.status = 'PENDING'
+    AND b.hold_expired_at IS NOT NULL
+    AND b.hold_expired_at > NOW()
+  `;
+}
+ if (params.holdStatus === "EXPIRED") {
+  where += `
+    AND b.status = 'PENDING'
+    AND b.hold_expired_at IS NOT NULL
+    AND b.hold_expired_at <= NOW()
+  `;
+}
   if (params.holdStatus === "NONE") {
-    where += ` AND b.hold_expired_at IS NULL`;
-  }
+  where += `
+    AND (
+      b.status <> 'PENDING'
+      OR b.hold_expired_at IS NULL
+    )
+  `;
+}
 
   where += buildWarningSql(params.warning);
 
@@ -225,11 +471,12 @@ export async function findAdminTickets(params: AdminTicketListParams) {
       b.total_amount AS totalAmount,
       b.status AS bookingStatus,
       latest_payment.status AS paymentStatus,
-      CASE
-        WHEN b.hold_expired_at IS NULL THEN 'NONE'
-        WHEN b.hold_expired_at > NOW() THEN 'HOLDING'
-        ELSE 'EXPIRED'
-      END AS holdStatus,
+     CASE
+  WHEN b.status <> 'PENDING' THEN 'NONE'
+  WHEN b.hold_expired_at IS NULL THEN 'NONE'
+  WHEN b.hold_expired_at > NOW() THEN 'HOLDING'
+  ELSE 'EXPIRED'
+END AS holdStatus,
       b.hold_expired_at AS holdExpiredAt,
       CASE
         WHEN COUNT(DISTINCT bs.booking_seat_id) = 0 THEN 'NOT_CHECKED_IN'

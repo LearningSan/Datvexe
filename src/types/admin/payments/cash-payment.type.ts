@@ -32,7 +32,11 @@ export interface AdminCashPaymentItem {
 export interface AdminCashPaymentListParams {
   keyword?: string;
 
-  status?: "PENDING" | "WAITING_CONFIRM" | "PAID" | "EXPIRED";
+  status?:
+    | "PENDING"
+    | "WAITING_CONFIRM"
+    | "PAID"
+    | "EXPIRED";
 
   page?: number;
   limit?: number;

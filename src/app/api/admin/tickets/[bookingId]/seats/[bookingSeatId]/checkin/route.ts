@@ -1,20 +1,62 @@
 import { NextRequest } from "next/server";
+
+import { getAdminAuthUserId } from "@/lib/server/admin-auth-user";
 import { successResponse, errorResponse } from "@/lib/server/response";
 
 import { checkinAdminTicketSeat } from "@/services/server/admin/admin-ticket.service";
 
-export async function POST(
-  _: NextRequest,
-  context: { params: Promise<{ bookingId: string; bookingSeatId: string }> },
-) {
-  try {
-    const { bookingId, bookingSeatId } = await context.params;
+interface Context {
+  params: Promise<{
+    bookingId: string;
+    bookingSeatId: string;
+  }>;
+}
 
-    return successResponse(
-      await checkinAdminTicketSeat(Number(bookingId), Number(bookingSeatId)),
-      "Check-in ghế thành công",
+function parsePositiveId(value: string, fieldName: string): number {
+  const id = Number(value);
+
+  if (!Number.isInteger(id) || id <= 0) {
+    throw new Error(`${fieldName} không hợp lệ`);
+  }
+
+  return id;
+}
+
+export async function POST(req: NextRequest, context: Context) {
+  try {
+     await getAdminAuthUserId(req);
+
+    const params = await context.params;
+
+    const bookingId = parsePositiveId(params.bookingId, "bookingId");
+    const bookingSeatId = parsePositiveId(
+      params.bookingSeatId,
+      "bookingSeatId",
     );
-  } catch (error: any) {
-    return errorResponse(error.message || "Không thể check-in ghế", null, 500);
+
+    const data = await checkinAdminTicketSeat(
+      bookingId,
+      bookingSeatId,
+    );
+
+    return successResponse(data, "Check-in ghế thành công");
+  } catch (error: unknown) {
+    console.error("[ADMIN CHECKIN TICKET SEAT ERROR]", error);
+
+    const message =
+      error instanceof Error ? error.message : "Không thể check-in ghế";
+
+    if (message === "UNAUTHORIZED") {
+      return errorResponse("Phiên đăng nhập quản trị không hợp lệ", null, 401);
+    }
+
+    if (
+      message === "bookingId không hợp lệ" ||
+      message === "bookingSeatId không hợp lệ"
+    ) {
+      return errorResponse(message, null, 400);
+    }
+
+    return errorResponse(message, null, 500);
   }
 }

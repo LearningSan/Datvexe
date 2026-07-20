@@ -4,6 +4,7 @@ import {
   changeTicketSeatsRepo,
   checkinBookingRepo,
   checkinSeatRepo,
+  confirmAdminTicketRepo,
   createNotificationForBookingUser,
   createOfflineTicketRepo,
   createTicketHistory,
@@ -23,7 +24,6 @@ import {
   changeTicketTripRepo,
   undoCheckinBookingRepo,
   undoCheckinSeatRepo,
-  markLatestPaymentPaidRepo,
   releaseExpiredHoldsRepo,
   releaseTicketSeatsRepo,
   removeTicketSeatRepo,
@@ -67,37 +67,161 @@ export async function updateAdminTicketStatus(
   payload: UpdateTicketStatusPayload,
 ) {
   const booking = await findTicketBase(bookingId);
-  if (!booking) throw new Error("Không tìm thấy booking");
+
+  if (!booking) {
+    throw new Error("Không tìm thấy booking");
+  }
 
   if (payload.status === "CANCELLED" && !payload.reason?.trim()) {
     throw new Error("Cần nhập lý do hủy vé");
   }
 
-  if (payload.status === "CONFIRMED" && payload.markPaymentPaid) {
-    await markLatestPaymentPaidRepo(bookingId);
+  /*
+   * Duyệt booking.
+   */
+  if (payload.status === "CONFIRMED") {
+    const result = await confirmAdminTicketRepo(bookingId, {
+      markPaymentPaid: Boolean(payload.markPaymentPaid),
+    });
+
+    await createTicketHistory({
+      bookingId,
+      actionType: "UPDATE_STATUS",
+      oldValue: {
+        status: booking.status,
+        holdExpiredAt: booking.hold_expired_at,
+      },
+      newValue: {
+        ...payload,
+        status: "CONFIRMED",
+        holdExpiredAt: null,
+        seatCount: result.seatCount,
+      },
+      reason:
+        booking.status === "CONFIRMED"
+          ? "Admin đồng bộ lại dữ liệu booking đã xác nhận"
+          : "Admin duyệt và xác nhận đơn vé",
+    });
+
+    if (booking.status !== "CONFIRMED") {
+      await createNotificationForBookingUser(
+        bookingId,
+        "Vé đã được xác nhận",
+        "Đơn vé của bạn đã được duyệt và xác nhận thành công.",
+      );
+    }
+
+    return result;
   }
 
-  await updateTicketStatusRepo(bookingId, payload.status, payload.reason);
-
+  /*
+   * Hủy booking.
+   */
   if (payload.status === "CANCELLED") {
+    await updateTicketStatusRepo(
+      bookingId,
+      "CANCELLED",
+      payload.reason?.trim(),
+    );
+
     await releaseTicketSeatsRepo(bookingId);
     await cancelTicketHoldsRepo(bookingId);
+
     await createNotificationForBookingUser(
       bookingId,
       "Vé đã bị hủy",
-      payload.reason || "Booking của bạn đã được hủy.",
+      payload.reason?.trim() || "Booking của bạn đã được hủy.",
     );
+
+    await createTicketHistory({
+      bookingId,
+      actionType: "UPDATE_STATUS",
+      oldValue: {
+        status: booking.status,
+      },
+      newValue: payload,
+      reason: payload.reason?.trim(),
+    });
+
+    return {
+      bookingId,
+      status: "CANCELLED" as const,
+    };
   }
 
-  await createTicketHistory({
-    bookingId,
-    actionType: "UPDATE_STATUS",
-    oldValue: { status: booking.status },
-    newValue: payload,
-    reason: payload.reason,
-  });
+  /*
+   * Hoàn tiền.
+   */
+  if (payload.status === "REFUNDED") {
+    if (booking.status === "CANCELLED") {
+      throw new Error("Không thể hoàn tiền cho booking đã bị hủy");
+    }
 
-  return { bookingId, status: payload.status };
+    await updateTicketStatusRepo(bookingId, "REFUNDED", payload.reason?.trim());
+
+    await releaseTicketSeatsRepo(bookingId);
+    await cancelTicketHoldsRepo(bookingId);
+
+    await createNotificationForBookingUser(
+      bookingId,
+      "Vé đã được hoàn tiền",
+      payload.reason?.trim() ||
+        "Booking của bạn đã được cập nhật trạng thái hoàn tiền.",
+    );
+
+    await createTicketHistory({
+      bookingId,
+      actionType: "UPDATE_STATUS",
+      oldValue: {
+        status: booking.status,
+      },
+      newValue: payload,
+      reason: payload.reason?.trim(),
+    });
+
+    return {
+      bookingId,
+      status: "REFUNDED" as const,
+    };
+  }
+
+  /*
+   * Chuyển về PENDING.
+   */
+  if (payload.status === "PENDING") {
+    if (booking.status === "CONFIRMED") {
+      throw new Error(
+        "Không thể chuyển vé đã xác nhận về PENDING. Hãy hủy vé hoặc thực hiện nghiệp vụ đổi vé",
+      );
+    }
+
+    if (booking.status === "CANCELLED") {
+      throw new Error("Không thể khôi phục booking đã bị hủy về PENDING");
+    }
+
+    if (booking.status === "REFUNDED") {
+      throw new Error("Không thể khôi phục booking đã hoàn tiền về PENDING");
+    }
+
+    await updateTicketStatusRepo(bookingId, "PENDING", payload.reason?.trim());
+
+    await createTicketHistory({
+      bookingId,
+      actionType: "UPDATE_STATUS",
+      oldValue: {
+        status: booking.status,
+      },
+      newValue: payload,
+      reason: payload.reason?.trim(),
+    });
+
+    return {
+      bookingId,
+      status: "PENDING" as const,
+    };
+  }
+
+  throw new Error("Trạng thái booking không được hỗ trợ");
 }
 
 export async function cancelAdminTicket(

@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { formatDateTimeVN } from "@/lib/client/helpers";
+import { encodeCheckinQrPayload } from "@/lib/server/checkin-qr";
 export async function sendRegisterOtpEmail(to: string, otp: string) {
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST!,
@@ -92,10 +93,13 @@ export async function sendRegisterOtpEmail(to: string, otp: string) {
 }
 export async function sendPaymentSuccessEmail(data: {
   to: string;
+
   customerName: string;
   customerPhone: string | null;
-  bookingCode: string;
   amount: number;
+
+  bookingId: number;
+  bookingCode: string;
 
   routeName: string;
   departureDatetime: string;
@@ -110,9 +114,14 @@ export async function sendPaymentSuccessEmail(data: {
   licensePlate: string | null;
   seatNumbers: string | null;
 }) {
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
-    data.bookingCode,
-  )}`;
+  const checkinQrData = encodeCheckinQrPayload({
+    bookingId: data.bookingId,
+    bookingCode: data.bookingCode,
+  });
+
+  const qrCodeUrl =
+    "https://api.qrserver.com/v1/create-qr-code/" +
+    `?size=260x260&margin=10&data=${encodeURIComponent(checkinQrData)}`;
 
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST!,
@@ -253,8 +262,9 @@ export async function sendPaymentSuccessEmail(data: {
                               MÃ QR CHECK-IN LÊN XE
                             </p>
                             <div style="display: inline-block; background-color: #ffffff; padding: 12px; border-radius: 12px; border: 1px solid #fed7aa; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                              <img src="${qrCodeUrl}" width="160" height="160" alt="QR Code ${data.bookingCode}" style="display: block;" />
-                            </div>
+                              <img src="${qrCodeUrl}" width="200"
+                                  height="200"alt="QR Check-in ${data.bookingCode}"style="display: block;"/>                            
+                                  </div>
                             <p style="margin: 12px 0 0 0; font-size: 13px; color: #7c2d12; font-style: italic;">
                               * Vui lòng chuẩn bị sẵn mã QR này trên điện thoại hoặc đọc Mã đặt vé cho nhân viên/tài xế khi lên xe.
                             </p>
