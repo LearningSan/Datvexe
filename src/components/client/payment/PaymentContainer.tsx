@@ -136,27 +136,46 @@ export default function PaymentContainer({ bookingId }: Props) {
     selectedMethod,
   ]);
 
-  const handleConfirmManualPayment = useCallback(() => {
-    if (!paymentId) return;
+const handleConfirmManualPayment = useCallback(() => {
+  if (!paymentId || isConfirmingManual) return;
 
-    confirmManualPayment(
-      { paymentId },
-      {
-        onSuccess: () => {
-          setPaymentError(null);
-          setStep("processing");
-        },
-        onError: (error: any) => {
+  /*
+   * Chuyển sang processing ngay khi bắt đầu gửi request.
+   * Không đặt processing trong onSuccess vì response có thể về
+   * sau khi polling đã chuyển giao diện sang success.
+   */
+  setPaymentError(null);
+  setStep("processing");
+
+  confirmManualPayment(
+    { paymentId },
+    {
+      onSuccess: () => {
+
+        setPaymentError(null);
+      },
+
+      onError: (error: any) => {
+        const currentStep = usePaymentStore.getState().step;
+
+        if (currentStep !== "success") {
           setPaymentError(
             error?.response?.data?.message ||
               error?.message ||
               "Không thể xác nhận thanh toán. Vui lòng thử lại.",
           );
+
           setStep("checkout");
-        },
+        }
       },
-    );
-  }, [paymentId, confirmManualPayment, setStep]);
+    },
+  );
+}, [
+  paymentId,
+  isConfirmingManual,
+  confirmManualPayment,
+  setStep,
+]);
 
   useEffect(() => {
     if (!paymentStatus) return;
