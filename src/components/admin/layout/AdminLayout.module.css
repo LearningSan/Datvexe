@@ -93,6 +93,9 @@
 }
 
 .main {
+  position: relative;
+  min-width: 0;
+  flex: 1;
   margin-left: 260px;
   max-width: 1680px;
   min-height: 100vh;
@@ -122,7 +125,7 @@
   font-weight: 800;
 }
 
-/* 🚀 NAV MENU: KHU VỰC TỰ CUỘN ĐỘC LẬP */
+/* NAV MENU: KHU VỰC TỰ CUỘN ĐỘC LẬP */
 .navMenu {
   display: flex;
   flex-direction: column;
@@ -130,7 +133,6 @@
   flex: 1;
   overflow-y: auto;
   padding-right: 4px;
-
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
@@ -156,7 +158,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* 👈 Đảm bảo mặc định luôn căn lề trái */
+  justify-content: flex-start;
   gap: 14px;
   padding: 11px 16px;
   border-radius: 14px;
@@ -191,7 +193,44 @@
   background: #fff;
 }
 
-/* RESPONSIVE CHO TABLET */
+/* NÚT ĐĂNG XUẤT TRÊN PC */
+.logoutBtn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 12%);
+}
+
+.logoutBtn:hover {
+  background: #fef2f2;
+}
+
+.authLoading {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  background: #f8fafc;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ======================================================= */
+/* RESPONSIVE CHO TABLET (Dưới 1024px) */
+/* ======================================================= */
 @media (max-width: 1024px) {
   .sidebar {
     width: 88px;
@@ -206,7 +245,7 @@
   }
 
   .navItem {
-    justify-content: center; /* Giữ căn giữa cho icon đơn lẻ khi sidebar thu nhỏ dạng icon-only */
+    justify-content: center;
     width: 100%;
   }
 
@@ -220,7 +259,9 @@
   }
 }
 
-/* --- RESPONSIVE CHO MOBILE (640px trở xuống) --- */
+/* ======================================================= */
+/* RESPONSIVE CHO MOBILE (Dưới 640px) */
+/* ======================================================= */
 @media (max-width: 640px) {
   .mobileMenuBtn {
     display: flex;
@@ -233,7 +274,7 @@
     padding: 80px 16px 16px 16px;
   }
 
-  /* SIDEBAR DI ĐỘNG */
+  /* SIDEBAR DI ĐỘNG DRAWER */
   .sidebar {
     position: fixed;
     top: 0;
@@ -264,15 +305,14 @@
   .navItem {
     width: 100%;
     padding: 12px 16px;
-    justify-content: flex-start; /* 👈 Căn trái chữ và icon khi mở drawer trên mobile */
+    justify-content: flex-start;
   }
 
   .navItem span {
     display: inline;
-    text-align: left; /* 👈 Đảm bảo chữ căn trái */
+    text-align: left;
   }
 
-  /* Căn chỉnh Logo Section trên mobile */
   .logoSection {
     width: 100%;
     display: flex;
@@ -304,54 +344,14 @@
     color: #fff;
     background: rgba(255, 255, 255, 0.1);
   }
-}
-.authLoading {
-  display: flex;
-  min-height: 100vh;
-  align-items: center;
-  justify-content: center;
-  color: #475569;
-  background: #f8fafc;
-  font-size: 15px;
-  font-weight: 600;
-}
-.main {
-  position: relative;
-  min-width: 0;
-  flex: 1;
-}
 
-.logoutBtn {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 100;
-
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  padding: 11px 16px;
-  border: 1px solid #fecaca;
-  border-radius: 12px;
-
-  background: #ffffff;
-  color: #dc2626;
-
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-
-  box-shadow: 0 8px 24px rgb(15 23 42 / 12%);
-}
-
-.logoutBtn:hover {
-  background: #fef2f2;
-}
-
-@media (max-width: 768px) {
+  /* ĐƯA NÚT LOGOUT LÊN GÓC TRÊN BÊN PHẢI TRÊN MOBILE */
   .logoutBtn {
+    top: 16px;
     right: 16px;
-    bottom: 16px;
+    bottom: auto; /* Xóa bỏ vị trí dưới cùng */
+    padding: 10px 14px;
+    z-index: 89; /* Đảm bảo không đè lên menu khi drawer mở rộng */
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
   }
 }

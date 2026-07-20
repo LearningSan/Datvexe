@@ -594,14 +594,38 @@
     align-items: start;
   }
 }
-
 @media (max-width: 760px) {
+  /* Biến đổi container tổng thành Grid và hoán đổi vị trí */
   .dashboard {
     padding: 17px 11px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
+  /* Đẩy phần workspace (chứa camera) lên vị trí đầu tiên */
+  .workspace {
+    grid-template-columns: 1fr;
+    order: 1;
+  }
+
+  /* Đẩy phần header xuống vị trí thứ hai */
+  .header {
+    order: 2;
+    margin-bottom: 8px;
+    margin-top: 10px;
+  }
+
+  /* Cấu trúc cột camera bên trong workspace cũng cần xếp camera lên trước */
   .scannerColumn {
     grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Đảm bảo component quét QR luôn nằm trên cùng của khối workspace */
+  .scannerColumn > :first-child {
+    order: -1;
   }
 
   .infoGrid,

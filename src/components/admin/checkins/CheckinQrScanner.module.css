@@ -1,270 +1,295 @@
+/* Card bọc ngoài scanner */
 .scannerCard {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  border: 1px solid #d9e4ec;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 12px 34px rgba(29, 62, 88, 0.08);
+  display: flex;
+  flex-direction: column;
 }
 
+/* Header của scanner */
 .scannerHeader {
-  min-height: 78px;
-  padding: 17px 19px;
-
+  padding: 16px 20px;
+  border-bottom: 1px solid #f3f4f6;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 16px;
-
-  border-bottom: 1px solid #e2e9ef;
-
-  background: linear-gradient(135deg, #f5f9fc, #ebf5fb);
+  align-items: center;
+  gap: 12px;
 }
 
 .scannerHeader h3 {
-  margin: 0;
-  color: #173a55;
-  font-size: 17px;
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
 }
 
 .scannerHeader p {
-  margin: 5px 0 0;
-  color: #718697;
-  font-size: 12px;
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
 }
 
+/* Badge trạng thái quét */
 .statusBadge {
-  flex: 0 0 auto;
-  border-radius: 999px;
-  padding: 7px 11px;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  white-space: nowrap;
 }
 
 .statusActive {
-  background: #e4f8ec;
-  color: #157c45;
+  background-color: #ecfdf5;
+  color: #059669;
 }
 
 .statusWaiting {
-  background: #fff3dc;
-  color: #a76814;
+  background-color: #f3f4f6;
+  color: #4b5563;
 }
 
 .statusError {
-  background: #ffecea;
-  color: #b73e33;
+  background-color: #fef2f2;
+  color: #dc2626;
 }
 
+/* Khung hiển thị Video */
+/* Tìm đến class .videoFrame trong file CheckinQrScanner.module.css và sửa lại: */
 .videoFrame {
   position: relative;
-  min-height: 390px;
+  width: 100%;
+  aspect-ratio: 3 / 4; /* Đổi từ 4/3 sang 3/4 để khung camera dài dọc xuống */
+  background-color: #0f172a;
   overflow: hidden;
-
-  background: radial-gradient(circle at center, #263747, #0c151e);
 }
 
 .video {
   width: 100%;
-  height: 390px;
-  display: block;
+  height: 100%;
   object-fit: cover;
 }
 
+/* Khung ngắm và lớp phủ làm mờ viền ngoài vùng quét */
 .scanOverlay {
   position: absolute;
   inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   pointer-events: none;
+  /* Tạo hiệu ứng tối mờ viền ngoài, sáng ở giữa */
+  background: radial-gradient(
+    circle,
+    transparent 55%,
+    rgba(15, 23, 42, 0.65) 55%
+  );
 }
 
+/* Tạo 4 góc bo của khung quét */
 .cornerTopLeft,
 .cornerTopRight,
 .cornerBottomLeft,
 .cornerBottomRight {
   position: absolute;
-  width: 62px;
-  height: 62px;
-
-  border-color: #38c9ff;
+  width: 24px;
+  height: 24px;
+  border-color: #3b82f6; /* Màu xanh neon làm tiêu điểm */
   border-style: solid;
-
-  filter: drop-shadow(0 0 5px rgba(56, 201, 255, 0.65));
+  pointer-events: none;
 }
 
+/* Kích thước thực tế vùng quét ngầm (khoảng 50% đến 55% khung hình) */
 .cornerTopLeft {
-  top: 56px;
-  left: 74px;
-
+  top: 22%;
+  left: 22%;
   border-width: 4px 0 0 4px;
-  border-radius: 14px 0 0 0;
+  border-top-left-radius: 8px;
 }
-
 .cornerTopRight {
-  top: 56px;
-  right: 74px;
-
+  top: 22%;
+  right: 22%;
   border-width: 4px 4px 0 0;
-  border-radius: 0 14px 0 0;
+  border-top-right-radius: 8px;
 }
-
 .cornerBottomLeft {
-  bottom: 56px;
-  left: 74px;
-
+  bottom: 22%;
+  left: 22%;
   border-width: 0 0 4px 4px;
-  border-radius: 0 0 0 14px;
+  border-bottom-left-radius: 8px;
 }
-
 .cornerBottomRight {
-  right: 74px;
-  bottom: 56px;
-
+  bottom: 22%;
+  right: 22%;
   border-width: 0 4px 4px 0;
-  border-radius: 0 0 14px 0;
+  border-bottom-right-radius: 8px;
 }
 
+/* Tia laser quét lên xuống */
 .scanLine {
   position: absolute;
-  top: 70px;
-  left: 90px;
-  right: 90px;
-
+  top: 22%;
+  left: 23%;
+  right: 23%;
   height: 2px;
-
-  background: linear-gradient(90deg, transparent, #42d4ff, transparent);
-
-  box-shadow: 0 0 11px rgba(66, 212, 255, 0.9);
-
-  animation: scanMovement 2.1s ease-in-out infinite;
+  background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+  box-shadow: 0 0 8px #3b82f6;
+  animation: scan 2s linear infinite;
 }
 
+@keyframes scan {
+  0% {
+    top: 23%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: 73%;
+    opacity: 0;
+  }
+}
+
+/* Các lớp phủ thông báo (Đang bật, Tắt, Lỗi) */
 .videoMessage {
   position: absolute;
   inset: 0;
-
+  background-color: rgba(15, 23, 42, 0.9);
+  color: #ffffff;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  gap: 11px;
-
-  padding: 25px;
-
-  background: rgba(8, 17, 25, 0.82);
-
-  color: #ffffff;
+  align-items: center;
+  padding: 24px;
   text-align: center;
+  gap: 12px;
 }
 
 .videoMessage strong {
   font-size: 15px;
+  font-weight: 600;
 }
 
 .videoMessage p {
-  max-width: 390px;
   margin: 0;
-
-  color: rgba(255, 255, 255, 0.72);
-
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: 13px;
+  color: #9ca3af;
+  max-width: 280px;
+  line-height: 1.5;
 }
 
-.scannerFooter {
-  min-height: 66px;
-  padding: 13px 17px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-
-  border-top: 1px solid #e1e9ef;
-  background: #f9fbfd;
-}
-
-.scannerHint,
-.scanningText {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  color: #61788a;
-  font-size: 12px;
-}
-
-.scanningText {
-  color: #147c45;
-  font-weight: 750;
-}
-
-.retryButton {
-  min-height: 39px;
-  padding: 0 13px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-
-  border: 0;
-  border-radius: 9px;
-
-  background: #176fa4;
-  color: #ffffff;
-
-  font-size: 12px;
-  font-weight: 750;
-  cursor: pointer;
-}
-
+/* Icon xoay khi đang khởi động camera */
 .spinIcon {
-  animation: spin 0.9s linear infinite;
-}
-
-@keyframes scanMovement {
-  0%,
-  100% {
-    top: 70px;
-    opacity: 0.55;
-  }
-
-  50% {
-    top: calc(100% - 72px);
-    opacity: 1;
-  }
+  animation: spin 1s linear infinite;
+  color: #3b82f6;
 }
 
 @keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
   to {
     transform: rotate(360deg);
   }
 }
 
-@media (max-width: 600px) {
-  .scannerHeader,
+/* Footer của Scanner */
+.scannerFooter {
+  padding: 14px 20px;
+  background-color: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  position: relative; /* Thêm để hỗ trợ định vị nếu cần */
+}
+
+.scannerHint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4b5563;
+  font-size: 13px;
+  /* Giúp giữ text bên trái mà không làm lệch nút nằm giữa */
+  flex: 1; 
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 auto; /* Đổi từ 'margin-left: auto' thành 'margin: 0 auto' để ra giữa */
+}
+
+.scanningText {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #059669;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Nút Bật/Tắt Camera */
+.toggleButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.btnDanger {
+  background-color: #ffffff;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.btnDanger:hover {
+  background-color: #f3f4f6;
+  border-color: #f3f4f6;
+  color: #dc2626;
+}
+
+.btnSuccess {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.btnSuccess:hover {
+  background-color: #1d4ed8;
+}
+.scannerFooter::after {
+  content: "";
+  flex: 1;
+  display: block;
+}
+/* Responsive phụ cho màn hình quá nhỏ */
+@media (max-width: 480px) {
   .scannerFooter {
-    align-items: flex-start;
     flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
   }
-
-  .videoFrame,
-  .video {
-    height: 310px;
-    min-height: 310px;
+  .scannerFooter::after {
+    display: none;
   }
-
-  .cornerTopLeft,
-  .cornerBottomLeft {
-    left: 38px;
-  }
-
-  .cornerTopRight,
-  .cornerBottomRight {
-    right: 38px;
-  }
-
-  .scanLine {
-    left: 52px;
-    right: 52px;
+  .footerActions {
+    width: 100%;
+    justify-content: center;
   }
 }
