@@ -204,3 +204,27 @@ export async function markWalletTopupSuccess(
     ],
   );
 }
+export async function findWalletTopupByProviderOrderCode(
+  providerOrderCode: string,
+) {
+  const rows = await query<{
+    topupId: number;
+    transactionCode: string;
+    amount: string | number;
+    status: WalletTopupStatus;
+  }>(
+    `
+      SELECT
+        topup_id AS topupId,
+        transaction_code AS transactionCode,
+        amount,
+        status
+      FROM wallet_topups
+      WHERE provider_order_code = ?
+      LIMIT 1
+    `,
+    [providerOrderCode],
+  );
+
+  return rows[0] ?? null;
+}

@@ -8,7 +8,9 @@ import {
   confirmPaymentByTransactionCode,
   sendPaymentResultSideEffects,
 } from "@/services/server/client/payment-webhook.service";
+import { confirmPayosWalletTopup } from "@/services/server/client/wallet-topup.service";
 
+import { findWalletTopupByProviderOrderCode } from "@/repositories/client/wallet-topup.repo";
 import { findPaymentByProviderOrderCode } from "@/repositories/client/payment.repo";
 
 export async function GET() {
@@ -66,14 +68,41 @@ export async function POST(request: NextRequest) {
      * orderCode PayOS được lưu trong
      * payments.provider_order_code.
      */
-    const payment = await findPaymentByProviderOrderCode(String(orderCode));
+    const providerOrderCode = String(orderCode);
 
-    /*
-     * PayOS có thể gửi webhook kiểm tra URL.
-     * Payload đã verify nhưng chưa có payment tương ứng.
-     */
+    const reference =
+      typeof verifiedData.reference === "string"
+        ? verifiedData.reference.trim()
+        : "";
+
+    const gatewayTransactionId = reference || providerOrderCode;
+
+    const payment = await findPaymentByProviderOrderCode(providerOrderCode);
+
     if (!payment) {
-      console.log("[PAYOS WEBHOOK TEST ACCEPTED]", {
+      const topup = await findWalletTopupByProviderOrderCode(providerOrderCode);
+
+      if (topup) {
+        const topupResult = await confirmPayosWalletTopup({
+          providerOrderCode,
+          amount,
+          gatewayTransactionId,
+          gatewayResponse: body,
+        });
+
+        console.log("[PAYOS WALLET TOPUP SUCCESS]", topupResult);
+
+        return NextResponse.json(
+          {
+            success: true,
+            message: "Webhook nạp ví đã được xử lý",
+            data: topupResult,
+          },
+          { status: 200 },
+        );
+      }
+
+      console.log("[PAYOS WEBHOOK UNKNOWN ORDER]", {
         orderCode,
         amount,
       });
@@ -86,19 +115,6 @@ export async function POST(request: NextRequest) {
         { status: 200 },
       );
     }
-
-    const reference =
-      typeof verifiedData.reference === "string"
-        ? verifiedData.reference.trim()
-        : "";
-
-    /*
-     * Không phải mọi phiên bản type PayOS đều khai báo
-     * paymentLinkId trên verifiedData.
-     *
-     * orderCode đủ làm fallback.
-     */
-    const gatewayTransactionId = reference || String(orderCode);
 
     const result = await withTransaction(async (conn) => {
       return confirmPaymentByTransactionCode({
