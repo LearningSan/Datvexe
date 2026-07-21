@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
-
+import { Toaster } from "react-hot-toast";
 import PassengerActionModal from "./PassengerActionModal";
 import CheckinDashboardCharts from "./CheckinDashboardCharts";
 import type { CheckinDashboardPassengerItem } from "@/types/admin/checkin/checkin-dashboard-passenger.type";
@@ -296,507 +296,538 @@ export default function CheckinDashboardContainer() {
   const summary = summaryQuery.data;
 
   return (
-    <section className={styles.dashboard}>
-      <header className={styles.header}>
-        <div>
-          <h1>Check-in Dashboard</h1>
+    <>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3500,
+          style: {
+            fontFamily: "system-ui, sans-serif",
+            fontSize: "14.5px",
+            fontWeight: 500,
+            borderRadius: "8px",
+            padding: "12px 18px",
+          },
+        }}
+      />
+      <section className={styles.dashboard}>
+        <header className={styles.header}>
+          <div>
+            <h1>Check-in Dashboard</h1>
 
-          <p>
-            Theo dõi trạng thái check-in và cảnh báo hành khách theo thời gian
-            thực.
-          </p>
-        </div>
-        <div className={styles.refreshStatus}>
-          <span
-            className={autoRefreshEnabled ? styles.liveDot : styles.pausedDot}
-          />
-
-          {selectedPassenger
-            ? "Tạm dừng cập nhật khi đang thao tác"
-            : autoRefreshEnabled
-              ? "Tự động cập nhật mỗi 10 giây"
-              : "Đã tắt tự động cập nhật"}
-        </div>
-        <div className={styles.headerActions}>
-          <button
-            type="button"
-            className={
-              autoRefreshEnabled
-                ? styles.autoRefreshActive
-                : styles.autoRefreshButton
-            }
-            onClick={() => setAutoRefreshEnabled((current) => !current)}
-          >
-            {autoRefreshEnabled ? <Pause size={17} /> : <Play size={17} />}
-
-            {autoRefreshEnabled ? "Tạm dừng tự động" : "Bật tự động cập nhật"}
-          </button>
-
-          <button
-            type="button"
-            className={styles.refreshButton}
-            onClick={refreshDashboard}
-            disabled={isRefreshing}
-          >
-            <RefreshCw
-              size={18}
-              className={isRefreshing ? styles.spinning : undefined}
-            />
-            Làm mới
-          </button>
-        </div>
-      </header>
-
-      {summary && (
-        <div className={styles.kpiGrid}>
-          <article className={styles.kpiCard}>
-            <div className={styles.kpiIcon}>
-              <Users size={22} />
-            </div>
-
-            <div>
-              <span>Tổng ghế có khách</span>
-              <strong>{summary.seats.totalSeats}</strong>
-            </div>
-          </article>
-
-          <article className={styles.kpiCard}>
-            <div className={styles.kpiIcon}>
-              <UserCheck size={22} />
-            </div>
-
-            <div>
-              <span>Tỷ lệ check-in</span>
-              <strong>{summary.seats.checkinRate}%</strong>
-
-              <small>
-                {summary.seats.checkedIn}/{summary.seats.totalSeats} ghế
-              </small>
-            </div>
-          </article>
-
-          <article className={styles.kpiCard}>
-            <div className={styles.kpiIcon}>
-              <UserX size={22} />
-            </div>
-
-            <div>
-              <span>No-show</span>
-              <strong>{summary.seats.noShow}</strong>
-
-              <small>{summary.seats.noShowRate}%</small>
-            </div>
-          </article>
-
-          <article className={styles.kpiCard}>
-            <div className={styles.kpiIcon}>
-              <AlertTriangle size={22} />
-            </div>
-
-            <div>
-              <span>Chuyến nguy cấp</span>
-              <strong>{summary.trips.critical}</strong>
-
-              <small>Quá hạn: {summary.alerts.overdue}</small>
-            </div>
-          </article>
-        </div>
-      )}
-      {summary && <CheckinDashboardCharts summary={summary} />}
-      <div className={styles.contentGrid}>
-        <section className={styles.panel}>
-          <div className={styles.panelHeader}>
-            <div>
-              <h2>Danh sách chuyến</h2>
-
-              <span>{tripsQuery.data?.pagination.totalItems ?? 0} chuyến</span>
-            </div>
+            <p>
+              Theo dõi trạng thái check-in và cảnh báo hành khách theo thời gian
+              thực.
+            </p>
           </div>
+          <div className={styles.refreshStatus}>
+            <span
+              className={autoRefreshEnabled ? styles.liveDot : styles.pausedDot}
+            />
 
-          <div className={styles.filters}>
-            <label className={styles.searchBox}>
-              <Search size={17} />
+            {selectedPassenger
+              ? "Tạm dừng cập nhật khi đang thao tác"
+              : autoRefreshEnabled
+                ? "Tự động cập nhật mỗi 10 giây"
+                : "Đã tắt tự động cập nhật"}
+          </div>
+          <div className={styles.headerActions}>
+            <button
+              type="button"
+              className={
+                autoRefreshEnabled
+                  ? styles.autoRefreshActive
+                  : styles.autoRefreshButton
+              }
+              onClick={() => setAutoRefreshEnabled((current) => !current)}
+            >
+              {autoRefreshEnabled ? <Pause size={17} /> : <Play size={17} />}
 
-              <input
-                value={tripKeyword}
+              {autoRefreshEnabled ? "Tạm dừng tự động" : "Bật tự động cập nhật"}
+            </button>
+
+            <button
+              type="button"
+              className={styles.refreshButton}
+              onClick={refreshDashboard}
+              disabled={isRefreshing}
+            >
+              <RefreshCw
+                size={18}
+                className={isRefreshing ? styles.spinning : undefined}
+              />
+              Làm mới
+            </button>
+          </div>
+        </header>
+
+        {summary && (
+          <div className={styles.kpiGrid}>
+            <article className={styles.kpiCard}>
+              <div className={styles.kpiIcon}>
+                <Users size={22} />
+              </div>
+
+              <div>
+                <span>Tổng ghế có khách</span>
+                <strong>{summary.seats.totalSeats}</strong>
+              </div>
+            </article>
+
+            <article className={styles.kpiCard}>
+              <div className={styles.kpiIcon}>
+                <UserCheck size={22} />
+              </div>
+
+              <div>
+                <span>Tỷ lệ check-in</span>
+                <strong>{summary.seats.checkinRate}%</strong>
+
+                <small>
+                  {summary.seats.checkedIn}/{summary.seats.totalSeats} ghế
+                </small>
+              </div>
+            </article>
+
+            <article className={styles.kpiCard}>
+              <div className={styles.kpiIcon}>
+                <UserX size={22} />
+              </div>
+
+              <div>
+                <span>No-show</span>
+                <strong>{summary.seats.noShow}</strong>
+
+                <small>{summary.seats.noShowRate}%</small>
+              </div>
+            </article>
+
+            <article className={styles.kpiCard}>
+              <div className={styles.kpiIcon}>
+                <AlertTriangle size={22} />
+              </div>
+
+              <div>
+                <span>Chuyến nguy cấp</span>
+                <strong>{summary.trips.critical}</strong>
+
+                <small>Quá hạn: {summary.alerts.overdue}</small>
+              </div>
+            </article>
+          </div>
+        )}
+        {summary && <CheckinDashboardCharts summary={summary} />}
+        <div className={styles.contentGrid}>
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2>Danh sách chuyến</h2>
+
+                <span>
+                  {tripsQuery.data?.pagination.totalItems ?? 0} chuyến
+                </span>
+              </div>
+            </div>
+
+            <div className={styles.filters}>
+              <label className={styles.searchBox}>
+                <Search size={17} />
+
+                <input
+                  value={tripKeyword}
+                  onChange={(event) => {
+                    setTripKeyword(event.target.value);
+                    setTripPage(1);
+                  }}
+                  placeholder="Tuyến, biển số, tài xế..."
+                />
+              </label>
+
+              <select
+                value={phase}
                 onChange={(event) => {
-                  setTripKeyword(event.target.value);
+                  setPhase(event.target.value as "" | CheckinPhase);
                   setTripPage(1);
                 }}
-                placeholder="Tuyến, biển số, tài xế..."
-              />
-            </label>
+              >
+                {PHASE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
 
-            <select
-              value={phase}
-              onChange={(event) => {
-                setPhase(event.target.value as "" | CheckinPhase);
-                setTripPage(1);
-              }}
-            >
-              {PHASE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              <select
+                value={tripSort}
+                onChange={(event) => {
+                  setTripSort(event.target.value as CheckinDashboardTripSort);
+                  setTripPage(1);
+                }}
+              >
+                <option value="DEPARTURE_ASC">Khởi hành gần nhất</option>
 
-            <select
-              value={tripSort}
-              onChange={(event) => {
-                setTripSort(event.target.value as CheckinDashboardTripSort);
-                setTripPage(1);
-              }}
-            >
-              <option value="DEPARTURE_ASC">Khởi hành gần nhất</option>
+                <option value="DEPARTURE_DESC">Khởi hành xa nhất</option>
 
-              <option value="DEPARTURE_DESC">Khởi hành xa nhất</option>
+                <option value="CHECKIN_RATE_ASC">Check-in thấp trước</option>
 
-              <option value="CHECKIN_RATE_ASC">Check-in thấp trước</option>
+                <option value="CHECKIN_RATE_DESC">Check-in cao trước</option>
+              </select>
+            </div>
 
-              <option value="CHECKIN_RATE_DESC">Check-in cao trước</option>
-            </select>
-          </div>
+            <div className={styles.tripList}>
+              {trips.length === 0 ? (
+                <div className={styles.emptyState}>
+                  Không có chuyến phù hợp.
+                </div>
+              ) : (
+                trips.map((trip) => {
+                  const isSelected = trip.tripId === selectedTripId;
 
-          <div className={styles.tripList}>
-            {trips.length === 0 ? (
-              <div className={styles.emptyState}>Không có chuyến phù hợp.</div>
-            ) : (
-              trips.map((trip) => {
-                const isSelected = trip.tripId === selectedTripId;
+                  return (
+                    <button
+                      key={trip.tripId}
+                      type="button"
+                      className={`${styles.tripCard} ${
+                        isSelected ? styles.tripCardSelected : ""
+                      }`}
+                      onClick={() => {
+                        setSelectedTripId(trip.tripId);
+                        setPassengerPage(1);
+                      }}
+                    >
+                      <div className={styles.tripCardTop}>
+                        <div>
+                          <strong>{trip.routeName}</strong>
 
-                return (
-                  <button
-                    key={trip.tripId}
-                    type="button"
-                    className={`${styles.tripCard} ${
-                      isSelected ? styles.tripCardSelected : ""
-                    }`}
-                    onClick={() => {
-                      setSelectedTripId(trip.tripId);
-                      setPassengerPage(1);
-                    }}
-                  >
-                    <div className={styles.tripCardTop}>
-                      <div>
-                        <strong>{trip.routeName}</strong>
+                          <span>
+                            <Clock3 size={15} />
 
-                        <span>
-                          <Clock3 size={15} />
+                            {formatDateTime(trip.departureDatetime)}
+                          </span>
+                        </div>
 
-                          {formatDateTime(trip.departureDatetime)}
+                        <span
+                          className={`${styles.badge} ${
+                            styles[`phase${trip.phase}`]
+                          }`}
+                        >
+                          {getPhaseLabel(trip.phase)}
                         </span>
                       </div>
 
-                      <span
-                        className={`${styles.badge} ${
-                          styles[`phase${trip.phase}`]
-                        }`}
-                      >
-                        {getPhaseLabel(trip.phase)}
-                      </span>
-                    </div>
+                      <div className={styles.tripVehicle}>
+                        <Bus size={15} />
 
-                    <div className={styles.tripVehicle}>
-                      <Bus size={15} />
+                        <span>{trip.licensePlate ?? "Chưa gán xe"}</span>
 
-                      <span>{trip.licensePlate ?? "Chưa gán xe"}</span>
+                        {trip.driverNames.length > 0 && (
+                          <span>· {trip.driverNames.join(", ")}</span>
+                        )}
+                      </div>
 
-                      {trip.driverNames.length > 0 && (
-                        <span>· {trip.driverNames.join(", ")}</span>
-                      )}
-                    </div>
+                      <div className={styles.progressTrack}>
+                        <div
+                          className={styles.progressValue}
+                          style={{
+                            width: `${Math.min(trip.seats.checkinRate, 100)}%`,
+                          }}
+                        />
+                      </div>
 
-                    <div className={styles.progressTrack}>
-                      <div
-                        className={styles.progressValue}
-                        style={{
-                          width: `${Math.min(trip.seats.checkinRate, 100)}%`,
-                        }}
-                      />
-                    </div>
+                      <div className={styles.tripStatistics}>
+                        <span>
+                          <CheckCircle2 size={15} />
+                          {trip.seats.checkedIn}/{trip.seats.totalSeats}{" "}
+                          check-in
+                        </span>
 
-                    <div className={styles.tripStatistics}>
-                      <span>
-                        <CheckCircle2 size={15} />
-                        {trip.seats.checkedIn}/{trip.seats.totalSeats} check-in
-                      </span>
-
-                      <span>Cảnh báo: {getAlertLabel(trip.highestAlert)}</span>
-                    </div>
-                  </button>
-                );
-              })
-            )}
-          </div>
-
-          <div className={styles.pagination}>
-            <button
-              type="button"
-              disabled={tripPage <= 1}
-              onClick={() => setTripPage((current) => Math.max(1, current - 1))}
-            >
-              Trước
-            </button>
-
-            <span>
-              Trang {tripPage}/
-              {Math.max(tripsQuery.data?.pagination.totalPages ?? 1, 1)}
-            </span>
-
-            <button
-              type="button"
-              disabled={
-                tripPage >= (tripsQuery.data?.pagination.totalPages ?? 0)
-              }
-              onClick={() => setTripPage((current) => current + 1)}
-            >
-              Sau
-            </button>
-          </div>
-        </section>
-
-        <section className={styles.panel}>
-          <div className={styles.panelHeader}>
-            <div>
-              <h2>Passenger Monitor</h2>
-
-              {passengersQuery.data?.trip && (
-                <span>{passengersQuery.data.trip.routeName}</span>
+                        <span>
+                          Cảnh báo: {getAlertLabel(trip.highestAlert)}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })
               )}
             </div>
-          </div>
 
-          {selectedTripId <= 0 ? (
-            <div className={styles.emptyState}>
-              Chọn một chuyến để xem hành khách.
+            <div className={styles.pagination}>
+              <button
+                type="button"
+                disabled={tripPage <= 1}
+                onClick={() =>
+                  setTripPage((current) => Math.max(1, current - 1))
+                }
+              >
+                Trước
+              </button>
+
+              <span>
+                Trang {tripPage}/
+                {Math.max(tripsQuery.data?.pagination.totalPages ?? 1, 1)}
+              </span>
+
+              <button
+                type="button"
+                disabled={
+                  tripPage >= (tripsQuery.data?.pagination.totalPages ?? 0)
+                }
+                onClick={() => setTripPage((current) => current + 1)}
+              >
+                Sau
+              </button>
             </div>
-          ) : (
-            <>
-              <div className={styles.filters}>
-                <label className={styles.searchBox}>
-                  <Search size={17} />
+          </section>
 
-                  <input
-                    value={passengerKeyword}
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2>Passenger Monitor</h2>
+
+                {passengersQuery.data?.trip && (
+                  <span>{passengersQuery.data.trip.routeName}</span>
+                )}
+              </div>
+            </div>
+
+            {selectedTripId <= 0 ? (
+              <div className={styles.emptyState}>
+                Chọn một chuyến để xem hành khách.
+              </div>
+            ) : (
+              <>
+                <div className={styles.filters}>
+                  <label className={styles.searchBox}>
+                    <Search size={17} />
+
+                    <input
+                      value={passengerKeyword}
+                      onChange={(event) => {
+                        setPassengerKeyword(event.target.value);
+                        setPassengerPage(1);
+                      }}
+                      placeholder="Tên, SĐT, mã vé, ghế..."
+                    />
+                  </label>
+
+                  <select
+                    value={passengerCheckinStatus}
                     onChange={(event) => {
-                      setPassengerKeyword(event.target.value);
+                      setPassengerCheckinStatus(
+                        event.target.value as "" | CheckinStatus,
+                      );
                       setPassengerPage(1);
                     }}
-                    placeholder="Tên, SĐT, mã vé, ghế..."
-                  />
-                </label>
+                  >
+                    {CHECKIN_STATUS_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
 
-                <select
-                  value={passengerCheckinStatus}
-                  onChange={(event) => {
-                    setPassengerCheckinStatus(
-                      event.target.value as "" | CheckinStatus,
-                    );
-                    setPassengerPage(1);
-                  }}
-                >
-                  {CHECKIN_STATUS_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  <select
+                    value={passengerAlert}
+                    onChange={(event) => {
+                      setPassengerAlert(
+                        event.target.value as "" | PassengerAlertLevel,
+                      );
+                      setPassengerPage(1);
+                    }}
+                  >
+                    {ALERT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
 
-                <select
-                  value={passengerAlert}
-                  onChange={(event) => {
-                    setPassengerAlert(
-                      event.target.value as "" | PassengerAlertLevel,
-                    );
-                    setPassengerPage(1);
-                  }}
-                >
-                  {ALERT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  <select
+                    value={passengerSort}
+                    onChange={(event) => {
+                      setPassengerSort(
+                        event.target.value as CheckinDashboardPassengerSort,
+                      );
+                      setPassengerPage(1);
+                    }}
+                  >
+                    <option value="ALERT_DESC">Cảnh báo cao trước</option>
 
-                <select
-                  value={passengerSort}
-                  onChange={(event) => {
-                    setPassengerSort(
-                      event.target.value as CheckinDashboardPassengerSort,
-                    );
-                    setPassengerPage(1);
-                  }}
-                >
-                  <option value="ALERT_DESC">Cảnh báo cao trước</option>
+                    <option value="SEAT_ASC">Ghế tăng dần</option>
 
-                  <option value="SEAT_ASC">Ghế tăng dần</option>
+                    <option value="SEAT_DESC">Ghế giảm dần</option>
 
-                  <option value="SEAT_DESC">Ghế giảm dần</option>
+                    <option value="NAME_ASC">Tên A-Z</option>
 
-                  <option value="NAME_ASC">Tên A-Z</option>
-
-                  <option value="NAME_DESC">Tên Z-A</option>
-                </select>
-              </div>
-
-              {passengersQuery.isLoading ? (
-                <div className={styles.emptyState}>Đang tải hành khách...</div>
-              ) : passengersQuery.isError ? (
-                <div className={styles.emptyState}>
-                  Không thể tải hành khách.
+                    <option value="NAME_DESC">Tên Z-A</option>
+                  </select>
                 </div>
-              ) : (
-                <>
-                  <div className={styles.passengerSummary}>
-                    <span>
-                      Tổng: {passengersQuery.data?.summary.totalSeats ?? 0}
-                    </span>
 
-                    <span>
-                      Đã check-in:{" "}
-                      {passengersQuery.data?.summary.checkedIn ?? 0}
-                    </span>
-
-                    <span>
-                      Chưa check-in:{" "}
-                      {passengersQuery.data?.summary.notCheckedIn ?? 0}
-                    </span>
-
-                    <span>
-                      Quá hạn: {passengersQuery.data?.summary.overdue ?? 0}
-                    </span>
+                {passengersQuery.isLoading ? (
+                  <div className={styles.emptyState}>
+                    Đang tải hành khách...
                   </div>
+                ) : passengersQuery.isError ? (
+                  <div className={styles.emptyState}>
+                    Không thể tải hành khách.
+                  </div>
+                ) : (
+                  <>
+                    <div className={styles.passengerSummary}>
+                      <span>
+                        Tổng: {passengersQuery.data?.summary.totalSeats ?? 0}
+                      </span>
 
-                  <div className={styles.passengerTableWrapper}>
-                    <table className={styles.passengerTable}>
-                      <thead>
-                        <tr>
-                          <th>Ghế</th>
-                          <th>Hành khách</th>
-                          <th>Liên hệ</th>
-                          <th>Check-in</th>
-                          <th>Cảnh báo</th>
-                          <th>Điểm đón</th>
-                          <th>Thao tác</th>
-                        </tr>
-                      </thead>
+                      <span>
+                        Đã check-in:{" "}
+                        {passengersQuery.data?.summary.checkedIn ?? 0}
+                      </span>
 
-                      <tbody>
-                        {passengersQuery.data?.items.length === 0 ? (
+                      <span>
+                        Chưa check-in:{" "}
+                        {passengersQuery.data?.summary.notCheckedIn ?? 0}
+                      </span>
+
+                      <span>
+                        Quá hạn: {passengersQuery.data?.summary.overdue ?? 0}
+                      </span>
+                    </div>
+
+                    <div className={styles.passengerTableWrapper}>
+                      <table className={styles.passengerTable}>
+                        <thead>
                           <tr>
-                            <td colSpan={7} className={styles.tableEmpty}>
-                              Không có hành khách phù hợp.
-                            </td>
+                            <th>Ghế</th>
+                            <th>Hành khách</th>
+                            <th>Liên hệ</th>
+                            <th>Check-in</th>
+                            <th>Cảnh báo</th>
+                            <th>Điểm đón</th>
+                            <th>Thao tác</th>
                           </tr>
-                        ) : (
-                          passengersQuery.data?.items.map((item) => (
-                            <tr key={item.bookingSeatId}>
-                              <td>
-                                <strong>{item.seatNumber}</strong>
-                              </td>
+                        </thead>
 
-                              <td>
-                                <strong>{item.passenger.name}</strong>
-
-                                <small>{item.bookingCode}</small>
-                              </td>
-
-                              <td>
-                                <span>{item.passenger.phone}</span>
-
-                                <small>{item.contact.status}</small>
-                              </td>
-
-                              <td>
-                                <span
-                                  className={`${styles.badge} ${
-                                    styles[`checkin${item.checkin.status}`]
-                                  }`}
-                                >
-                                  {getCheckinStatusLabel(item.checkin.status)}
-                                </span>
-                              </td>
-
-                              <td>
-                                <span
-                                  className={`${styles.badge} ${
-                                    styles[`alert${item.alert.level}`]
-                                  }`}
-                                >
-                                  {getAlertLabel(item.alert.level)}
-                                </span>
-                              </td>
-
-                              <td>
-                                <span>
-                                  {item.pickup.pointName ??
-                                    (item.pickup.method === "SHUTTLE"
-                                      ? "Trung chuyển"
-                                      : "Tại văn phòng")}
-                                </span>
-
-                                <small>{item.pickup.address ?? ""}</small>
-                              </td>
-                              <td>
-                                <button
-                                  type="button"
-                                  className={styles.actionButton}
-                                  onClick={() => setSelectedPassenger(item)}
-                                  aria-label={`Thao tác với ${item.passenger.name}`}
-                                >
-                                  <MoreHorizontal size={18} />
-                                  Thao tác
-                                </button>
+                        <tbody>
+                          {passengersQuery.data?.items.length === 0 ? (
+                            <tr>
+                              <td colSpan={7} className={styles.tableEmpty}>
+                                Không có hành khách phù hợp.
                               </td>
                             </tr>
-                          ))
+                          ) : (
+                            passengersQuery.data?.items.map((item) => (
+                              <tr key={item.bookingSeatId}>
+                                <td>
+                                  <strong>{item.seatNumber}</strong>
+                                </td>
+
+                                <td>
+                                  <strong>{item.passenger.name}</strong>
+
+                                  <small>{item.bookingCode}</small>
+                                </td>
+
+                                <td>
+                                  <span>{item.passenger.phone}</span>
+
+                                  <small>{item.contact.status}</small>
+                                </td>
+
+                                <td>
+                                  <span
+                                    className={`${styles.badge} ${
+                                      styles[`checkin${item.checkin.status}`]
+                                    }`}
+                                  >
+                                    {getCheckinStatusLabel(item.checkin.status)}
+                                  </span>
+                                </td>
+
+                                <td>
+                                  <span
+                                    className={`${styles.badge} ${
+                                      styles[`alert${item.alert.level}`]
+                                    }`}
+                                  >
+                                    {getAlertLabel(item.alert.level)}
+                                  </span>
+                                </td>
+
+                                <td>
+                                  <span>
+                                    {item.pickup.pointName ??
+                                      (item.pickup.method === "SHUTTLE"
+                                        ? "Trung chuyển"
+                                        : "Tại văn phòng")}
+                                  </span>
+
+                                  <small>{item.pickup.address ?? ""}</small>
+                                </td>
+                                <td>
+                                  <button
+                                    type="button"
+                                    className={styles.actionButton}
+                                    onClick={() => setSelectedPassenger(item)}
+                                    aria-label={`Thao tác với ${item.passenger.name}`}
+                                  >
+                                    <MoreHorizontal size={18} />
+                                    Thao tác
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className={styles.pagination}>
+                      <button
+                        type="button"
+                        disabled={passengerPage <= 1}
+                        onClick={() =>
+                          setPassengerPage((current) =>
+                            Math.max(1, current - 1),
+                          )
+                        }
+                      >
+                        Trước
+                      </button>
+
+                      <span>
+                        Trang {passengerPage}/
+                        {Math.max(
+                          passengersQuery.data?.pagination.totalPages ?? 1,
+                          1,
                         )}
-                      </tbody>
-                    </table>
-                  </div>
+                      </span>
 
-                  <div className={styles.pagination}>
-                    <button
-                      type="button"
-                      disabled={passengerPage <= 1}
-                      onClick={() =>
-                        setPassengerPage((current) => Math.max(1, current - 1))
-                      }
-                    >
-                      Trước
-                    </button>
-
-                    <span>
-                      Trang {passengerPage}/
-                      {Math.max(
-                        passengersQuery.data?.pagination.totalPages ?? 1,
-                        1,
-                      )}
-                    </span>
-
-                    <button
-                      type="button"
-                      disabled={
-                        passengerPage >=
-                        (passengersQuery.data?.pagination.totalPages ?? 0)
-                      }
-                      onClick={() => setPassengerPage((current) => current + 1)}
-                    >
-                      Sau
-                    </button>
-                  </div>
-                </>
-              )}
-            </>
-          )}
-        </section>
-      </div>
-      <PassengerActionModal
-        open={selectedPassenger !== null}
-        passenger={selectedPassenger}
-        onClose={() => setSelectedPassenger(null)}
-      />
-    </section>
+                      <button
+                        type="button"
+                        disabled={
+                          passengerPage >=
+                          (passengersQuery.data?.pagination.totalPages ?? 0)
+                        }
+                        onClick={() =>
+                          setPassengerPage((current) => current + 1)
+                        }
+                      >
+                        Sau
+                      </button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </section>
+        </div>
+        <PassengerActionModal
+          open={selectedPassenger !== null}
+          tripId={selectedTripId}
+          passenger={selectedPassenger}
+          onClose={() => setSelectedPassenger(null)}
+        />
+      </section>
+    </>
   );
 }

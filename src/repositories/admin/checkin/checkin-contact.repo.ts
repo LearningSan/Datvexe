@@ -1,159 +1,41 @@
-import {
-  connExecute,
-  connQuery,
-  query,
-  type PoolConnection,
-} from "@/lib/server/mysql";
-import type {
-  PassengerContactLogItem,
-  PassengerContactStatus,
-  PassengerContactType,
-} from "@/types/admin/checkin/checkin-operation.type";
+  import {
+    connExecute,
+    connQuery,
+    query,
+    type PoolConnection,
+  } from "@/lib/server/mysql";
+  import type {
+    PassengerContactLogItem,
+    PassengerContactStatus,
+    PassengerContactType,
+  } from "@/types/admin/checkin/checkin-operation.type";
 
-export interface ContactBookingForUpdateRow {
-  bookingId: number;
-  bookingCode: string;
-
-  tripId: number;
-
-  bookingStatus: "PENDING" | "CONFIRMED" | "CANCELLED" | "REFUNDED";
-
-  tripStatus: string;
-
-  departureDatetime: Date | string;
-
-  contactStatus: PassengerContactStatus;
-
-  expectedArrivalAt: Date | string | null;
-  lastContactedAt: Date | string | null;
-  lastContactedBy: number | null;
-
-  contactNote: string | null;
-
-  paymentStatus: string | null;
-}
-
-interface PassengerContactLogRow {
-  contactLogId: number;
-
-  bookingId: number;
-  tripId: number;
-
-  contactType: PassengerContactType;
-
-  previousStatus: PassengerContactStatus;
-  newStatus: PassengerContactStatus;
-
-  expectedArrivalAt: Date | string | null;
-  note: string | null;
-
-  contactedBy: number | null;
-  contactedByName: string | null;
-
-  contactedAt: Date | string;
-}
-
-interface UpdatedContactSnapshotRow {
-  bookingId: number;
-  tripId: number;
-
-  contactStatus: PassengerContactStatus;
-
-  expectedArrivalAt: Date | string | null;
-  lastContactedAt: Date | string;
-
-  lastContactedBy: number;
-  lastContactedByName: string | null;
-
-  contactNote: string | null;
-}
-
-export async function findContactBookingForUpdate(
-  conn: PoolConnection,
-  input: {
+  export interface ContactBookingForUpdateRow {
     bookingId: number;
+    bookingCode: string;
+
     tripId: number;
-  },
-): Promise<ContactBookingForUpdateRow | null> {
-  const rows = await connQuery<ContactBookingForUpdateRow>(
-    conn,
-    `
-      SELECT
-        b.booking_id AS bookingId,
-        b.booking_code AS bookingCode,
 
-        b.trip_id AS tripId,
+    bookingStatus: "PENDING" | "CONFIRMED" | "CANCELLED" | "REFUNDED";
 
-        b.status AS bookingStatus,
+    tripStatus: string;
 
-        t.status AS tripStatus,
-        t.departure_datetime AS departureDatetime,
+    departureDatetime: Date | string;
 
-        COALESCE(
-          b.contact_status,
-          'NOT_CONTACTED'
-        ) AS contactStatus,
+    contactStatus: PassengerContactStatus;
 
-        b.expected_arrival_at AS expectedArrivalAt,
-        b.last_contacted_at AS lastContactedAt,
-        b.last_contacted_by AS lastContactedBy,
+    expectedArrivalAt: Date | string | null;
+    lastContactedAt: Date | string | null;
+    lastContactedBy: number | null;
 
-        b.contact_note AS contactNote,
+    contactNote: string | null;
 
-        (
-          SELECT p.status
-          FROM payments p
-          WHERE p.booking_id = b.booking_id
-          ORDER BY p.payment_id DESC
-          LIMIT 1
-        ) AS paymentStatus
+    paymentStatus: string | null;
+  }
 
-      FROM bookings b
+  interface PassengerContactLogRow {
+    contactLogId: number;
 
-      INNER JOIN trips t
-        ON t.trip_id = b.trip_id
-
-      WHERE
-        b.booking_id = ?
-        AND b.trip_id = ?
-
-      LIMIT 1
-
-      FOR UPDATE
-    `,
-    [input.bookingId, input.tripId],
-  );
-
-  return rows[0] ?? null;
-}
-
-export async function hasRemainingUncheckedSeats(
-  conn: PoolConnection,
-  bookingId: number,
-): Promise<boolean> {
-  const rows = await connQuery<{
-    remainingCount: number | string;
-  }>(
-    conn,
-    `
-      SELECT
-        COUNT(*) AS remainingCount
-
-      FROM booking_seats
-
-      WHERE
-        booking_id = ?
-        AND checkin_status = 'NOT_CHECKED_IN'
-    `,
-    [bookingId],
-  );
-
-  return Number(rows[0]?.remainingCount ?? 0) > 0;
-}
-
-export async function insertPassengerContactLog(
-  conn: PoolConnection,
-  input: {
     bookingId: number;
     tripId: number;
 
@@ -162,206 +44,324 @@ export async function insertPassengerContactLog(
     previousStatus: PassengerContactStatus;
     newStatus: PassengerContactStatus;
 
-    expectedArrivalAt: Date | null;
+    expectedArrivalAt: Date | string | null;
     note: string | null;
 
-    contactedBy: number;
-  },
-): Promise<number> {
-  const result = await connExecute(
-    conn,
-    `
-      INSERT INTO passenger_contact_logs (
-        booking_id,
-        trip_id,
+    contactedBy: number | null;
+    contactedByName: string | null;
 
-        contact_type,
+    contactedAt: Date | string;
+  }
 
-        previous_status,
-        new_status,
-
-        expected_arrival_at,
-        note,
-
-        contacted_by,
-        contacted_at
-      )
-      VALUES (
-        ?,
-        ?,
-
-        ?,
-
-        ?,
-        ?,
-
-        ?,
-        ?,
-
-        ?,
-        NOW()
-      )
-    `,
-    [
-      input.bookingId,
-      input.tripId,
-
-      input.contactType,
-
-      input.previousStatus,
-      input.newStatus,
-
-      input.expectedArrivalAt,
-      input.note,
-
-      input.contactedBy,
-    ],
-  );
-
-  return Number(result.insertId);
-}
-
-export async function updateBookingContactSnapshot(
-  conn: PoolConnection,
-  input: {
+  interface UpdatedContactSnapshotRow {
     bookingId: number;
+    tripId: number;
 
     contactStatus: PassengerContactStatus;
 
-    expectedArrivalAt: Date | null;
+    expectedArrivalAt: Date | string | null;
+    lastContactedAt: Date | string;
 
-    contactedBy: number;
+    lastContactedBy: number;
+    lastContactedByName: string | null;
 
-    note: string | null;
-  },
-): Promise<void> {
-  const result = await connExecute(
-    conn,
-    `
-      UPDATE bookings
-
-      SET
-        contact_status = ?,
-        expected_arrival_at = ?,
-        last_contacted_at = NOW(),
-        last_contacted_by = ?,
-        contact_note = ?
-
-      WHERE booking_id = ?
-    `,
-    [
-      input.contactStatus,
-      input.expectedArrivalAt,
-      input.contactedBy,
-      input.note,
-      input.bookingId,
-    ],
-  );
-
-  if (result.affectedRows !== 1) {
-    throw new Error("Không thể cập nhật trạng thái liên hệ của booking");
+    contactNote: string | null;
   }
-}
 
-export async function findUpdatedContactSnapshot(
-  conn: PoolConnection,
-  bookingId: number,
-): Promise<UpdatedContactSnapshotRow | null> {
-  const rows = await connQuery<UpdatedContactSnapshotRow>(
-    conn,
-    `
-      SELECT
-        b.booking_id AS bookingId,
-        b.trip_id AS tripId,
+  export async function findContactBookingForUpdate(
+    conn: PoolConnection,
+    input: {
+      bookingId: number;
+      tripId: number;
+    },
+  ): Promise<ContactBookingForUpdateRow | null> {
+    const rows = await connQuery<ContactBookingForUpdateRow>(
+      conn,
+      `
+        SELECT
+          b.booking_id AS bookingId,
+          b.booking_code AS bookingCode,
 
-        b.contact_status AS contactStatus,
+          b.trip_id AS tripId,
 
-        b.expected_arrival_at AS expectedArrivalAt,
-        b.last_contacted_at AS lastContactedAt,
+          b.status AS bookingStatus,
 
-        b.last_contacted_by AS lastContactedBy,
+          t.status AS tripStatus,
+          t.departure_datetime AS departureDatetime,
 
-        u.full_name AS lastContactedByName,
+          COALESCE(
+            b.contact_status,
+            'NOT_CONTACTED'
+          ) AS contactStatus,
 
-        b.contact_note AS contactNote
+          b.expected_arrival_at AS expectedArrivalAt,
+          b.last_contacted_at AS lastContactedAt,
+          b.last_contacted_by AS lastContactedBy,
 
-      FROM bookings b
+          b.contact_note AS contactNote,
 
-      LEFT JOIN users u
-        ON u.user_id = b.last_contacted_by
+          (
+            SELECT p.status
+            FROM payments p
+            WHERE p.booking_id = b.booking_id
+            ORDER BY p.payment_id DESC
+            LIMIT 1
+          ) AS paymentStatus
 
-      WHERE b.booking_id = ?
+        FROM bookings b
 
-      LIMIT 1
-    `,
-    [bookingId],
-  );
+        INNER JOIN trips t
+          ON t.trip_id = b.trip_id
 
-  return rows[0] ?? null;
-}
+        WHERE
+          b.booking_id = ?
+          AND b.trip_id = ?
 
-export async function findPassengerContactHistory(input: {
-  bookingId: number;
-  tripId: number;
-}): Promise<PassengerContactLogItem[]> {
-  const rows = await query<PassengerContactLogRow>(
-    `
-      SELECT
-        pcl.contact_log_id AS contactLogId,
+        LIMIT 1
 
-        pcl.booking_id AS bookingId,
-        pcl.trip_id AS tripId,
+        FOR UPDATE
+      `,
+      [input.bookingId, input.tripId],
+    );
 
-        pcl.contact_type AS contactType,
+    return rows[0] ?? null;
+  }
 
-        pcl.previous_status AS previousStatus,
-        pcl.new_status AS newStatus,
+  export async function hasRemainingUncheckedSeats(
+    conn: PoolConnection,
+    bookingId: number,
+  ): Promise<boolean> {
+    const rows = await connQuery<{
+      remainingCount: number | string;
+    }>(
+      conn,
+      `
+        SELECT
+          COUNT(*) AS remainingCount
 
-        pcl.expected_arrival_at AS expectedArrivalAt,
-        pcl.note AS note,
+        FROM booking_seats
 
-        pcl.contacted_by AS contactedBy,
-        u.full_name AS contactedByName,
+        WHERE
+          booking_id = ?
+          AND checkin_status = 'NOT_CHECKED_IN'
+      `,
+      [bookingId],
+    );
 
-        pcl.contacted_at AS contactedAt
+    return Number(rows[0]?.remainingCount ?? 0) > 0;
+  }
 
-      FROM passenger_contact_logs pcl
+  export async function insertPassengerContactLog(
+    conn: PoolConnection,
+    input: {
+      bookingId: number;
+      tripId: number;
 
-      LEFT JOIN users u
-        ON u.user_id = pcl.contacted_by
+      contactType: PassengerContactType;
 
-      WHERE
-        pcl.booking_id = ?
-        AND pcl.trip_id = ?
+      previousStatus: PassengerContactStatus;
+      newStatus: PassengerContactStatus;
 
-      ORDER BY
-        pcl.contacted_at DESC,
-        pcl.contact_log_id DESC
-    `,
-    [input.bookingId, input.tripId],
-  );
+      expectedArrivalAt: Date | null;
+      note: string | null;
 
-  return rows.map((row) => ({
-    contactLogId: Number(row.contactLogId),
+      contactedBy: number;
+    },
+  ): Promise<number> {
+    const result = await connExecute(
+      conn,
+      `
+        INSERT INTO passenger_contact_logs (
+          booking_id,
+          trip_id,
 
-    bookingId: Number(row.bookingId),
-    tripId: Number(row.tripId),
+          contact_type,
 
-    contactType: row.contactType,
+          previous_status,
+          new_status,
 
-    previousStatus: row.previousStatus,
-    newStatus: row.newStatus,
+          expected_arrival_at,
+          note,
 
-    expectedArrivalAt: row.expectedArrivalAt
-      ? new Date(row.expectedArrivalAt).toISOString()
-      : null,
+          contacted_by,
+          contacted_at
+        )
+        VALUES (
+          ?,
+          ?,
 
-    note: row.note,
+          ?,
 
-    contactedBy: row.contactedBy == null ? null : Number(row.contactedBy),
+          ?,
+          ?,
 
-    contactedByName: row.contactedByName,
+          ?,
+          ?,
 
-    contactedAt: new Date(row.contactedAt).toISOString(),
-  }));
-}
+          ?,
+          NOW()
+        )
+      `,
+      [
+        input.bookingId,
+        input.tripId,
+
+        input.contactType,
+
+        input.previousStatus,
+        input.newStatus,
+
+        input.expectedArrivalAt,
+        input.note,
+
+        input.contactedBy,
+      ],
+    );
+
+    return Number(result.insertId);
+  }
+
+  export async function updateBookingContactSnapshot(
+    conn: PoolConnection,
+    input: {
+      bookingId: number;
+
+      contactStatus: PassengerContactStatus;
+
+      expectedArrivalAt: Date | null;
+
+      contactedBy: number;
+
+      note: string | null;
+    },
+  ): Promise<void> {
+    const result = await connExecute(
+      conn,
+      `
+        UPDATE bookings
+
+        SET
+          contact_status = ?,
+          expected_arrival_at = ?,
+          last_contacted_at = NOW(),
+          last_contacted_by = ?,
+          contact_note = ?
+
+        WHERE booking_id = ?
+      `,
+      [
+        input.contactStatus,
+        input.expectedArrivalAt,
+        input.contactedBy,
+        input.note,
+        input.bookingId,
+      ],
+    );
+
+    if (result.affectedRows !== 1) {
+      throw new Error("Không thể cập nhật trạng thái liên hệ của booking");
+    }
+  }
+
+  export async function findUpdatedContactSnapshot(
+    conn: PoolConnection,
+    bookingId: number,
+  ): Promise<UpdatedContactSnapshotRow | null> {
+    const rows = await connQuery<UpdatedContactSnapshotRow>(
+      conn,
+      `
+        SELECT
+          b.booking_id AS bookingId,
+          b.trip_id AS tripId,
+
+          b.contact_status AS contactStatus,
+
+          b.expected_arrival_at AS expectedArrivalAt,
+          b.last_contacted_at AS lastContactedAt,
+
+          b.last_contacted_by AS lastContactedBy,
+
+          u.full_name AS lastContactedByName,
+
+          b.contact_note AS contactNote
+
+        FROM bookings b
+
+        LEFT JOIN users u
+          ON u.user_id = b.last_contacted_by
+
+        WHERE b.booking_id = ?
+
+        LIMIT 1
+      `,
+      [bookingId],
+    );
+
+    return rows[0] ?? null;
+  }
+
+  export async function findPassengerContactHistory(input: {
+    bookingId: number;
+    tripId: number;
+  }): Promise<PassengerContactLogItem[]> {
+    const rows = await query<PassengerContactLogRow>(
+      `
+        SELECT
+          pcl.contact_log_id AS contactLogId,
+
+          pcl.booking_id AS bookingId,
+          pcl.trip_id AS tripId,
+
+          pcl.contact_type AS contactType,
+
+          pcl.previous_status AS previousStatus,
+          pcl.new_status AS newStatus,
+
+          pcl.expected_arrival_at AS expectedArrivalAt,
+          pcl.note AS note,
+
+          pcl.contacted_by AS contactedBy,
+          u.full_name AS contactedByName,
+
+          pcl.contacted_at AS contactedAt
+
+        FROM passenger_contact_logs pcl
+
+        LEFT JOIN users u
+          ON u.user_id = pcl.contacted_by
+
+        WHERE
+          pcl.booking_id = ?
+          AND pcl.trip_id = ?
+
+        ORDER BY
+          pcl.contacted_at DESC,
+          pcl.contact_log_id DESC
+      `,
+      [input.bookingId, input.tripId],
+    );
+
+    return rows.map((row) => ({
+      contactLogId: Number(row.contactLogId),
+
+      bookingId: Number(row.bookingId),
+      tripId: Number(row.tripId),
+
+      contactType: row.contactType,
+
+      previousStatus: row.previousStatus,
+      newStatus: row.newStatus,
+
+      expectedArrivalAt: row.expectedArrivalAt
+        ? new Date(row.expectedArrivalAt).toISOString()
+        : null,
+
+      note: row.note,
+
+      contactedBy: row.contactedBy == null ? null : Number(row.contactedBy),
+
+      contactedByName: row.contactedByName,
+
+      contactedAt: new Date(row.contactedAt).toISOString(),
+    }));
+  }

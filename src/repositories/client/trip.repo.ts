@@ -31,6 +31,7 @@ export const searchTripsRepo = async (input: SearchTripsRepoInput) => {
       r.origin_city_id = ?
       AND r.destination_city_id = ?
       AND t.departure_datetime BETWEEN ? AND ?
+      AND t.departure_datetime >= NOW()
       AND t.status = 'OPEN'
   `;
 

@@ -51,8 +51,6 @@ export type PassengerAlertLevel =
   | "CRITICAL"
   | "OVERDUE";
 
-
-
 export type CheckinLogAction =
   | "CHECK_IN"
   | "UNDO_CHECK_IN"
@@ -225,7 +223,6 @@ export type TripPassengerFilter =
   | "UNREACHABLE"
   | "CRITICAL";
 
-
 export interface UpdatePassengerContactPayload {
   bookingId: number;
   tripId: number;
@@ -281,7 +278,38 @@ export interface PassengerContactHistoryResponse {
   logs: PassengerContactLogItem[];
 }
 
- 
+export type PassengerCheckinAction =
+  | "CHECK_IN"
+  | "UNDO_CHECK_IN"
+  | "NO_SHOW"
+  | "REJECT";
 
+export interface UpdatePassengerCheckinPayload {
+  bookingSeatId: number;
 
+  action: PassengerCheckinAction;
 
+  note?: string | null;
+}
+
+export interface UpdatePassengerCheckinResponse {
+  success: true;
+  message: string;
+
+  bookingSeatId: number;
+  bookingId: number;
+  tripId: number;
+
+  previousStatus: CheckinStatus;
+  checkinStatus: CheckinStatus;
+
+  checkedInAt: string | null;
+  checkedInBy: number | null;
+  checkedInByName: string | null;
+
+  checkinNote: string | null;
+}
+
+export type PassengerOperationResult =
+  | UpdatePassengerCheckinResponse
+  | UpdatePassengerContactResponse;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
+import toast from "react-hot-toast";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -22,12 +22,19 @@ import { getApiErrorMessage } from "@/lib/admin/get-api-error-message";
 
 import type { CheckinDashboardPassengerItem } from "@/types/admin/checkin/checkin-dashboard-passenger.type";
 
-import type { ContactStatus } from "@/types/admin/checkin/checkin-operation.type";
+import type {
+  PassengerCheckinAction,
+  PassengerContactResult,
+  PassengerContactType,
+} from "@/types/admin/checkin/checkin-operation.type";
 
 import styles from "./PassengerActionModal.module.css";
 
 interface PassengerActionModalProps {
   open: boolean;
+
+  tripId: number;
+
   passenger: CheckinDashboardPassengerItem | null;
 
   actionsDisabled?: boolean;
@@ -36,46 +43,21 @@ interface PassengerActionModalProps {
   onClose: () => void;
 }
 
-type FeedbackState =
-  | {
-      type: "SUCCESS";
-      message: string;
-    }
-  | {
-      type: "ERROR";
-      message: string;
-    }
-  | null;
-
-type PassengerCheckinAction =
-  | "CHECK_IN"
-  | "UNDO_CHECK_IN"
-  | "NO_SHOW"
-  | "REJECT";
-
-const CONTACT_STATUS_OPTIONS: Array<{
-  value: ContactStatus;
+const CONTACT_RESULT_OPTIONS: Array<{
+  value: PassengerContactResult;
   label: string;
 }> = [
-  {
-    value: "NOT_CONTACTED",
-    label: "Chưa liên hệ",
-  },
-  {
-    value: "NOTIFIED",
-    label: "Đã thông báo",
-  },
   {
     value: "CONTACTED",
     label: "Đã liên hệ",
   },
   {
     value: "COMING",
-    label: "Đang đến",
+    label: "Khách đang đến",
   },
   {
     value: "ARRIVING_LATE",
-    label: "Đến trễ",
+    label: "Khách sẽ đến trễ",
   },
   {
     value: "UNREACHABLE",
@@ -83,10 +65,31 @@ const CONTACT_STATUS_OPTIONS: Array<{
   },
   {
     value: "CANCEL_REQUESTED",
-    label: "Yêu cầu hủy",
+    label: "Khách yêu cầu hủy",
   },
 ];
 
+const CONTACT_TYPE_OPTIONS: Array<{
+  value: PassengerContactType;
+  label: string;
+}> = [
+  {
+    value: "PHONE_CALL",
+    label: "Gọi điện thoại",
+  },
+  {
+    value: "IN_APP_NOTIFICATION",
+    label: "Thông báo trong ứng dụng",
+  },
+  {
+    value: "EMAIL",
+    label: "Email",
+  },
+  {
+    value: "MANUAL",
+    label: "Ghi nhận thủ công",
+  },
+];
 function toDatetimeLocal(value: string | null): string {
   if (!value) {
     return "";
@@ -169,6 +172,7 @@ function getActionSuccessMessage(action: PassengerCheckinAction): string {
 
 export default function PassengerActionModal({
   open,
+  tripId,
   passenger,
   actionsDisabled = false,
   disabledReason,
@@ -180,14 +184,15 @@ export default function PassengerActionModal({
 
   const contactMutation = useUpdatePassengerContact();
 
-  const [feedback, setFeedback] = useState<FeedbackState>(null);
-
   const [pendingCheckinAction, setPendingCheckinAction] =
     useState<PassengerCheckinAction | null>(null);
   const [checkinNote, setCheckinNote] = useState("");
 
-  const [contactStatus, setContactStatus] =
-    useState<ContactStatus>("NOT_CONTACTED");
+  const [contactType, setContactType] =
+    useState<PassengerContactType>("PHONE_CALL");
+
+  const [contactResult, setContactResult] =
+    useState<PassengerContactResult>("CONTACTED");
 
   const [expectedArrivalAt, setExpectedArrivalAt] = useState("");
 
@@ -199,13 +204,41 @@ export default function PassengerActionModal({
     }
 
     setCheckinNote(passenger.checkin.note ?? "");
-    setContactStatus(passenger.contact.status);
+
+    setContactType("PHONE_CALL");
+
+    switch (passenger.contact.status) {
+      case "CONTACTED":
+        setContactResult("CONTACTED");
+        break;
+
+      case "COMING":
+        setContactResult("COMING");
+        break;
+
+      case "ARRIVING_LATE":
+        setContactResult("ARRIVING_LATE");
+        break;
+
+      case "UNREACHABLE":
+        setContactResult("UNREACHABLE");
+        break;
+
+      case "CANCEL_REQUESTED":
+        setContactResult("CANCEL_REQUESTED");
+        break;
+
+      case "NOT_CONTACTED":
+      case "NOTIFIED":
+      default:
+        setContactResult("CONTACTED");
+        break;
+    }
 
     setExpectedArrivalAt(toDatetimeLocal(passenger.contact.expectedArrivalAt));
 
     setContactNote(passenger.contact.note ?? "");
 
-    setFeedback(null);
     setPendingCheckinAction(null);
   }, [passenger]);
 
@@ -254,15 +287,9 @@ export default function PassengerActionModal({
   }
   async function submitCheckinAction(action: PassengerCheckinAction) {
     if (actionsDisabled) {
-      setFeedback({
-        type: "ERROR",
-        message:
-          disabledReason ?? "Không thể thao tác check-in với chuyến này.",
-      });
-
+      toast.error("Không thể thao tác check-in với chuyến này.");
       return;
     }
-
     if (
       action === "UNDO_CHECK_IN" ||
       action === "NO_SHOW" ||
@@ -275,8 +302,6 @@ export default function PassengerActionModal({
     await executeCheckinAction(action);
   }
   async function executeCheckinAction(action: PassengerCheckinAction) {
-    setFeedback(null);
-
     try {
       const result = await checkinMutation.mutateAsync({
         bookingSeatId: currentPassenger.bookingSeatId,
@@ -286,52 +311,49 @@ export default function PassengerActionModal({
 
       setPendingCheckinAction(null);
 
-      setFeedback({
-        type: "SUCCESS",
-        message: result.message?.trim() || getActionSuccessMessage(action),
-      });
+      toast.success(result.message?.trim() || getActionSuccessMessage(action));
 
       closeAfterSuccess();
     } catch (error) {
-      setFeedback({
-        type: "ERROR",
-        message: getApiErrorMessage(
-          error,
-          "Không thể cập nhật trạng thái check-in.",
-        ),
-      });
+      toast.error(
+        getApiErrorMessage(error, "Không thể cập nhật trạng thái check-in."),
+      );
     }
   }
   async function submitContact() {
-    setFeedback(null);
+    if (contactResult === "ARRIVING_LATE" && !expectedArrivalAt) {
+      toast.error("Vui lòng nhập thời gian khách dự kiến đến.");
+      return;
+    }
+
+    if (contactResult === "CANCEL_REQUESTED" && !contactNote.trim()) {
+      toast.error("Vui lòng nhập lý do khách yêu cầu hủy vé.");
+      return;
+    }
 
     try {
-      const result = await contactMutation.mutateAsync({
+      await contactMutation.mutateAsync({
         bookingId: currentPassenger.bookingId,
+        tripId,
 
-        contactStatus,
+        contactType,
+        contactResult,
 
-        expectedArrivalAt: expectedArrivalAt || null,
+        expectedArrivalAt:
+          contactResult === "ARRIVING_LATE" && expectedArrivalAt
+            ? new Date(expectedArrivalAt).toISOString()
+            : null,
 
         note: contactNote.trim() || null,
       });
 
-      setFeedback({
-        type: "SUCCESS",
-
-        message: result.message?.trim() || "Đã cập nhật trạng thái liên hệ.",
-      });
+      toast.success("Đã cập nhật trạng thái liên hệ.");
 
       closeAfterSuccess();
     } catch (error) {
-      setFeedback({
-        type: "ERROR",
-
-        message: getApiErrorMessage(
-          error,
-          "Không thể cập nhật trạng thái liên hệ.",
-        ),
-      });
+      toast.error(
+        getApiErrorMessage(error, "Không thể cập nhật trạng thái liên hệ."),
+      );
     }
   }
 
@@ -423,7 +445,7 @@ export default function PassengerActionModal({
               value={checkinNote}
               onChange={(event) => setCheckinNote(event.target.value)}
               rows={3}
-              maxLength={500}
+              maxLength={255}
               disabled={checkinActionDisabled}
               placeholder="Nhập ghi chú nếu có..."
             />
@@ -594,23 +616,46 @@ export default function PassengerActionModal({
 
           <div className={styles.formGrid}>
             <label className={styles.field}>
-              <span>Trạng thái liên hệ</span>
-
+              {" "}
+              <span>Hình thức liên hệ</span>
               <select
-                value={contactStatus}
+                value={contactType}
                 disabled={isSubmitting}
                 onChange={(event) =>
-                  setContactStatus(event.target.value as ContactStatus)
+                  setContactType(event.target.value as PassengerContactType)
                 }
               >
-                {CONTACT_STATUS_OPTIONS.map((option) => (
+                {CONTACT_TYPE_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {" "}
+                    {option.label}{" "}
                   </option>
                 ))}
-              </select>
+              </select>{" "}
+            </label>{" "}
+            <label className={styles.field}>
+              <span>Kết quả liên hệ</span>
+              <select
+                value={contactResult}
+                disabled={isSubmitting}
+                onChange={(event) => {
+                  const value = event.target.value as PassengerContactResult;
+                  setContactResult(value);
+                  if (value !== "ARRIVING_LATE") {
+                    setExpectedArrivalAt("");
+                  }
+                }}
+              >
+                {CONTACT_RESULT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {" "}
+                    {option.label}
+                  </option>
+                ))}{" "}
+              </select>{" "}
             </label>
-
+          </div>
+          {contactResult === "ARRIVING_LATE" && (
             <label className={styles.field}>
               <span>Dự kiến đến</span>
 
@@ -621,8 +666,9 @@ export default function PassengerActionModal({
                 onChange={(event) => setExpectedArrivalAt(event.target.value)}
               />
             </label>
-          </div>
-
+          )}
+        </div>
+        <div>
           <label className={styles.field}>
             <span>Ghi chú liên hệ</span>
 
@@ -630,7 +676,7 @@ export default function PassengerActionModal({
               value={contactNote}
               onChange={(event) => setContactNote(event.target.value)}
               rows={3}
-              maxLength={500}
+              maxLength={255}
               disabled={isSubmitting}
               placeholder="Ví dụ: khách báo đang cách bến 5 phút..."
             />
@@ -651,22 +697,6 @@ export default function PassengerActionModal({
               : "Lưu trạng thái liên hệ"}
           </button>
         </div>
-
-        {feedback && (
-          <div
-            className={
-              feedback.type === "SUCCESS" ? styles.successBox : styles.errorBox
-            }
-          >
-            {feedback.type === "SUCCESS" ? (
-              <CheckCircle2 size={17} />
-            ) : (
-              <XCircle size={17} />
-            )}
-
-            <span>{feedback.message}</span>
-          </div>
-        )}
       </section>
     </div>
   );

@@ -15,6 +15,10 @@ import type {
   CheckinStatus,
   ContactStatus,
   PassengerAlertLevel,
+  UpdatePassengerCheckinPayload,
+  UpdatePassengerCheckinResponse,
+  UpdatePassengerContactPayload,
+  UpdatePassengerContactResponse,
 } from "@/types/admin/checkin/checkin-operation.type";
 
 export interface CheckinDashboardSummaryResult {
@@ -93,36 +97,13 @@ export interface GetDashboardPassengersParams {
 
   sort?: CheckinDashboardPassengerSort;
 }
-export type PassengerCheckinAction =
-  | "CHECK_IN"
-  | "UNDO_CHECK_IN"
-  | "NO_SHOW"
-  | "REJECT";
-
-export interface UpdatePassengerCheckinPayload {
-  bookingSeatId: number;
-  action: PassengerCheckinAction;
-  note?: string;
-}
-
-export interface UpdatePassengerContactPayload {
-  bookingId: number;
-  contactStatus: ContactStatus;
-  expectedArrivalAt?: string | null;
-  note?: string | null;
-}
-
-export interface PassengerOperationResult {
-  success: true;
-  message: string;
-}
 
 export async function updatePassengerCheckin(
   payload: UpdatePassengerCheckinPayload,
-): Promise<PassengerOperationResult> {
+): Promise<UpdatePassengerCheckinResponse> {
   const { bookingSeatId, ...body } = payload;
 
-  const response = await adminApi.patch<PassengerOperationResult>(
+  const response = await adminApi.patch<UpdatePassengerCheckinResponse>(
     `/admin/checkins/passengers/${bookingSeatId}/checkin`,
     body,
   );
@@ -132,10 +113,10 @@ export async function updatePassengerCheckin(
 
 export async function updatePassengerContact(
   payload: UpdatePassengerContactPayload,
-): Promise<PassengerOperationResult> {
+): Promise<UpdatePassengerContactResponse> {
   const { bookingId, ...body } = payload;
 
-  const response = await adminApi.patch<PassengerOperationResult>(
+  const response = await adminApi.patch<UpdatePassengerContactResponse>(
     `/admin/checkins/bookings/${bookingId}/contact`,
     body,
   );

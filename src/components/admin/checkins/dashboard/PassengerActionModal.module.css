@@ -105,6 +105,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  padding: 10px;
 }
 
 .field > span {
@@ -151,7 +152,7 @@
 
 .actionGrid button,
 .primaryButton {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
@@ -161,6 +162,7 @@
   padding: 0 14px;
   cursor: pointer;
   font-weight: 600;
+  margin: 16px auto 0 auto !important;
 }
 
 .actionGrid button:disabled,
@@ -190,7 +192,8 @@
 }
 
 .primaryButton {
-  align-self: flex-end;
+  align-self: center; /* Đưa nút ra giữa container flex */
+  margin: 10px auto 0; /* Căn giữa tự động và tạo khoảng cách phía trên */
   background: #1570ef;
   color: #fff;
 }
@@ -508,4 +511,10 @@
   .actionConfirmActions button {
     width: 100%;
   }
+}
+.buttonWrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 16px;
 }

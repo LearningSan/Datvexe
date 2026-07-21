@@ -298,6 +298,7 @@ export async function findCheckinDashboardTrips(
       WHERE t.departure_datetime >= ?
         AND t.departure_datetime < ?
         AND t.status <> 'CANCELLED'
+        AND t.departure_datetime > NOW()
         ${keywordCondition.sql}
 
       GROUP BY
