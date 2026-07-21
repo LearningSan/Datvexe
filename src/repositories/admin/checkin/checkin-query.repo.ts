@@ -292,7 +292,7 @@ export async function findTripCheckinPassengers(
         b.contact_phone AS passengerPhone,
         b.contact_email AS passengerEmail,
 
-        pickup.pickup_point_name AS pickupPointName,
+        pickup.point_name AS pickupPointName,
         pickup.address AS pickupPointAddress,
 
         bs.checkin_status AS checkinStatus,

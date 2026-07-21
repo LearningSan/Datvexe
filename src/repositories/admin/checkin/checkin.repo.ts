@@ -79,10 +79,10 @@ export async function findCheckinBookingByIdentity(input: {
         t.departure_datetime AS departureDatetime,
         t.arrival_datetime AS arrivalDatetime,
 
-        pp.pickup_point_name AS pickupPointName,
+        pp.point_name AS pickupPointName,
         pp.address AS pickupPointAddress,
 
-        dp.pickup_point_name AS dropoffPointName,
+        dp.point_name AS dropoffPointName,
         dp.address AS dropoffPointAddress,
 
         v.vehicle_name AS vehicleName,
