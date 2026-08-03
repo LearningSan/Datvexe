@@ -269,11 +269,10 @@ export default function VnpayDemo() {
         body: JSON.stringify({
           token,
           provider: "VNPAY",
-          bankCode: selectedBank.id,
+          selectedBank: selectedBank.id,
           amount: Number(amountInput),
-          cardNumber,
-          cardHolder,
-          cardDate,
+          accountNumber: cardNumber,
+          accountHolder: cardHolder,
         }),
       });
 

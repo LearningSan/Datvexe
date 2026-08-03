@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 import {
   useCreateScheduleTemplate,
@@ -146,7 +146,6 @@ export default function ScheduleTemplatesContainer() {
 
   return (
     <BlockErrorBoundary fallback={<BlockSkeleton height={500} />}>
-      <Toaster position="top-right" />
 
       <div className={styles.container}>
         {/* Tiêu đề trang chính */}

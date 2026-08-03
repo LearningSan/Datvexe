@@ -74,13 +74,9 @@
 }
 
 .group label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   font-size: 14px;
   color: #595959;
   cursor: pointer;
-  padding: 4px 0;
   transition: color 0.2s ease;
 }
 
@@ -202,4 +198,33 @@
 .sortItem:hover {
   background: #f5f5f5;
   color: #1677ff;
+}
+.optionCount {
+  color: #64748b;
+  font-size: 12px;
+}
+.timeSlotItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.timeSlotContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.timeSlotLabel {
+  font-size: 14px;
+  color: #595959;
+  line-height: 1.4;
+}
+
+.optionCount {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.3;
 }

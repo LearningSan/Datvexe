@@ -103,50 +103,53 @@ export async function findDemoSessionByTokenHash(
 ): Promise<DemoPaymentSessionRow | null> {
   const rows = await query<DemoPaymentSessionRow>(
     `
-      SELECT
-        ds.demo_session_id AS demoSessionId,
-        ds.payment_id AS paymentId,
-        ds.provider,
-        ds.token_hash AS tokenHash,
-        ds.amount,
-        ds.status,
+     SELECT
+      ds.demo_session_id AS demoSessionId,
+      ds.payment_id AS paymentId,
+      ds.provider,
+      ds.token_hash AS tokenHash,
+      ds.amount,
+      ds.status,
 
-        ds.customer_phone AS customerPhone,
-        ds.selected_bank AS selectedBank,
-        ds.account_number_masked AS accountNumberMasked,
-        ds.account_holder AS accountHolder,
-        ds.payment_source AS paymentSource,
+      ds.customer_phone AS customerPhone,
+      ds.selected_bank AS selectedBank,
+      ds.account_number_masked AS accountNumberMasked,
+      ds.account_holder AS accountHolder,
+      ds.payment_source AS paymentSource,
 
-        ds.attempt_count AS attemptCount,
+      ds.attempt_count AS attemptCount,
 
-        ds.expired_at AS expiredAt,
-        ds.completed_at AS completedAt,
-        ds.created_at AS createdAt,
+      ds.expired_at AS expiredAt,
+      ds.completed_at AS completedAt,
+      ds.created_at AS createdAt,
 
-        p.transaction_code AS transactionCode,
-        p.booking_id AS bookingId,
-        p.status AS paymentStatus,
+      p.transaction_code AS transactionCode,
+      pb.booking_id AS bookingId,
+      p.status AS paymentStatus,
 
-        b.booking_code AS bookingCode
+      b.booking_code AS bookingCode
 
-      FROM payment_demo_sessions ds
+    FROM payment_demo_sessions ds
 
-      INNER JOIN payments p
-        ON p.payment_id = ds.payment_id
+    INNER JOIN payments p
+      ON p.payment_id = ds.payment_id
 
-      INNER JOIN bookings b
-        ON b.booking_id = p.booking_id
+    INNER JOIN payment_bookings pb
+      ON pb.payment_id = p.payment_id
 
-      WHERE ds.token_hash = ?
+    INNER JOIN bookings b
+      ON b.booking_id = pb.booking_id
 
-      LIMIT 1
+    WHERE ds.token_hash = ?
+
+    ORDER BY pb.booking_id
+    LIMIT 1
+    FOR UPDATE
     `,
     [tokenHash],
   );
-
   return rows[0] ?? null;
 }
-
 export async function findDemoSessionForUpdate(
   conn: PoolConnection,
   tokenHash: string,
@@ -154,44 +157,48 @@ export async function findDemoSessionForUpdate(
   const rows = await connQuery<DemoPaymentSessionRow>(
     conn,
     `
-      SELECT
-        ds.demo_session_id AS demoSessionId,
-        ds.payment_id AS paymentId,
-        ds.provider,
-        ds.token_hash AS tokenHash,
-        ds.amount,
-        ds.status,
+    SELECT
+      ds.demo_session_id AS demoSessionId,
+      ds.payment_id AS paymentId,
+      ds.provider,
+      ds.token_hash AS tokenHash,
+      ds.amount,
+      ds.status,
 
-        ds.customer_phone AS customerPhone,
-        ds.selected_bank AS selectedBank,
-        ds.account_number_masked AS accountNumberMasked,
-        ds.account_holder AS accountHolder,
-        ds.payment_source AS paymentSource,
+      ds.customer_phone AS customerPhone,
+      ds.selected_bank AS selectedBank,
+      ds.account_number_masked AS accountNumberMasked,
+      ds.account_holder AS accountHolder,
+      ds.payment_source AS paymentSource,
 
-        ds.attempt_count AS attemptCount,
+      ds.attempt_count AS attemptCount,
 
-        ds.expired_at AS expiredAt,
-        ds.completed_at AS completedAt,
-        ds.created_at AS createdAt,
+      ds.expired_at AS expiredAt,
+      ds.completed_at AS completedAt,
+      ds.created_at AS createdAt,
 
-        p.transaction_code AS transactionCode,
-        p.booking_id AS bookingId,
-        p.status AS paymentStatus,
+      p.transaction_code AS transactionCode,
+      pb.booking_id AS bookingId,
+      p.status AS paymentStatus,
 
-        b.booking_code AS bookingCode
+      b.booking_code AS bookingCode
 
-      FROM payment_demo_sessions ds
+    FROM payment_demo_sessions ds
 
-      INNER JOIN payments p
-        ON p.payment_id = ds.payment_id
+    INNER JOIN payments p
+      ON p.payment_id = ds.payment_id
 
-      INNER JOIN bookings b
-        ON b.booking_id = p.booking_id
+    INNER JOIN payment_bookings pb
+      ON pb.payment_id = p.payment_id
 
-      WHERE ds.token_hash = ?
+    INNER JOIN bookings b
+      ON b.booking_id = pb.booking_id
 
-      LIMIT 1
-      FOR UPDATE
+    WHERE ds.token_hash = ?
+
+    ORDER BY pb.booking_id
+    LIMIT 1
+    FOR UPDATE
     `,
     [tokenHash],
   );

@@ -19,7 +19,24 @@ import PopularRoutes from "./Popular/PopularRoutes";
 import HomeStatistics from "./Statistics/HomeStatistics";
 import BlockErrorBoundary from "@/components/common/BlockErrorBoundary";
 import BlockSkeleton from "@/components/common/BlockSkeleton";
+function getTodayLocal() {
+  const now = new Date();
 
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+function getCityId(location: SelectedLocation | null) {
+  if (!location) return null;
+
+  if (location.type === "CITY") {
+    return location.id;
+  }
+
+  return location.cityId ?? null;
+}
 export default function HomeContainer() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -28,12 +45,8 @@ export default function HomeContainer() {
   const { recentSearches, setSearch } = useSearchStore();
 
   const [isRoundTrip, setIsRoundTrip] = useState(false);
-  const [departureDate, setDepartureDate] = useState(
-    new Date().toISOString().split("T")[0],
-  );
-  const [returnDate, setReturnDate] = useState(
-    new Date().toISOString().split("T")[0],
-  );
+  const [departureDate, setDepartureDate] = useState(getTodayLocal);
+  const [returnDate, setReturnDate] = useState(getTodayLocal);
   const [ticketCount, setTicketCount] = useState(1);
 
   const [origin, setOrigin] = useState<SelectedLocation | null>(null);
@@ -87,48 +100,70 @@ export default function HomeContainer() {
     setDestination(origin);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
 
-    if (!origin || !destination || !departureDate) return;
+    const originCityId = getCityId(origin);
+    const destinationCityId = getCityId(destination);
+
+    if (
+      !origin ||
+      !destination ||
+      !originCityId ||
+      !destinationCityId ||
+      !departureDate
+    ) {
+      return;
+    }
+
+    if (originCityId === destinationCityId) {
+      return;
+    }
+
+    if (isRoundTrip && (!returnDate || returnDate < departureDate)) {
+      return;
+    }
+
+    const safeTicketCount = Math.min(Math.max(Math.trunc(ticketCount), 1), 5);
 
     setSearch({
       origin,
       destination,
+
       departureDate,
-      ticketCount,
+
+      ticketCount: safeTicketCount,
+
+      isRoundTrip,
+
+      returnDate: isRoundTrip ? returnDate : null,
     });
 
     setFilters({
-      originCityId: origin.id,
-      destinationCityId: destination.id,
+      originCityId,
+      destinationCityId,
       date: departureDate,
+
+      requiredSeats: safeTicketCount,
+
       page: 1,
       limit: 10,
+
       timeSlots: [],
       vehicleTypes: [],
       seatPositions: [],
       floors: [],
+
       sort: {
         field: "price",
         order: "asc",
       },
-      onlyAvailable: false,
+
+      onlyAvailable: true,
     });
 
     router.push("/trips");
   };
-
-  function getTodayLocal() {
-    const now = new Date();
-
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-  }
-
   const handleSelectHistory = (item: RecentSearch) => {
     const today = getTodayLocal();
 

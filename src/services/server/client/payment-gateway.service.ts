@@ -11,7 +11,7 @@ import type {
 
 type Input = {
   method: PaymentMethodType;
-  bookingId: number;
+  bookingIds: number[];
   bookingCode: string;
   transactionCode: string;
   amount: number;
@@ -67,27 +67,34 @@ function appHost() {
 function publicHost() {
   return (process.env.APP_URL || "http://localhost:3000").replace(/\/$/, "");
 }
-
-function resultUrl(bookingId: number) {
-  if (!Number.isInteger(bookingId) || bookingId <= 0) {
-    throw new Error(`bookingId không hợp lệ: ${bookingId}`);
+function validateBookingGroupId(bookingGroupId: number[]) {
+  if (
+    !Array.isArray(bookingGroupId) ||
+    bookingGroupId.length === 0 ||
+    bookingGroupId.some((id) => !Number.isInteger(id) || id <= 0)
+  ) {
+    throw new Error("bookingGroupId không hợp lệ");
   }
+}
+function resultUrl(bookingGroupId: number[]) {
+  validateBookingGroupId(bookingGroupId);
 
   const url = new URL("/payment/result", appHost());
 
-  url.searchParams.set("bookingId", String(bookingId));
+  url.searchParams.set("bookingGroupId", bookingGroupId.join(","));
 
   return url.toString();
 }
 
-function cancelUrl(bookingId: number) {
-  if (!Number.isInteger(bookingId) || bookingId <= 0) {
-    throw new Error(`bookingId không hợp lệ: ${bookingId}`);
-  }
+function cancelUrl(bookingGroupId: number[]) {
+  validateBookingGroupId(bookingGroupId);
 
   const url = new URL("/api/client/payments/cancel", appHost());
 
-  url.searchParams.set("bookingId", String(bookingId));
+  url.searchParams.set(
+    "bookingGroupId",
+    bookingGroupId.join(","),
+  );
 
   return url.toString();
 }
@@ -116,8 +123,8 @@ async function createPayos(input: Input): Promise<GatewayResult> {
     orderCode,
     amount: Math.round(input.amount),
     description: input.bookingCode.slice(0, 25),
-    returnUrl: resultUrl(input.bookingId),
-    cancelUrl: cancelUrl(input.bookingId),
+    returnUrl: resultUrl(input.bookingIds),
+    cancelUrl: cancelUrl(input.bookingIds),
     items: [
       {
         name: `Vé xe ${input.bookingCode}`,
@@ -132,8 +139,8 @@ async function createPayos(input: Input): Promise<GatewayResult> {
     paymentUrl: result.checkoutUrl ?? null,
     qrCodeUrl: result.qrCode ?? null,
     deeplink: null,
-    returnUrl: resultUrl(input.bookingId),
-    cancelUrl: cancelUrl(input.bookingId),
+    returnUrl: resultUrl(input.bookingIds),
+    cancelUrl: cancelUrl(input.bookingIds),
     flowType: "QR",
     uiMode: "QR",
     actionText: "Mở trang PayOS",
@@ -153,9 +160,9 @@ function buildDemoGatewayResult(input: Input): GatewayResult {
 
     deeplink: null,
 
-    returnUrl: resultUrl(input.bookingId),
+    returnUrl: resultUrl(input.bookingIds),
 
-    cancelUrl: cancelUrl(input.bookingId),
+    cancelUrl: cancelUrl(input.bookingIds),
 
     flowType: "QR",
     uiMode: "QR",
@@ -177,7 +184,7 @@ async function createVnpay(input: Input): Promise<GatewayResult> {
 
   const returnUrl =
     `${publicHost()}/api/client/payments/vnpay/return` +
-    `?bookingId=${input.bookingId}`;
+    `?bookingIds=${input.bookingIds}`;
 
   const paymentUrl = vnpay.buildPaymentUrl({
     vnp_Amount: Math.round(input.amount),
@@ -201,7 +208,7 @@ async function createVnpay(input: Input): Promise<GatewayResult> {
 
     deeplink: null,
     returnUrl,
-    cancelUrl: cancelUrl(input.bookingId),
+    cancelUrl: cancelUrl(input.bookingIds),
 
     flowType: "QR",
     uiMode: "QR",
@@ -230,10 +237,6 @@ async function createMomo(input: Input): Promise<GatewayResult> {
   const secretKey = requireEnv("MOMO_SECRET_KEY");
   const endpoint = requireEnv("MOMO_ENDPOINT");
 
-  if (!Number.isInteger(input.bookingId) || input.bookingId <= 0) {
-    throw new Error(`bookingId MoMo không hợp lệ: ${input.bookingId}`);
-  }
-
   const timestamp = Date.now();
 
   const requestId = buildMomoOrderId(
@@ -245,7 +248,7 @@ async function createMomo(input: Input): Promise<GatewayResult> {
   const amount = String(Math.round(input.amount));
   const orderInfo = `Thanh toan ve ${input.bookingCode}`;
 
-  const redirectUrl = resultUrl(input.bookingId);
+  const redirectUrl = resultUrl(input.bookingIds);
   const ipnUrl = `${publicHost()}/api/client/payments/momo/ipn`;
 
   const requestType = "captureWallet";
@@ -267,19 +270,6 @@ async function createMomo(input: Input): Promise<GatewayResult> {
     .createHmac("sha256", secretKey)
     .update(rawSignature)
     .digest("hex");
-
-  console.log("[MOMO CREATE REQUEST]", {
-    bookingId: input.bookingId,
-    endpoint,
-    partnerCode,
-    requestId,
-    orderId,
-    amount,
-    orderInfo,
-    redirectUrl,
-    ipnUrl,
-    requestType,
-  });
 
   try {
     const res = await axios.post(
@@ -337,7 +327,7 @@ async function createMomo(input: Input): Promise<GatewayResult> {
       deeplink: res.data?.deeplink ?? null,
 
       returnUrl: redirectUrl,
-      cancelUrl: cancelUrl(input.bookingId),
+      cancelUrl: cancelUrl(input.bookingIds),
 
       flowType: "QR",
       uiMode: "QR",
@@ -384,15 +374,15 @@ async function createZalopay(input: Input): Promise<GatewayResult> {
   const appTransId = buildZaloPayTransId(input.transactionCode);
   const appTime = Date.now();
   const amount = Math.round(input.amount);
-  const appUser = `booking_${input.bookingId}`;
+  const appUser = `booking_${input.bookingIds}`;
 
   const embedData = {
-    redirecturl: resultUrl(input.bookingId),
+    redirecturl: resultUrl(input.bookingIds),
   };
 
   const item = [
     {
-      itemid: String(input.bookingId),
+      itemid: String(input.bookingIds),
       itemname: `Vé xe ${input.bookingCode}`,
       itemprice: amount,
       itemquantity: 1,
@@ -425,8 +415,6 @@ async function createZalopay(input: Input): Promise<GatewayResult> {
         "Content-Type": "application/x-www-form-urlencoded",
       },
     });
-
-    console.log("[ZALOPAY CREATE RESPONSE]", res.data);
 
     const returnCode = Number(res.data?.return_code);
 
@@ -462,8 +450,8 @@ async function createZalopay(input: Input): Promise<GatewayResult> {
 
       deeplink: null,
 
-      returnUrl: resultUrl(input.bookingId),
-      cancelUrl: cancelUrl(input.bookingId),
+      returnUrl: resultUrl(input.bookingIds),
+      cancelUrl: cancelUrl(input.bookingIds),
 
       flowType: "QR",
       uiMode: "QR",

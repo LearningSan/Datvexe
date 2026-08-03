@@ -445,15 +445,23 @@ export async function findAdminTickets(params: AdminTicketListParams) {
     INNER JOIN routes r ON r.route_id = t.route_id
     INNER JOIN cities oc ON oc.city_id = r.origin_city_id
     INNER JOIN cities dc ON dc.city_id = r.destination_city_id
-    LEFT JOIN (
-      SELECT p1.*
-      FROM payments p1
-      INNER JOIN (
-        SELECT booking_id, MAX(payment_id) AS payment_id
-        FROM payments
-        GROUP BY booking_id
-      ) x ON x.payment_id = p1.payment_id
-    ) latest_payment ON latest_payment.booking_id = b.booking_id
+  LEFT JOIN (
+  SELECT 
+    pb.booking_id,
+    p1.*
+  FROM payment_bookings pb
+  INNER JOIN (
+    SELECT 
+      booking_id,
+      MAX(payment_id) AS payment_id
+    FROM payment_bookings
+    GROUP BY booking_id
+  ) x 
+    ON x.payment_id = pb.payment_id
+  INNER JOIN payments p1
+    ON p1.payment_id = x.payment_id
+) latest_payment
+ON latest_payment.booking_id = b.booking_id
   `;
 
   const selectSql = `
@@ -562,7 +570,21 @@ export async function getAdminTicketWarnings(): Promise<AdminTicketWarningSummar
         WHERE bs1.booking_id = b.booking_id
       ) THEN 1 ELSE 0 END) AS duplicatedSeats,
       SUM(CASE WHEN b.status = 'CANCELLED' AND EXISTS (SELECT 1 FROM booking_seats bs WHERE bs.booking_id = b.booking_id) THEN 1 ELSE 0 END) AS cancelledSeatNotReleased,
-      SUM(CASE WHEN EXISTS (SELECT 1 FROM payments p WHERE p.booking_id = b.booking_id AND p.status = 'REFUNDED') AND b.status <> 'REFUNDED' THEN 1 ELSE 0 END) AS refundedStatusNotUpdated,
+      SUM(
+  CASE 
+    WHEN EXISTS (
+      SELECT 1
+      FROM payment_bookings pb
+      INNER JOIN payments p
+        ON p.payment_id = pb.payment_id
+      WHERE pb.booking_id = b.booking_id
+        AND p.status = 'REFUNDED'
+    )
+    AND b.status <> 'REFUNDED'
+    THEN 1 
+    ELSE 0 
+  END
+) AS refundedStatusNotUpdated,
       SUM(CASE WHEN b.status = 'CONFIRMED' AND t.departure_datetime BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 2 HOUR)
         AND EXISTS (SELECT 1 FROM booking_seats bs WHERE bs.booking_id = b.booking_id AND bs.checkin_status = 'NOT_CHECKED_IN') THEN 1 ELSE 0 END) AS departingSoonNotCheckedIn
     FROM bookings b

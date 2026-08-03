@@ -4,7 +4,6 @@ import { toast } from "sonner";
 
 import { useTripSeats } from "@/hooks/client/useSeat";
 
-import type { TripSeatResponse } from "@/types/client/seat/seat-response.type";
 import type { Seat } from "@/types/client/seat/seat.type";
 
 import Sleeper40 from "../seatMap/seatTemplate/Sleeper40/Sleeper40";
@@ -24,22 +23,31 @@ import ErrorRenderer from "@/lib/error/error.renderer";
 
 import styles from "./SeatContainer.module.css";
 
-interface Props {
-  tripId: number;
-  initialData: TripSeatResponse;
-}
+export default function SeatContainer() {
+  const {
+    outboundSeats,
+    returnSeats,
+    outboundTrip,
+    returnTrip,
+    activeJourney,
+    isRoundTrip,
+    setActiveJourney,
+    toggleSeat,
+  } = useBookingStore();
+ const currentTrip =
+  activeJourney === "OUTBOUND"
+    ? outboundTrip
+    : returnTrip;
 
-export default function SeatContainer({ tripId, initialData }: Props) {
-  const query = useTripSeats(tripId, initialData);
-
+const query = useTripSeats(currentTrip?.id);
   const { data, isPending, isFetching, isError, error } = query;
 
   const handleRetry = () => {
     void query.refetch();
   };
 
-  const { selectedSeats, toggleSeat, selectedTrip } = useBookingStore();
-
+  const selectedSeats =
+    activeJourney === "OUTBOUND" ? outboundSeats : returnSeats;
   const MAX_SEATS = 5;
 
   if (isPending && !data) {
@@ -49,7 +57,17 @@ export default function SeatContainer({ tripId, initialData }: Props) {
   if (isError && !data) {
     return <ErrorRenderer error={error} onRetry={handleRetry} />;
   }
-
+if (!currentTrip) {
+  return (
+    <ErrorRenderer
+      error={{
+        response: {
+          status: 404,
+        },
+      }}
+    />
+  );
+}
   if (!data) {
     return (
       <ErrorRenderer
@@ -79,7 +97,7 @@ export default function SeatContainer({ tripId, initialData }: Props) {
     toggleSeat({
       seatId: seat.seatId,
       seatNumber: seat.seatNumber,
-      price: selectedTrip?.price ?? 0,
+      price: currentTrip?.price ?? 0,
     });
   };
 
@@ -149,6 +167,27 @@ export default function SeatContainer({ tripId, initialData }: Props) {
               }}
             >
               Thử lại
+            </button>
+          </div>
+        )}
+        {isRoundTrip && (
+          <div className={styles.journeyTabs}>
+            <button
+              className={
+                activeJourney === "OUTBOUND" ? styles.activeTab : styles.tab
+              }
+              onClick={() => setActiveJourney("OUTBOUND")}
+            >
+              Chọn ghế chuyến đi
+            </button>
+
+            <button
+              className={
+                activeJourney === "RETURN" ? styles.activeTab : styles.tab
+              }
+              onClick={() => setActiveJourney("RETURN")}
+            >
+              Chọn ghế chuyến về
             </button>
           </div>
         )}

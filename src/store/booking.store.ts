@@ -2,12 +2,11 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import type { Trip } from "@/types/client/trip/trip.type";
-import { BookingSeat } from "@/types/client/booking/booking-seat.type";
+import type { BookingSeat } from "@/types/client/booking/booking-seat.type";
 
-/* =========================
-   TYPES
-========================= */
 export type PickupMethod = "OFFICE" | "SHUTTLE";
+
+export type JourneyType = "OUTBOUND" | "RETURN";
 
 export interface PassengerForm {
   fullName: string;
@@ -20,26 +19,53 @@ export interface ShuttleAddress {
   latitude?: number;
   longitude?: number;
 }
+export interface JourneyRouteInfo {
+  pickupPointId: number | null;
+  dropoffPointId: number | null;
 
+  pickupMethod: PickupMethod;
+  dropoffMethod: PickupMethod;
+
+  pickupAddress: ShuttleAddress | null;
+  dropoffAddress: ShuttleAddress | null;
+}
 /* =========================
    STORE TYPE
 ========================= */
+
 interface BookingStore {
   // ================= HYDRATION =================
   hydrated: boolean;
-  setHydrated: (v: boolean) => void;
+  setHydrated: (value: boolean) => void;
 
-  // ================= TRIP =================
+  isRoundTrip: boolean;
+  setIsRoundTrip: (value: boolean) => void;
+
+  activeJourney: JourneyType;
+  setActiveJourney: (journey: JourneyType) => void;
+
+  outboundTrip: Trip | null;
+  returnTrip: Trip | null;
+
+  clearOutboundTrip: () => void;
+  clearReturnTrip: () => void;
+  clearAllTrips: () => void;
+
+  // ================= CURRENT TRIP =================
+  /*
+   * Giữ lại để trang chi tiết chuyến hiện tại
+   * không cần sửa ngay.
+   */
   selectedTrip: Trip | null;
+
   setSelectedTrip: (trip: Trip) => void;
   clearSelectedTrip: () => void;
 
-  // ================= SEATS =================
-  selectedSeats: BookingSeat[];
+  outboundSeats: BookingSeat[];
+  returnSeats: BookingSeat[];
   toggleSeat: (seat: BookingSeat) => void;
   clearSeats: () => void;
 
-  // ================= PRICE =================
   subtotal: number;
   promotionDiscount: number;
   totalPrice: number;
@@ -48,6 +74,7 @@ interface BookingStore {
   setPromotion: (code: string, discount: number) => void;
   clearPromotion: () => void;
 
+  // ================= FORM =================
   submitted: boolean;
   setSubmitted: (value: boolean) => void;
 
@@ -58,43 +85,70 @@ interface BookingStore {
   setPassenger: (payload: Partial<PassengerForm>) => void;
   resetPassenger: () => void;
 
-  pickupPointId: number | null;
-  dropoffPointId: number | null;
+  // ================= PICKUP/DROPOFF =================
+  outboundRoute: JourneyRouteInfo;
+  returnRoute: JourneyRouteInfo;
 
-  pickupMethod: PickupMethod;
-  dropoffMethod: PickupMethod;
+  setOutboundRoute: (payload: Partial<JourneyRouteInfo>) => void;
 
-  pickupAddress: ShuttleAddress | null;
-  dropoffAddress: ShuttleAddress | null;
+  setReturnRoute: (payload: Partial<JourneyRouteInfo>) => void;
 
-  setPickupPoint: (id: number | null) => void;
-  setDropoffPoint: (id: number | null) => void;
-
-  setPickupMethod: (m: PickupMethod) => void;
-  setDropoffMethod: (m: PickupMethod) => void;
-
-  setPickupAddress: (a: ShuttleAddress | null) => void;
-  setDropoffAddress: (a: ShuttleAddress | null) => void;
-
+  // ================= SHUTTLE =================
   shuttleLoading: boolean;
   shuttleError: string | null;
 
-  setShuttleLoading: (v: boolean) => void;
-  setShuttleError: (v: string | null) => void;
+  setShuttleLoading: (value: boolean) => void;
+  setShuttleError: (value: string | null) => void;
 
-
+  // ================= RESET =================
   resetBooking: () => void;
 }
+interface BookingState {
+  hydrated: boolean;
 
+  isRoundTrip: boolean;
+  activeJourney: JourneyType;
+
+  outboundTrip: Trip | null;
+  returnTrip: Trip | null;
+  selectedTrip: Trip | null;
+
+  outboundSeats: BookingSeat[];
+  returnSeats: BookingSeat[];
+
+  subtotal: number;
+  promotionDiscount: number;
+  totalPrice: number;
+
+  promotionCode: string;
+
+  submitted: boolean;
+  acceptedTerms: boolean;
+
+  passenger: PassengerForm;
+
+  outboundRoute: JourneyRouteInfo;
+  returnRoute: JourneyRouteInfo;
+
+  shuttleLoading: boolean;
+  shuttleError: string | null;
+}
 /* =========================
    INITIAL STATE
 ========================= */
-const initialState = {
+
+const initialState: BookingState = {
   hydrated: false,
 
+  isRoundTrip: false,
+  activeJourney: "OUTBOUND",
+
+  outboundTrip: null,
+  returnTrip: null,
   selectedTrip: null,
 
-  selectedSeats: [],
+  outboundSeats: [],
+  returnSeats: [],
 
   subtotal: 0,
   promotionDiscount: 0,
@@ -103,7 +157,6 @@ const initialState = {
   promotionCode: "",
 
   submitted: false,
-
   acceptedTerms: false,
 
   passenger: {
@@ -112,14 +165,27 @@ const initialState = {
     email: "",
   },
 
-  pickupPointId: null,
-  dropoffPointId: null,
+  outboundRoute: {
+    pickupPointId: null,
+    dropoffPointId: null,
 
-  pickupMethod: "OFFICE" as PickupMethod,
-  dropoffMethod: "OFFICE" as PickupMethod,
+    pickupMethod: "OFFICE",
+    dropoffMethod: "OFFICE",
 
-  pickupAddress: null,
-  dropoffAddress: null,
+    pickupAddress: null,
+    dropoffAddress: null,
+  },
+
+  returnRoute: {
+    pickupPointId: null,
+    dropoffPointId: null,
+
+    pickupMethod: "OFFICE",
+    dropoffMethod: "OFFICE",
+
+    pickupAddress: null,
+    dropoffAddress: null,
+  },
 
   shuttleLoading: false,
   shuttleError: null,
@@ -128,43 +194,137 @@ const initialState = {
 /* =========================
    STORE
 ========================= */
+
 export const useBookingStore = create<BookingStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
 
       // ================= HYDRATION =================
-      setHydrated: (v) =>
+      setHydrated: (hydrated) =>
         set({
-          hydrated: v,
+          hydrated,
         }),
 
+      // ================= ROUND TRIP =================
+      setIsRoundTrip: (isRoundTrip) =>
+        set((state) => ({
+          isRoundTrip,
+
+          returnTrip: isRoundTrip ? state.returnTrip : null,
+          returnSeats: isRoundTrip ? state.returnSeats : [],
+          returnRoute: isRoundTrip
+            ? state.returnRoute
+            : initialState.returnRoute,
+
+          activeJourney: isRoundTrip ? state.activeJourney : "OUTBOUND",
+          selectedTrip: isRoundTrip ? state.selectedTrip : state.outboundTrip,
+        })),
+
+      setActiveJourney: (activeJourney) => {
+        const state = get();
+
+        /*
+         * Vé một chiều không được chuyển sang tab chuyến về.
+         */
+        if (activeJourney === "RETURN" && !state.isRoundTrip) {
+          return;
+        }
+
+        const journeyTrip =
+          activeJourney === "OUTBOUND" ? state.outboundTrip : state.returnTrip;
+
+        set({
+          activeJourney,
+          selectedTrip: journeyTrip,
+        });
+      },
+
       // ================= TRIP =================
-      setSelectedTrip: (trip) =>
+      setSelectedTrip: (trip) => {
+        const activeJourney = get().activeJourney;
+
+        if (activeJourney === "OUTBOUND") {
+          set({
+            selectedTrip: trip,
+            outboundTrip: trip,
+          });
+
+          return;
+        }
+
         set({
           selectedTrip: trip,
-        }),
+          returnTrip: trip,
+        });
+      },
 
       clearSelectedTrip: () =>
         set({
           selectedTrip: null,
         }),
 
+      clearOutboundTrip: () =>
+        set((state) => ({
+          outboundTrip: null,
+
+          selectedTrip:
+            state.activeJourney === "OUTBOUND" ? null : state.selectedTrip,
+        })),
+
+      clearReturnTrip: () =>
+        set((state) => ({
+          returnTrip: null,
+
+          selectedTrip:
+            state.activeJourney === "RETURN" ? null : state.selectedTrip,
+        })),
+
+      clearAllTrips: () =>
+        set({
+          selectedTrip: null,
+          outboundTrip: null,
+          returnTrip: null,
+          activeJourney: "OUTBOUND",
+          outboundSeats: [],
+          returnSeats: [],
+
+          outboundRoute: initialState.outboundRoute,
+          returnRoute: initialState.returnRoute,
+        }),
+
       // ================= SEATS =================
       toggleSeat: (seat) =>
         set((state) => {
-          const exists = state.selectedSeats.some(
-            (s) => s.seatId === seat.seatId,
+          const currentSeats =
+            state.activeJourney === "OUTBOUND"
+              ? state.outboundSeats
+              : state.returnSeats;
+
+          const exists = currentSeats.some(
+            (item) => item.seatId === seat.seatId,
           );
 
-          const selectedSeats = exists
-            ? state.selectedSeats.filter((s) => s.seatId !== seat.seatId)
-            : [...state.selectedSeats, seat];
+          const updatedSeats = exists
+            ? currentSeats.filter((item) => item.seatId !== seat.seatId)
+            : [...currentSeats, seat];
 
-          const subtotal = selectedSeats.reduce((sum, s) => sum + s.price, 0);
+          const outboundSeats =
+            state.activeJourney === "OUTBOUND"
+              ? updatedSeats
+              : state.outboundSeats;
+
+          const returnSeats =
+            state.activeJourney === "RETURN" ? updatedSeats : state.returnSeats;
+
+          const subtotal = [...outboundSeats, ...returnSeats].reduce(
+            (sum, item) => sum + item.price,
+            0,
+          );
 
           return {
-            selectedSeats,
+            outboundSeats,
+            returnSeats,
             subtotal,
             totalPrice: Math.max(subtotal - state.promotionDiscount, 0),
           };
@@ -172,16 +332,20 @@ export const useBookingStore = create<BookingStore>()(
 
       clearSeats: () =>
         set({
-          selectedSeats: [],
+          outboundSeats: [],
+          returnSeats: [],
           subtotal: 0,
           totalPrice: 0,
-        }),
 
+          outboundRoute: initialState.outboundRoute,
+          returnRoute: initialState.returnRoute,
+        }),
       // ================= PROMOTION =================
       setPromotion: (code, discount) =>
         set((state) => ({
           promotionCode: code,
           promotionDiscount: discount,
+
           totalPrice: Math.max(state.subtotal - discount, 0),
         })),
 
@@ -223,45 +387,30 @@ export const useBookingStore = create<BookingStore>()(
         }),
 
       // ================= ROUTE =================
-      setPickupPoint: (pickupPointId) =>
+      setOutboundRoute: (payload) =>
+        set((state) => ({
+          outboundRoute: {
+            ...state.outboundRoute,
+            ...payload,
+          },
+        })),
+
+      setReturnRoute: (payload) =>
+        set((state) => ({
+          returnRoute: {
+            ...state.returnRoute,
+            ...payload,
+          },
+        })),
+      // ================= SHUTTLE =================
+      setShuttleLoading: (shuttleLoading) =>
         set({
-          pickupPointId,
+          shuttleLoading,
         }),
 
-      setDropoffPoint: (dropoffPointId) =>
+      setShuttleError: (shuttleError) =>
         set({
-          dropoffPointId,
-        }),
-
-      setPickupMethod: (pickupMethod) =>
-        set({
-          pickupMethod,
-        }),
-
-      setDropoffMethod: (dropoffMethod) =>
-        set({
-          dropoffMethod,
-        }),
-
-      setPickupAddress: (pickupAddress) =>
-        set({
-          pickupAddress,
-        }),
-
-      setDropoffAddress: (dropoffAddress) =>
-        set({
-          dropoffAddress,
-        }),
-
-      // ================= SHUTTLE STATE =================
-      setShuttleLoading: (v) =>
-        set({
-          shuttleLoading: v,
-        }),
-
-      setShuttleError: (v) =>
-        set({
-          shuttleError: v,
+          shuttleError,
         }),
 
       // ================= RESET =================
@@ -279,24 +428,23 @@ export const useBookingStore = create<BookingStore>()(
       },
 
       partialize: (state) => ({
-        selectedTrip: state.selectedTrip,
-        selectedSeats: state.selectedSeats,
+        isRoundTrip: state.isRoundTrip,
+        activeJourney: state.activeJourney,
 
+        outboundTrip: state.outboundTrip,
+        returnTrip: state.returnTrip,
+        selectedTrip: state.selectedTrip,
+
+        outboundSeats: state.outboundSeats,
+        returnSeats: state.returnSeats,
         subtotal: state.subtotal,
         promotionCode: state.promotionCode,
         promotionDiscount: state.promotionDiscount,
         totalPrice: state.totalPrice,
 
         passenger: state.passenger,
-
-        pickupPointId: state.pickupPointId,
-        dropoffPointId: state.dropoffPointId,
-
-        pickupMethod: state.pickupMethod,
-        dropoffMethod: state.dropoffMethod,
-
-        pickupAddress: state.pickupAddress,
-        dropoffAddress: state.dropoffAddress,
+        outboundRoute: state.outboundRoute,
+        returnRoute: state.returnRoute,
       }),
     },
   ),

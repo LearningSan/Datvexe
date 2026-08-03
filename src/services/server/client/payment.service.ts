@@ -9,6 +9,7 @@ import type {
   PaymentMethodType,
   PaymentFlowType,
   BuiltPaymentData,
+  BookingGroupPaymentSummary,
 } from "@/types/client/payment/payment.type";
 
 import type { UpdatePaymentMethodInput } from "@/validators/client/payment.validator";
@@ -31,6 +32,9 @@ import {
   insertBookingSeatsAfterPayment,
   deleteSeatHoldsAfterPayment,
   findPaymentForConfirm,
+  insertPaymentBooking,
+  insertPaymentBookingIfNotExists,
+  validatePaymentBookings,
 } from "@/repositories/client/payment.repo";
 import { createGatewayPayment } from "@/services/server/client/payment-gateway.service";
 import { insertWalletTransaction as insertWalletHistory } from "@/repositories/client/wallet.repo";
@@ -153,13 +157,16 @@ function buildCashData(transactionCode: string): BuiltPaymentData {
 
 function buildGatewayPlaceholderData(params: {
   method: PaymentMethodType;
-  bookingId: number;
+  bookingIds: number[];
   transactionCode: string;
 }): BuiltPaymentData {
   const host = getPaymentHost();
 
-  const returnUrl = `${host}/api/client/payments/return?bookingId=${params.bookingId}`;
-  const cancelUrl = `${host}/api/client/payments/cancel?bookingId=${params.bookingId}`;
+  const ids = params.bookingIds.join(",");
+
+  const returnUrl = `${host}/api/client/payments/return?bookingIds=${ids}`;
+
+  const cancelUrl = `${host}/api/client/payments/cancel?bookingIds=${ids}`;
 
   const isVnpay = params.method === "VNPAY";
 
@@ -208,8 +215,8 @@ function buildWalletData(params: {
 
 function buildPaymentResponse(params: {
   paymentId: number;
-  bookingId: number;
-  bookingCode: string;
+  bookingIds: number[];
+  bookingCodes: string[];
   transactionCode: string;
   paymentMethod: PaymentMethodType;
   amount: number;
@@ -235,14 +242,14 @@ function buildPaymentResponse(params: {
             })
           : buildGatewayPlaceholderData({
               method: params.paymentMethod,
-              bookingId: params.bookingId,
+              bookingIds: params.bookingIds,
               transactionCode: params.transactionCode,
             });
 
   return {
     paymentId: params.paymentId,
-    bookingId: params.bookingId,
-    bookingCode: params.bookingCode,
+    bookingIds: params.bookingIds,
+    bookingCodes: params.bookingCodes,
     transactionCode: params.transactionCode,
     paymentMethod: params.paymentMethod,
     amount: params.amount,
@@ -377,31 +384,42 @@ async function confirmBookingSeatsAfterPaid(conn: any, bookingId: number) {
 
 async function payByInternalWallet(params: {
   conn: PoolConnection;
+
   paymentId: number;
-  bookingId: number;
-  bookingCode: string;
+
+  bookings: {
+    bookingId: number;
+    bookingCode: string;
+  }[];
+
   userId: number;
+
   amount: number;
+
   transactionCode: string;
 }) {
-  const bookingUser = await findBookingUserIdForWallet(
+  const bookingIds = params.bookings.map((b) => b.bookingId);
+
+  const bookingUsers = await findBookingUserIdForWallet(
     params.conn,
-    params.bookingId,
+    bookingIds,
   );
 
-  if (!bookingUser?.userId) {
+  if (
+    bookingUsers.length !== bookingIds.length ||
+    bookingUsers.some((b) => !b.userId)
+  ) {
     throw new Error("Booking không thuộc tài khoản đăng nhập");
   }
 
-  if (Number(bookingUser.userId) !== Number(params.userId)) {
+  const invalidUser = bookingUsers.some(
+    (b) => Number(b.userId) !== Number(params.userId),
+  );
+
+  if (invalidUser) {
     throw new Error("Bạn không có quyền thanh toán booking này");
   }
 
-  /*
-   * Hàm này:
-   * - tự tạo ví nếu chưa có;
-   * - SELECT ... FOR UPDATE khóa ví.
-   */
   const wallet = await findOrCreateWalletForUpdate(params.conn, params.userId);
 
   if (!wallet) {
@@ -421,10 +439,10 @@ async function payByInternalWallet(params: {
   }
 
   if (balanceBefore < amount) {
-    const missingAmount = amount - balanceBefore;
+    const missing = amount - balanceBefore;
 
     throw new Error(
-      `Số dư ví không đủ. Còn thiếu ${missingAmount.toLocaleString("vi-VN")} đ`,
+      `Số dư ví không đủ. Còn thiếu ${missing.toLocaleString("vi-VN")} đ`,
     );
   }
 
@@ -440,34 +458,40 @@ async function payByInternalWallet(params: {
 
     paymentId: params.paymentId,
 
-    bookingId: params.bookingId,
+    bookingId: bookingIds[0],
 
     topupId: null,
 
     transactionType: "PAYMENT",
 
     amount,
+
     balanceBefore,
+
     balanceAfter,
 
     referenceCode: `WALLET-PAY-${params.paymentId}-${Date.now()}`,
 
-    description: `Thanh toán vé ${params.bookingCode}`,
+    description: `Thanh toán ${bookingIds.length} vé`,
   });
 
   await markPaymentPaidByWallet(params.conn, params.paymentId);
 
-  await confirmBookingAfterPayment(params.conn, params.bookingId);
+  for (const booking of params.bookings) {
+    await confirmBookingAfterPayment(params.conn, booking.bookingId);
 
-  await confirmBookingSeatsAfterPaid(params.conn, params.bookingId);
+    await confirmBookingSeatsAfterPaid(params.conn, booking.bookingId);
+  }
 
   return {
-    bookingId: params.bookingId,
+    bookingIds,
+
     paymentId: params.paymentId,
 
     walletId: Number(wallet.walletId),
 
     balanceBefore,
+
     balanceAfter,
 
     alreadyProcessed: false,
@@ -478,19 +502,20 @@ export async function createPayment(
   payload: CreatePaymentPayload,
 ): Promise<CreatePaymentResponse> {
   return withTransaction(async (conn) => {
-    const booking = await validateBookingForPayment(conn, payload.bookingId);
-
-    const oldPayment = await findPendingPaymentByBooking(
-      conn,
-      payload.bookingId,
+    const bookings = await Promise.all(
+      payload.bookingIds.map((id) => validateBookingForPayment(conn, id)),
     );
 
-    const amount = Number(booking.amount);
+    const booking = bookings[0];
+    const oldPayment = await findPendingPaymentByBooking(
+      conn,
+      booking.bookingId,
+    );
+    const amount = bookings.reduce((sum, item) => sum + Number(item.amount), 0);
     const transactionCode = `PAY${Date.now()}${nanoid(8).replace(/[^0-9a-zA-Z]/g, "")}`;
     const flowType = getFlowType(payload.paymentMethod);
 
     let paymentId: number;
-
     if (oldPayment) {
       paymentId = Number(oldPayment.paymentId);
 
@@ -501,9 +526,15 @@ export async function createPayment(
         flowType,
         provider: payload.paymentMethod,
       });
+
+      for (const booking of bookings) {
+        await insertPaymentBookingIfNotExists(conn, {
+          paymentId,
+          bookingId: booking.bookingId,
+        });
+      }
     } else {
       paymentId = await insertPayment(conn, {
-        bookingId: payload.bookingId,
         paymentMethod: payload.paymentMethod,
         amount,
         transactionCode,
@@ -514,8 +545,14 @@ export async function createPayment(
           provider: payload.paymentMethod,
         },
       });
-    }
 
+      for (const booking of bookings) {
+        await insertPaymentBooking(conn, {
+          paymentId,
+          bookingId: booking.bookingId,
+        });
+      }
+    }
     if (isGatewayMethod(payload.paymentMethod)) {
       let demoPaymentUrl: string | undefined;
 
@@ -535,17 +572,16 @@ export async function createPayment(
 
       const gateway = await createGatewayPayment({
         method: payload.paymentMethod,
-        bookingId: payload.bookingId,
+        bookingIds: payload.bookingIds,
         bookingCode: booking.bookingCode,
         transactionCode,
         amount,
         demoPaymentUrl,
       });
-
       const response: CreatePaymentResponse = {
         paymentId,
-        bookingId: payload.bookingId,
-        bookingCode: booking.bookingCode,
+        bookingIds: payload.bookingIds,
+        bookingCodes: bookings.map((b) => b.bookingCode),
         transactionCode,
         paymentMethod: payload.paymentMethod,
         amount,
@@ -580,34 +616,51 @@ export async function createPayment(
     }
 
     if (payload.paymentMethod === "INTERNAL_WALLET") {
-      const bookingUser = await findBookingUserIdForWallet(
+      const bookingUsers = await findBookingUserIdForWallet(
         conn,
-        payload.bookingId,
+        payload.bookingIds,
       );
 
-      if (!bookingUser?.userId) {
+      if (
+        bookingUsers.length !== payload.bookingIds.length ||
+        bookingUsers.some((b) => !b.userId)
+      ) {
         throw new Error("Ví nội bộ chỉ áp dụng cho khách hàng đã đăng nhập");
       }
 
-      const wallet = await findOrCreateWalletForUpdate(
-        conn,
-        Number(bookingUser.userId),
-      );
+      const userId = Number(bookingUsers[0].userId);
+
+      const invalidUser = bookingUsers.some((b) => Number(b.userId) !== userId);
+
+      if (invalidUser) {
+        throw new Error("Các booking không cùng một tài khoản");
+      }
+
+      const wallet = await findOrCreateWalletForUpdate(conn, userId);
+
       const balance = Number(wallet?.balance ?? 0);
 
       const response = buildPaymentResponse({
         paymentId: Number(oldPayment?.paymentId ?? paymentId),
-        bookingId: payload.bookingId,
-        bookingCode: booking.bookingCode,
+
+        bookingIds: payload.bookingIds,
+
+        bookingCodes: bookings.map((b) => b.bookingCode),
+
         transactionCode,
+
         paymentMethod: payload.paymentMethod,
+
         amount,
+
         expiredAt: booking.holdExpiredAt,
+
         walletBalance: balance,
       });
 
       await updatePaymentGatewayData(conn, {
         paymentId: Number(oldPayment?.paymentId ?? paymentId),
+
         gatewayResponse: response.manualInfo ?? {},
       });
 
@@ -616,8 +669,8 @@ export async function createPayment(
 
     const response = buildPaymentResponse({
       paymentId,
-      bookingId: payload.bookingId,
-      bookingCode: booking.bookingCode,
+      bookingIds: payload.bookingIds,
+      bookingCodes: bookings.map((b) => b.bookingCode),
       transactionCode,
       paymentMethod: payload.paymentMethod,
       amount,
@@ -641,25 +694,28 @@ export async function updatePaymentMethod(
   payload: UpdatePaymentMethodInput,
 ): Promise<CreatePaymentResponse> {
   return withTransaction(async (conn) => {
-    const booking = await validateBookingForPayment(conn, payload.bookingId);
-
-    const oldPayment = await findPendingPaymentByBooking(
-      conn,
-      payload.bookingId,
+    const bookings = await Promise.all(
+      payload.bookingIds.map((id) => validateBookingForPayment(conn, id)),
     );
 
-    if (!oldPayment) {
-      throw new Error("Payment không tồn tại");
-    }
+    const booking = bookings[0];
 
-    if (Number(oldPayment.paymentId) !== Number(payload.paymentId)) {
-      throw new Error("Payment không khớp với booking");
-    }
+    const amount = bookings.reduce((sum, item) => sum + Number(item.amount), 0);
 
-    const amount = Number(oldPayment.amount);
-    const transactionCode = `PAY${Date.now()}${nanoid(8).replace(/[^0-9a-zA-Z]/g, "")}`;
+    const transactionCode = `PAY${Date.now()}${nanoid(8).replace(
+      /[^0-9a-zA-Z]/g,
+      "",
+    )}`;
+
     const flowType = getFlowType(payload.paymentMethod);
-    const paymentId = Number(oldPayment.paymentId);
+
+    const paymentId = payload.paymentId;
+
+    // Kiểm tra payment này có thuộc đúng nhóm booking không
+    await validatePaymentBookings(conn, {
+      paymentId,
+      bookingIds: payload.bookingIds,
+    });
 
     await updatePendingPaymentForNewAttempt(conn, {
       paymentId,
@@ -668,9 +724,8 @@ export async function updatePaymentMethod(
       flowType,
       provider: payload.paymentMethod,
     });
-    if (isGatewayMethod(payload.paymentMethod)) {
-      const paymentId = Number(oldPayment.paymentId);
 
+    if (isGatewayMethod(payload.paymentMethod)) {
       let demoPaymentUrl: string | undefined;
 
       if (
@@ -689,7 +744,7 @@ export async function updatePaymentMethod(
 
       const gateway = await createGatewayPayment({
         method: payload.paymentMethod,
-        bookingId: payload.bookingId,
+        bookingIds: payload.bookingIds,
         bookingCode: booking.bookingCode,
         transactionCode,
         amount,
@@ -698,20 +753,23 @@ export async function updatePaymentMethod(
 
       const response: CreatePaymentResponse = {
         paymentId,
-        bookingId: payload.bookingId,
-        bookingCode: booking.bookingCode,
+        bookingIds: payload.bookingIds,
+        bookingCodes: bookings.map((b) => b.bookingCode),
         transactionCode,
         paymentMethod: payload.paymentMethod,
         amount,
         status: "PENDING",
+
         flowType: gateway.flowType,
         uiMode: gateway.uiMode,
         actionText: gateway.actionText,
+
         qrCodeUrl: gateway.qrCodeUrl,
         paymentUrl: gateway.paymentUrl,
         deeplink: gateway.deeplink,
         returnUrl: gateway.returnUrl,
         cancelUrl: gateway.cancelUrl,
+
         manualInfo: null,
         expiredAt: booking.holdExpiredAt,
       };
@@ -729,44 +787,63 @@ export async function updatePaymentMethod(
 
       return response;
     }
+
     if (payload.paymentMethod === "INTERNAL_WALLET") {
-      const bookingUser = await findBookingUserIdForWallet(
+      const bookingUsers = await findBookingUserIdForWallet(
         conn,
-        payload.bookingId,
+        payload.bookingIds,
       );
 
-      if (!bookingUser?.userId) {
+      if (
+        bookingUsers.length !== payload.bookingIds.length ||
+        bookingUsers.some((b) => !b.userId)
+      ) {
         throw new Error("Ví nội bộ chỉ áp dụng cho khách hàng đã đăng nhập");
       }
 
-      const wallet = await findOrCreateWalletForUpdate(
-        conn,
-        Number(bookingUser.userId),
-      );
+      const userId = Number(bookingUsers[0].userId);
+
+      const invalidUser = bookingUsers.some((b) => Number(b.userId) !== userId);
+
+      if (invalidUser) {
+        throw new Error("Các booking không thuộc cùng một tài khoản");
+      }
+
+      const wallet = await findOrCreateWalletForUpdate(conn, userId);
+
       const balance = Number(wallet?.balance ?? 0);
 
       const response = buildPaymentResponse({
         paymentId,
-        bookingId: payload.bookingId,
-        bookingCode: booking.bookingCode,
+
+        bookingIds: payload.bookingIds,
+
+        bookingCodes: bookings.map((b) => b.bookingCode),
+
         transactionCode,
+
         paymentMethod: payload.paymentMethod,
+
         amount,
+
         expiredAt: booking.holdExpiredAt,
+
         walletBalance: balance,
       });
 
       await updatePaymentGatewayData(conn, {
         paymentId,
+
         gatewayResponse: response.manualInfo ?? {},
       });
 
       return response;
     }
+
     const response = buildPaymentResponse({
       paymentId,
-      bookingId: payload.bookingId,
-      bookingCode: booking.bookingCode,
+      bookingIds: payload.bookingIds,
+      bookingCodes: bookings.map((b) => b.bookingCode),
       transactionCode,
       paymentMethod: payload.paymentMethod,
       amount,
@@ -798,7 +875,6 @@ export async function getPaymentStatus(
 
   return {
     paymentId: Number(payment.paymentId),
-    bookingId: Number(payment.bookingId),
     status: payment.status,
   };
 }
@@ -822,8 +898,11 @@ export async function customerConfirmManualPayment(payload: {
     if (payment.status === "PAID") {
       return {
         success: true,
-        bookingId: Number(payment.bookingId),
-        paymentId: Number(payment.paymentId),
+
+        bookingIds: payment.bookingIds,
+
+        paymentId: payment.paymentId,
+
         alreadyProcessed: true,
       };
     }
@@ -851,11 +930,9 @@ export async function customerConfirmManualPayment(payload: {
       const walletResult = await payByInternalWallet({
         conn,
 
-        paymentId: Number(payment.paymentId),
+        paymentId: payment.paymentId,
 
-        bookingId: Number(payment.bookingId),
-
-        bookingCode: payment.bookingCode,
+        bookings: payment.bookings,
 
         userId: payload.userId,
 
@@ -866,6 +943,7 @@ export async function customerConfirmManualPayment(payload: {
 
       return {
         success: true,
+
         ...walletResult,
       };
     }
@@ -875,8 +953,11 @@ export async function customerConfirmManualPayment(payload: {
 
       return {
         success: true,
-        bookingId: Number(payment.bookingId),
-        paymentId: Number(payment.paymentId),
+
+        bookingIds: payment.bookingIds,
+
+        paymentId: payment.paymentId,
+
         alreadyProcessed: false,
       };
     }
@@ -885,22 +966,31 @@ export async function customerConfirmManualPayment(payload: {
   });
 
   /*
-   * Gửi mail và notification sau khi
-   * transaction thanh toán đã commit.
-   */
+    Side effect sau commit
+  */
+
   if (!result.alreadyProcessed && "balanceAfter" in result) {
     try {
       await sendPaymentResultSideEffects({
-        bookingId: result.bookingId,
+        bookingIds: result.bookingIds,
+
         isPaid: true,
       });
     } catch (error) {
-      console.error("[INTERNAL WALLET SIDE EFFECT ERROR]", {
-        bookingId: result.bookingId,
+      console.error("[PAYMENT SIDE EFFECT ERROR]", {
+        bookingIds: result.bookingIds,
+
         error,
       });
     }
   }
 
   return result;
+}
+export async function getBookingGroupPaymentSummary(
+  bookingIds: number[],
+): Promise<BookingGroupPaymentSummary> {
+  return {
+    bookings: await Promise.all(bookingIds.map(getBookingPaymentSummary)),
+  };
 }

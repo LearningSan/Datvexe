@@ -7,6 +7,7 @@ export const searchTripsRepo = async (input: SearchTripsRepoInput) => {
     origin,
     destination,
     date,
+    requiredSeats = 1,
     page = 1,
     limit = 10,
     timeSlots = [],
@@ -24,8 +25,7 @@ export const searchTripsRepo = async (input: SearchTripsRepoInput) => {
   const startDate = `${date} 00:00:00`;
   const endDate = `${date} 23:59:59`;
 
-  const params: any[] = [];
-
+  const params: Array<string | number> = [];
   let whereSql = `
     WHERE
       r.origin_city_id = ?
@@ -37,32 +37,57 @@ export const searchTripsRepo = async (input: SearchTripsRepoInput) => {
 
   params.push(origin, destination, startDate, endDate);
 
-  if (onlyAvailable) {
-    whereSql += `
-      AND t.available_seats > 0
-    `;
-  }
+  const safeRequiredSeats = Math.min(
+    Math.max(Number(requiredSeats) || 1, 1),
+    5,
+  );
+
+  whereSql += `
+  AND t.available_seats >= ?
+`;
+
+  params.push(safeRequiredSeats);
+
+  const TIME_SLOT_REGEX =
+    /^([01]\d|2[0-3]):[0-5]\d-(?:([01]\d|2[0-3]):[0-5]\d|24:00)$/;
 
   if (timeSlots.length > 0) {
     const conditions: string[] = [];
 
     for (const slot of timeSlots) {
+      if (!TIME_SLOT_REGEX.test(slot)) {
+        continue;
+      }
+
       const [start, end] = slot.split("-");
 
-      const startTime = `${start}:00`;
-      const endTime = end === "24:00" ? "23:59:59" : `${end}:00`;
-
-      conditions.push(`
-        TIME(t.departure_datetime)
-        BETWEEN ? AND ?
+      if (end === "24:00") {
+        conditions.push(`
+        (
+          TIME(t.departure_datetime) >= ?
+          AND TIME(t.departure_datetime) <= '23:59:59'
+        )
       `);
 
-      params.push(startTime, endTime);
+        params.push(`${start}:00`);
+        continue;
+      }
+
+      conditions.push(`
+      (
+        TIME(t.departure_datetime) >= ?
+        AND TIME(t.departure_datetime) < ?
+      )
+    `);
+
+      params.push(`${start}:00`, `${end}:00`);
     }
 
-    whereSql += `
+    if (conditions.length > 0) {
+      whereSql += `
       AND (${conditions.join(" OR ")})
     `;
+    }
   }
 
   if (vehicleTypes.length > 0) {
@@ -83,82 +108,128 @@ export const searchTripsRepo = async (input: SearchTripsRepoInput) => {
     "Tầng dưới": 1,
   };
 
-  if (floors.length > 0) {
-    const floorValues = floors
-      .map((f) => floorMap[f])
-      .filter((v) => v !== undefined);
-
-    if (floorValues.length > 0) {
-      whereSql += `
-        AND EXISTS (
-          SELECT 1
-          FROM seat_layout_details sld
-          WHERE sld.seat_layout_id = sl.seat_layout_id
-            AND sld.floor_no IN (
-              ${floorValues.map(() => "?").join(",")}
-            )
-        )
-      `;
-
-      params.push(...floorValues);
+  const seatPositionMap: Record<
+    string,
+    {
+      minRow?: number;
+      maxRow?: number;
     }
-  }
+  > = {
+    front: {
+      maxRow: 2,
+    },
 
-  const seatMap: Record<string, "front" | "middle" | "back"> = {
-    "Hàng đầu": "front",
-    "Hàng giữa": "middle",
-    "Hàng cuối": "back",
+    middle: {
+      minRow: 3,
+      maxRow: 5,
+    },
+
+    back: {
+      minRow: 6,
+    },
+
+    "Hàng đầu": {
+      maxRow: 2,
+    },
+
+    "Hàng giữa": {
+      minRow: 3,
+      maxRow: 5,
+    },
+
+    "Hàng cuối": {
+      minRow: 6,
+    },
   };
 
-  if (seatPositions.length > 0) {
-    const seatConditions: string[] = [];
+  const selectedFloorValues = [
+    ...new Set(
+      floors
+        .map((floor) => floorMap[floor])
+        .filter((value): value is number => value !== undefined),
+    ),
+  ];
 
-    for (const pos of seatPositions) {
-      const mapped = seatMap[pos];
+  const selectedSeatRanges = seatPositions
+    .map((position) => seatPositionMap[position])
+    .filter(
+      (
+        range,
+      ): range is {
+        minRow?: number;
+        maxRow?: number;
+      } => range !== undefined,
+    );
 
-      if (!mapped) continue;
+  if (selectedFloorValues.length > 0 || selectedSeatRanges.length > 0) {
+    const availableSeatConditions: string[] = [
+      "sld.seat_layout_id = sl.seat_layout_id",
+      "sld.is_active = TRUE",
+    ];
 
-      if (mapped === "front") {
-        seatConditions.push(`
-          EXISTS (
-            SELECT 1
-            FROM seat_layout_details sld
-            WHERE sld.seat_layout_id = sl.seat_layout_id
-              AND sld.row_no <= 2
-          )
-        `);
-      }
+    if (selectedFloorValues.length > 0) {
+      availableSeatConditions.push(`
+      sld.floor_no IN (
+        ${selectedFloorValues.map(() => "?").join(",")}
+      )
+    `);
 
-      if (mapped === "middle") {
-        seatConditions.push(`
-          EXISTS (
-            SELECT 1
-            FROM seat_layout_details sld
-            WHERE sld.seat_layout_id = sl.seat_layout_id
-              AND sld.row_no BETWEEN 3 AND 5
-          )
-        `);
-      }
-
-      if (mapped === "back") {
-        seatConditions.push(`
-          EXISTS (
-            SELECT 1
-            FROM seat_layout_details sld
-            WHERE sld.seat_layout_id = sl.seat_layout_id
-              AND sld.row_no >= 6
-          )
-        `);
-      }
+      params.push(...selectedFloorValues);
     }
 
-    if (seatConditions.length > 0) {
-      whereSql += `
-        AND (${seatConditions.join(" OR ")})
-      `;
+    if (selectedSeatRanges.length > 0) {
+      const rowRangeConditions: string[] = [];
+
+      for (const range of selectedSeatRanges) {
+        const currentRange: string[] = [];
+
+        if (range.minRow !== undefined) {
+          currentRange.push("sld.row_no >= ?");
+          params.push(range.minRow);
+        }
+
+        if (range.maxRow !== undefined) {
+          currentRange.push("sld.row_no <= ?");
+          params.push(range.maxRow);
+        }
+
+        rowRangeConditions.push(`
+        (${currentRange.join(" AND ")})
+      `);
+      }
+
+      availableSeatConditions.push(`
+      (${rowRangeConditions.join(" OR ")})
+    `);
     }
+
+    whereSql += `
+    AND (
+      SELECT COUNT(*)
+      FROM seat_layout_details sld
+      WHERE ${availableSeatConditions.join("\n AND ")}
+
+        AND NOT EXISTS (
+          SELECT 1
+          FROM booking_seats bs
+          WHERE bs.trip_id = t.trip_id
+            AND bs.seat_layout_detail_id =
+                sld.seat_layout_detail_id
+        )
+
+        AND NOT EXISTS (
+          SELECT 1
+          FROM seat_holds sh
+          WHERE sh.trip_id = t.trip_id
+            AND sh.seat_layout_detail_id =
+                sld.seat_layout_detail_id
+            AND sh.expired_at > NOW()
+        )
+    ) >= ?
+  `;
+
+    params.push(safeRequiredSeats);
   }
-
   let sortField = "price";
   let sortOrder: "asc" | "desc" = "asc";
 
@@ -240,12 +311,17 @@ export const searchTripsRepo = async (input: SearchTripsRepoInput) => {
       t.available_seats,
 
 COALESCE(t.ticket_price, st.base_price, r.base_price, 0) AS price,
-      (
-        SELECT pp.point_name
-        FROM pickup_points pp
-        WHERE pp.zone_id = r.origin_hub_id
-        LIMIT 1
-      ) AS pickup_point
+(
+  SELECT pp.point_name
+  FROM trip_pickup_points tpp
+  INNER JOIN pickup_points pp
+    ON pp.pickup_point_id = tpp.pickup_point_id
+  WHERE tpp.trip_id = t.trip_id
+    AND tpp.is_active = TRUE
+    AND tpp.stop_type IN ('PICKUP', 'BOTH')
+  ORDER BY tpp.stop_order ASC
+  LIMIT 1
+) AS pickup_point
 
     FROM trips t
 
@@ -347,32 +423,61 @@ export async function getTripFilterOptionsRepo(input: {
   origin: number;
   destination: number;
   date: string;
+  requiredSeats?: number;
 }) {
   const startDate = `${input.date} 00:00:00`;
   const endDate = `${input.date} 23:59:59`;
 
+  const safeRequiredSeats = Math.min(
+    Math.max(Number(input.requiredSeats) || 1, 1),
+    5,
+  );
+
   const sql = `
-    SELECT DISTINCT
-      HOUR(t.departure_datetime) AS departureHour
+    SELECT
+      HOUR(t.departure_datetime) AS departureHour,
+      COUNT(*) AS tripCount
     FROM trips t
-    INNER JOIN routes r ON r.route_id = t.route_id
+
+    INNER JOIN routes r
+      ON r.route_id = t.route_id
+
     WHERE r.origin_city_id = ?
       AND r.destination_city_id = ?
       AND t.departure_datetime BETWEEN ? AND ?
+      AND t.departure_datetime >= NOW()
       AND t.status = 'OPEN'
+      AND t.available_seats >= ?
+
+    GROUP BY HOUR(t.departure_datetime)
+
     ORDER BY departureHour ASC
   `;
+
   const rows = await query<{
     departureHour: string | number;
-  }>(sql, [input.origin, input.destination, startDate, endDate]);
+    tripCount: string | number;
+  }>(sql, [
+    input.origin,
+    input.destination,
+    startDate,
+    endDate,
+    safeRequiredSeats,
+  ]);
 
   const timeSlots = rows.map((row) => {
     const hour = Number(row.departureHour);
     const nextHour = hour + 1;
 
+    const start = `${String(hour).padStart(2, "0")}:00`;
+
+    const end =
+      nextHour === 24 ? "24:00" : `${String(nextHour).padStart(2, "0")}:00`;
+
     return {
-      label: `${String(hour).padStart(2, "0")}:00 - ${String(nextHour).padStart(2, "0")}:00`,
-      value: `${String(hour).padStart(2, "0")}:00-${String(nextHour).padStart(2, "0")}:00`,
+      label: `${start} - ${end}`,
+      value: `${start}-${end}`,
+      count: Number(row.tripCount),
     };
   });
 

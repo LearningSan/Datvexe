@@ -113,19 +113,25 @@ export async function findTicketHistoryByUserId(userId: number) {
       p.paid_at AS paidAt,
       b.created_at AS createdAt
     FROM bookings b
-    INNER JOIN trips t 
+
+    INNER JOIN trips t
       ON t.trip_id = b.trip_id
-    LEFT JOIN payments p 
+
+    LEFT JOIN payments p
       ON p.payment_id = (
-        SELECT p2.payment_id
-        FROM payments p2
-        WHERE p2.booking_id = b.booking_id
+        SELECT pb.payment_id
+        FROM payment_bookings pb
+        INNER JOIN payments p2
+          ON p2.payment_id = pb.payment_id
+        WHERE pb.booking_id = b.booking_id
         ORDER BY p2.created_at DESC
         LIMIT 1
       )
+
     WHERE b.user_id = ?
+
     ORDER BY b.created_at DESC
   `;
 
-  return await query<TicketHistoryItem>(sql, [userId]);
+  return await query(sql, [userId]);
 }

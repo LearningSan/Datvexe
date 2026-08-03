@@ -3,7 +3,7 @@ import { ZodError } from "zod";
 
 import { errorResponse, successResponse } from "@/lib/server/response";
 import { createBookingSchema } from "@/validators/client/booking.validator";
-import { createPendingBooking } from "@/services/server/client/booking.service";
+import { createRoundTripBooking } from "@/services/server/client/booking.service";
 import { getCurrentUser } from "@/services/server/client/user.service";
 import { getAuthUserId } from "@/lib/server/auth-user";
 
@@ -29,8 +29,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const result = await createPendingBooking(payload, userId);
-
+    const result = await createRoundTripBooking(payload, userId);
     return successResponse(result);
   } catch (error: any) {
     console.error(error);

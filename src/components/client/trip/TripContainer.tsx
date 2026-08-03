@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
 import { useRouter } from "next/navigation";
 
 import styles from "./TripContainer.module.css";
@@ -16,10 +17,12 @@ import ErrorRenderer from "@/lib/error/error.renderer";
 
 import { useTripFilterStore } from "@/store/filter.store";
 import { useBookingStore } from "@/store/booking.store";
+import { useSearchStore } from "@/store/search.store";
 
 import { useTripSearch, useTripFilterOptions } from "@/hooks/client/useTrip";
 
 import type { Trip } from "@/types/client/trip/trip.type";
+
 import type {
   SortField,
   TripSearchFilters,
@@ -30,23 +33,115 @@ export default function TripContainer() {
 
   const { filters, setFilters } = useTripFilterStore();
 
-  const { setSelectedTrip, clearSelectedTrip, clearSeats } = useBookingStore();
+  const currentSearch = useSearchStore((state) => state.currentSearch);
+
+  const {
+    isRoundTrip,
+    activeJourney,
+
+    outboundTrip,
+    returnTrip,
+
+    setIsRoundTrip,
+    setActiveJourney,
+
+    setSelectedTrip,
+
+    clearAllTrips,
+    clearSeats,
+  } = useBookingStore();
+
+  const [openSort, setOpenSort] = useState<"price" | "departure" | null>(null);
+
+  /* =========================
+     ĐỒNG BỘ KHỨ HỒI
+  ========================= */
+
+  useEffect(() => {
+    const roundTrip = currentSearch?.isRoundTrip === true;
+
+    setIsRoundTrip(roundTrip);
+
+    if (!roundTrip) {
+      setActiveJourney("OUTBOUND");
+    }
+  }, [currentSearch?.isRoundTrip, setIsRoundTrip, setActiveJourney]);
+
+  /*
+   * Khi vừa vào trang danh sách từ một tìm kiếm mới,
+   * xóa chuyến cũ đã chọn.
+   */
+  useEffect(() => {
+    clearAllTrips();
+    clearSeats();
+  }, [clearAllTrips, clearSeats]);
+
+  /* =========================
+     FILTER CHIỀU ĐI
+  ========================= */
+
+  const outboundFilters = useMemo<TripSearchFilters>(
+    () => ({
+      ...filters,
+
+      originCityId: filters.originCityId,
+
+      destinationCityId: filters.destinationCityId,
+
+      date: currentSearch?.departureDate || filters.date,
+    }),
+    [filters, currentSearch?.departureDate],
+  );
+
+  /* =========================
+     FILTER CHIỀU VỀ
+  ========================= */
+
+  const returnFilters = useMemo<TripSearchFilters>(
+    () => ({
+      ...filters,
+
+      originCityId: filters.destinationCityId,
+
+      destinationCityId: filters.originCityId,
+      date: currentSearch?.isRoundTrip ? (currentSearch.returnDate ?? "") : "",
+    }),
+    [filters, currentSearch?.isRoundTrip, currentSearch?.returnDate],
+  );
+
+  /* =========================
+     API gọi chuyến xe
+  ========================= */
+
+  const outboundQuery = useTripSearch(outboundFilters);
+  const returnQuery = useTripSearch(returnFilters);
+
+  /* =========================
+     QUERY ĐANG HIỂN THỊ
+  ========================= */
+
+  const activeQuery =
+    activeJourney === "OUTBOUND" ? outboundQuery : returnQuery;
+
+  const activeFilters =
+    activeJourney === "OUTBOUND" ? outboundFilters : returnFilters;
 
   const {
     trips,
     pagination,
 
     isLoading: tripsLoading,
-
-    // Refetch nền, đổi bộ lọc, đổi trang
     isFetching: tripsFetching,
 
-    // Cần hook trả thêm các field này
     isError: tripsIsError,
     error: tripsError,
-    refetch: refetchTrips,
-  } = useTripSearch(filters);
 
+    refetch: refetchTrips,
+  } = activeQuery;
+
+  /* =========================
+     FILTER OPTIONS
+  ========================= */
 
   const {
     data: filterOptions,
@@ -55,18 +150,18 @@ export default function TripContainer() {
     error: filterOptionsError,
     refetch: refetchFilterOptions,
   } = useTripFilterOptions({
-    origin: filters.originCityId ?? undefined,
-    destination: filters.destinationCityId ?? undefined,
-    date: filters.date || undefined,
+    origin: activeFilters.originCityId ?? undefined,
+
+    destination: activeFilters.destinationCityId ?? undefined,
+
+    date: activeFilters.date || undefined,
+
+    requiredSeats: activeFilters.requiredSeats,
   });
 
-  const [openSort, setOpenSort] = useState<"price" | "departure" | null>(null);
-
-  useEffect(() => {
-    clearSelectedTrip();
-    clearSeats();
-  }, [clearSelectedTrip, clearSeats]);
-
+  /* =========================
+     FILTER ACTIONS
+  ========================= */
 
   const toggleArray = (key: keyof TripSearchFilters, value: string) => {
     const current = filters[key] as string[];
@@ -96,6 +191,7 @@ export default function TripContainer() {
         field,
         order,
       },
+
       page: 1,
     });
 
@@ -108,27 +204,59 @@ export default function TripContainer() {
       vehicleTypes: [],
       seatPositions: [],
       floors: [],
+
       onlyAvailable: false,
+
       sort: {
         field: "price",
         order: "asc",
       },
+
       page: 1,
     });
   };
 
-  // =========================
-  // TRIP
-  // =========================
+  /* =========================
+     CHỌN CHUYẾN
+  ========================= */
 
   const handleChooseTrip = (trip: Trip) => {
     setSelectedTrip(trip);
-    router.push(`/trips/${trip.id}`);
+
+    if (!isRoundTrip) {
+      router.push("/seats");
+      return;
+    }
+
+    if (activeJourney === "OUTBOUND") {
+      setActiveJourney("RETURN");
+      setFilters({
+        page: 1,
+      });
+
+      return;
+    }
   };
 
-  // =========================
-  // LỖI QUERY CHÍNH
-  // =========================
+  /* =========================
+     TIẾP TỤC CHỌN GHẾ
+  ========================= */
+
+  const handleContinue = () => {
+    if (!outboundTrip) return;
+
+    if (isRoundTrip && !returnTrip) {
+      return;
+    }
+
+    /*
+     * Bắt đầu chọn ghế từ chuyến đi.
+     */
+    setActiveJourney("OUTBOUND");
+    setSelectedTrip(outboundTrip);
+
+    router.push("/seats");
+  };
 
   if (tripsIsError) {
     return (
@@ -143,7 +271,7 @@ export default function TripContainer() {
 
   return (
     <div className={styles.container}>
-      {/* SIDEBAR: QUERY PHỤ */}
+      {/* SIDEBAR */}
       <aside className={styles.sidebar}>
         <BlockErrorBoundary
           fallback={
@@ -184,8 +312,71 @@ export default function TripContainer() {
         </BlockErrorBoundary>
       </aside>
 
-      {/* MAIN: QUERY CHÍNH */}
+      {/* MAIN */}
       <main className={styles.main}>
+        {/* TAB KHỨ HỒI */}
+        {isRoundTrip && (
+          <div className={styles.journeyTabs}>
+            <button
+              type="button"
+              className={`${styles.journeyTab} ${
+                activeJourney === "OUTBOUND" ? styles.journeyTabActive : ""
+              }`}
+              onClick={() => {
+                setActiveJourney("OUTBOUND");
+
+                setFilters({
+                  page: 1,
+                });
+              }}
+            >
+              Danh sách chuyến đi
+              {outboundTrip && <span className={styles.selectedMark}>✓</span>}
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.journeyTab} ${
+                activeJourney === "RETURN" ? styles.journeyTabActive : ""
+              }`}
+              onClick={() => {
+                setActiveJourney("RETURN");
+
+                setFilters({
+                  page: 1,
+                });
+              }}
+            >
+              Danh sách chuyến về
+              {returnTrip && <span className={styles.selectedMark}>✓</span>}
+            </button>
+          </div>
+        )}
+
+        {/* THÔNG TIN CHUYẾN ĐÃ CHỌN */}
+        {isRoundTrip && (outboundTrip || returnTrip) && (
+          <div className={styles.selectedTrips}>
+            <div>
+              <strong>Chuyến đi:</strong>{" "}
+              {outboundTrip ? `${outboundTrip.id}` : "Chưa chọn"}
+            </div>
+
+            <div>
+              <strong>Chuyến về:</strong>{" "}
+              {returnTrip ? `${returnTrip.id}` : "Chưa chọn"}
+            </div>
+
+            <button
+              type="button"
+              className={styles.continueButton}
+              disabled={!outboundTrip || !returnTrip}
+              onClick={handleContinue}
+            >
+              Tiếp tục chọn ghế
+            </button>
+          </div>
+        )}
+
         <BlockErrorBoundary
           fallback={
             <BlockErrorState
@@ -197,15 +388,12 @@ export default function TripContainer() {
         >
           <TripList
             trips={trips}
-            /*
-             * Không dùng isFetching ở đây.
-             * Nếu dùng isLoading || isFetching,
-             * mỗi lần đổi trang hoặc bộ lọc có thể hiện skeleton lại.
-             */
             loading={tripsLoading}
             pagination={pagination}
             onPageChange={(page) => {
-              setFilters({ page });
+              setFilters({
+                page,
+              });
             }}
             onChooseTrip={handleChooseTrip}
           />

@@ -64,7 +64,6 @@ function getTodayLocal() {
 
   return `${year}-${month}-${day}`;
 }
-const today = getTodayLocal();
 export default function SearchForm({
   isRoundTrip,
   setIsRoundTrip,
@@ -83,12 +82,11 @@ export default function SearchForm({
   recentSearches = [],
   onSelectHistory,
 }: Props) {
+  const today = getTodayLocal();
   return (
     <div className={styles.searchCard}>
       <form
         onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
           onSubmit(e);
         }}
       >
@@ -97,6 +95,7 @@ export default function SearchForm({
           <label>
             <input
               type="radio"
+              name="tripType"
               checked={!isRoundTrip}
               onChange={() => setIsRoundTrip(false)}
               className={styles.radioInput}
@@ -107,6 +106,7 @@ export default function SearchForm({
           <label>
             <input
               type="radio"
+              name="tripType"
               checked={isRoundTrip}
               onChange={() => setIsRoundTrip(true)}
               className={styles.radioInput}
@@ -223,7 +223,16 @@ export default function SearchForm({
                 max={5}
                 className={styles.field}
                 value={ticketCount}
-                onChange={(e) => setTicketCount(Number(e.target.value))}
+                onChange={(event) => {
+                  const value = Number(event.target.value);
+
+                  if (!Number.isFinite(value)) {
+                    setTicketCount(1);
+                    return;
+                  }
+
+                  setTicketCount(Math.min(Math.max(Math.trunc(value), 1), 5));
+                }}
               />
             </div>
           </div>

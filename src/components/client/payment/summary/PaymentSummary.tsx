@@ -2,11 +2,12 @@
 
 import React from "react";
 import styles from "./PaymentSummary.module.css";
-import type { BookingPaymentSummary } from "@/types/client/payment/payment.type";
+import type { BookingGroupPaymentSummary } from "@/types/client/payment/payment.type";
 import { formatCurrency } from "@/lib/client/helpers";
 
 interface Props {
-  summary: BookingPaymentSummary;
+  summary: BookingGroupPaymentSummary;
+  totalAmount: number;
 }
 
 function Row({
@@ -22,89 +23,148 @@ function Row({
 }) {
   return (
     <div className={`${styles.row} ${sub ? styles.sub : ""}`}>
-      <span className={styles.lbl}>{label}</span>
+      {label}
       <span className={`${styles.val} ${cls ?? ""}`}>{value}</span>
     </div>
   );
 }
 
-export default function PaymentSummary({ summary }: Props) {
+export default function PaymentSummary({ summary, totalAmount }: Props) {
+  if (!summary.bookings || summary.bookings.length === 0) {
+    return null;
+  }
+
+  const trip = summary.bookings[0];
+  const returnTrip = summary.bookings[1];
+
   return (
     <div className={styles.card}>
-      {/* HEADER TỔNG HỢP */}
-      <div className={styles.header}>
-        <h3 className={styles.title}>Chi tiết đặt vé</h3>
-        <span className={styles.routeHighlight}>{summary.routeName}</span>
-      </div>
+      {/* HEADER */}
+      <div className={styles.header}>Chi tiết đặt vé</div>
 
-      {/* 1. SECTION: THÔNG TIN HÀNH KHÁCH (GỌN GÀNG) */}
+      {/* THÔNG TIN HÀNH KHÁCH */}
       <div className={styles.sectionTitle}>Thông tin hành khách</div>
-      <Row label="Hành khách" value={summary.passengerName} />
-      <Row label="Số điện thoại" value={summary.passengerPhone} />
+
+      <Row label="Hành khách" value={trip.passengerName} />
+      <Row label="Số điện thoại" value={trip.passengerPhone} />
       <Row
         label="Email"
-        value={
-          summary.passengerEmail ? summary.passengerEmail : "Chưa cập nhật"
-        }
-        cls={!summary.passengerEmail ? styles.notUpdated : ""}
+        value={trip.passengerEmail ?? "Chưa cập nhật"}
+        cls={!trip.passengerEmail ? styles.notUpdated : ""}
       />
+
       <div className={styles.divider} />
 
+      {/* THÔNG TIN CHUYẾN ĐI */}
       <div className={styles.sectionTitle}>Thông tin chuyến đi</div>
+
+      <Row label="Tuyến đường" value={trip.routeName} />
+      {returnTrip && (
+        <Row label="Tuyến đường (về)" value={returnTrip.routeName} />
+      )}
+
       <Row
         label="Giờ xuất bến"
-        value={summary.departureDatetime}
+        value={trip.departureDatetime}
         cls={styles.green}
       />
-      <Row label="Loại xe" value={summary.vehicleTypeName} />
-      <Row
-        label="Số lượng ghế"
-        value={`${summary.seatCount} ghế (${summary.seatNumbers.join(", ")})`}
-      />
-
-      <div className={styles.spaceBox} />
-
-      {/* Điểm đón */}
-      <Row label="Điểm lên xe" value={summary.pickupPointName} />
-      {summary.pickupPointAddress && (
-        <Row value={summary.pickupPointAddress} sub cls={styles.address} />
-      )}
-      <Row
-        label="Dự kiến đến"
-        value={summary.arrivalDatetime}
-        cls={styles.red}
-      />
-
-      <div className={styles.spaceBox} />
-
-      {/* Điểm trả */}
-      <Row label="Điểm trả khách" value={summary.dropoffPointName} />
-      {summary.dropoffPointAddress && (
-        <Row value={summary.dropoffPointAddress} sub cls={styles.address} />
-      )}
-
-      <div className={styles.divider} />
-
-      {/* 3. SECTION: CHI TIẾT GIÁ & TỔNG TIỀN */}
-      <div className={styles.sectionTitle}>Chi tiết giá</div>
-      <Row
-        label={`Giá vé (×${summary.seatCount})`}
-        value={formatCurrency(summary.ticketPrice * summary.seatCount)}
-        cls={styles.orange}
-      />
-      {summary.discountAmount > 0 && (
+      {returnTrip && (
         <Row
-          label="Giảm giá"
-          value={`-${formatCurrency(summary.discountAmount)}`}
+          label="Giờ xuất bến (về)"
+          value={returnTrip.departureDatetime}
           cls={styles.green}
         />
       )}
 
-      {/* KHỐI TỔNG TIỀN NỔI BẬT */}
+      <Row label="Loại xe" value={trip.vehicleTypeName} />
+      {returnTrip && (
+        <Row label="Loại xe (về)" value={returnTrip.vehicleTypeName} />
+      )}
+
+      <Row
+        label="Số lượng ghế"
+        value={`${trip.seatCount} ghế (${trip.seatNumbers.join(", ")})`}
+      />
+      {returnTrip && (
+        <Row
+          label="Số lượng ghế (về)"
+          value={`${returnTrip.seatCount} ghế (${returnTrip.seatNumbers.join(
+            ", ",
+          )})`}
+        />
+      )}
+
+      <div className={styles.spaceBox} />
+
+      <Row label="Điểm lên xe" value={trip.pickupPointName} />
+      {trip.pickupPointAddress && (
+        <Row value={trip.pickupPointAddress} sub cls={styles.address} />
+      )}
+
+      {returnTrip && (
+        <>
+          <Row label="Điểm lên xe (về)" value={returnTrip.pickupPointName} />
+          {returnTrip.pickupPointAddress && (
+            <Row
+              value={returnTrip.pickupPointAddress}
+              sub
+              cls={styles.address}
+            />
+          )}
+        </>
+      )}
+
+      <Row label="Dự kiến đến" value={trip.arrivalDatetime} cls={styles.red} />
+      {returnTrip && (
+        <Row
+          label="Dự kiến đến (về)"
+          value={returnTrip.arrivalDatetime}
+          cls={styles.red}
+        />
+      )}
+
+      <div className={styles.spaceBox} />
+
+      <Row label="Điểm trả khách" value={trip.dropoffPointName} />
+      {trip.dropoffPointAddress && (
+        <Row value={trip.dropoffPointAddress} sub cls={styles.address} />
+      )}
+
+      {returnTrip && (
+        <>
+          <Row
+            label="Điểm trả khách (về)"
+            value={returnTrip.dropoffPointName}
+          />
+          {returnTrip.dropoffPointAddress && (
+            <Row
+              value={returnTrip.dropoffPointAddress}
+              sub
+              cls={styles.address}
+            />
+          )}
+        </>
+      )}
+
+      <div className={styles.divider} />
+
+      {/* CHI TIẾT GIÁ */}
+      <div className={styles.sectionTitle}>Chi tiết giá</div>
+
+      {summary.bookings.map((booking) => (
+        <Row
+          key={booking.bookingId}
+          label={`${booking.routeName} (${booking.seatCount} ghế)`}
+          value={formatCurrency(booking.totalAmount)}
+          cls={styles.orange}
+        />
+      ))}
+
       <div className={styles.totalRow}>
         <span className={styles.totalLbl}>Tổng tiền</span>
+
         <span className={`${styles.totalVal} ${styles.orange}`}>
-          {formatCurrency(summary.totalAmount)}
+          {formatCurrency(totalAmount)}
         </span>
       </div>
     </div>

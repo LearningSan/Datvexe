@@ -8,10 +8,10 @@ export default function PaymentResultPage() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const bookingId = searchParams.get("bookingId");
+    const bookingGroupId = searchParams.get("bookingGroupId");
 
-    if (bookingId) {
-      router.replace(`/payment/${bookingId}`);
+    if (bookingGroupId) {
+      router.replace(`/payment/${bookingGroupId}`);
       return;
     }
 

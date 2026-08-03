@@ -235,16 +235,18 @@ export async function findCheckinDashboardPassengers(
         ON pp.pickup_point_id = b.pickup_point_id
 
       WHERE bs.trip_id = ?
-        AND b.status = 'CONFIRMED'
+  AND b.status = 'CONFIRMED'
 
-        AND EXISTS (
-          SELECT 1
-          FROM payments paid_payment
-          WHERE paid_payment.booking_id = b.booking_id
-            AND paid_payment.status = 'PAID'
-        )
+  AND EXISTS (
+    SELECT 1
+    FROM payment_bookings pb
+    INNER JOIN payments paid_payment
+      ON paid_payment.payment_id = pb.payment_id
+    WHERE pb.booking_id = b.booking_id
+      AND paid_payment.status = 'PAID'
+  )
 
-        ${filter.sql}
+  ${filter.sql}
 
       ORDER BY ${orderBy}
 

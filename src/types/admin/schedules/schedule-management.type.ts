@@ -60,6 +60,8 @@ export interface UpdateScheduleTemplateStatusPayload {
 export interface AdminScheduleRouteOption {
   routeId: number;
   routeName: string;
+  basePrice: number;
+  estimatedDuration: number;
 }
 
 export interface AdminScheduleVehicleOption {

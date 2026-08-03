@@ -38,14 +38,13 @@ import BlockErrorBoundary from "@/components/common/BlockErrorBoundary";
 import BlockSkeleton from "@/components/common/BlockSkeleton";
 
 interface Props {
-  bookingId: number;
+  bookingIds: number[];
 }
 
-export default function PaymentContainer({ bookingId }: Props) {
+export default function PaymentContainer({ bookingIds }: Props) {
   useCancelSeatHoldOnExit();
 
   const router = useRouter();
-
   const initialCreatedRef = useRef(false);
   const expiredHandledRef = useRef(false);
   const methodChangingRef = useRef(false);
@@ -74,7 +73,7 @@ export default function PaymentContainer({ bookingId }: Props) {
     reset,
   } = usePaymentStore();
 
-  const summaryQuery = useBookingSummary(bookingId);
+  const summaryQuery = useBookingSummary(bookingIds);
 
   const {
     data: summary,
@@ -83,6 +82,8 @@ export default function PaymentContainer({ bookingId }: Props) {
     error: summaryError,
     refetch: refetchSummary,
   } = summaryQuery;
+  const bookings = summary?.bookings ?? [];
+
   const { mutate: createPayment, isPending: isCreating } = useCreatePayment();
   const { mutate: cancelHold } = useCancelHold();
 
@@ -101,16 +102,23 @@ export default function PaymentContainer({ bookingId }: Props) {
     Boolean(paymentId) && (step === "checkout" || step === "processing"),
   );
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  const tripId = summary?.tripId;
+  const totalAmount = useMemo(() => {
+    return (
+      summary?.bookings.reduce(
+        (total, booking) => total + booking.totalAmount,
+        0,
+      ) ?? 0
+    );
+  }, [summary]);
 
   useEffect(() => {
     setSessionId(localStorage.getItem("session_id") ?? "");
   }, []);
 
   useEffect(() => {
-    if (!summary?.holdExpiredAt) return;
-    setExpiredAt(summary.holdExpiredAt);
-  }, [summary?.holdExpiredAt, setExpiredAt]);
+    if (!summary?.bookings[0].holdExpiredAt) return;
+    setExpiredAt(summary.bookings[0].holdExpiredAt);
+  }, [summary?.bookings[0].holdExpiredAt, setExpiredAt]);
 
   useEffect(() => {
     return () => {
@@ -122,7 +130,7 @@ export default function PaymentContainer({ bookingId }: Props) {
     if (!sessionId || isCreating || isUpdatingMethod || paymentId) return;
 
     createPayment({
-      bookingId,
+      bookingIds,
       paymentMethod: selectedMethod,
       sessionId,
     });
@@ -132,50 +140,44 @@ export default function PaymentContainer({ bookingId }: Props) {
     isUpdatingMethod,
     paymentId,
     createPayment,
-    bookingId,
+    bookingIds,
     selectedMethod,
   ]);
 
-const handleConfirmManualPayment = useCallback(() => {
-  if (!paymentId || isConfirmingManual) return;
+  const handleConfirmManualPayment = useCallback(() => {
+    if (!paymentId || isConfirmingManual) return;
 
-  /*
-   * Chuyển sang processing ngay khi bắt đầu gửi request.
-   * Không đặt processing trong onSuccess vì response có thể về
-   * sau khi polling đã chuyển giao diện sang success.
-   */
-  setPaymentError(null);
-  setStep("processing");
+    /*
+     * Chuyển sang processing ngay khi bắt đầu gửi request.
+     * Không đặt processing trong onSuccess vì response có thể về
+     * sau khi polling đã chuyển giao diện sang success.
+     */
+    setPaymentError(null);
+    setStep("processing");
 
-  confirmManualPayment(
-    { paymentId },
-    {
-      onSuccess: () => {
+    confirmManualPayment(
+      { paymentId },
+      {
+        onSuccess: () => {
+          setPaymentError(null);
+        },
 
-        setPaymentError(null);
+        onError: (error: any) => {
+          const currentStep = usePaymentStore.getState().step;
+
+          if (currentStep !== "success") {
+            setPaymentError(
+              error?.response?.data?.message ||
+                error?.message ||
+                "Không thể xác nhận thanh toán. Vui lòng thử lại.",
+            );
+
+            setStep("checkout");
+          }
+        },
       },
-
-      onError: (error: any) => {
-        const currentStep = usePaymentStore.getState().step;
-
-        if (currentStep !== "success") {
-          setPaymentError(
-            error?.response?.data?.message ||
-              error?.message ||
-              "Không thể xác nhận thanh toán. Vui lòng thử lại.",
-          );
-
-          setStep("checkout");
-        }
-      },
-    },
-  );
-}, [
-  paymentId,
-  isConfirmingManual,
-  confirmManualPayment,
-  setStep,
-]);
+    );
+  }, [paymentId, isConfirmingManual, confirmManualPayment, setStep]);
 
   useEffect(() => {
     if (!paymentStatus) return;
@@ -218,7 +220,7 @@ const handleConfirmManualPayment = useCallback(() => {
 
     createPayment(
       {
-        bookingId,
+        bookingIds,
         paymentMethod: selectedMethod,
         sessionId,
       },
@@ -237,7 +239,7 @@ const handleConfirmManualPayment = useCallback(() => {
     sessionId,
     paymentId,
     step,
-    bookingId,
+    bookingIds,
     selectedMethod,
     createPayment,
   ]);
@@ -246,7 +248,7 @@ const handleConfirmManualPayment = useCallback(() => {
     if (
       expiredHandledRef.current ||
       !sessionId ||
-      !tripId ||
+      !summary ||
       step === "success"
     ) {
       return;
@@ -255,27 +257,38 @@ const handleConfirmManualPayment = useCallback(() => {
     expiredHandledRef.current = true;
     setStep("expired");
 
-    cancelHold({
-      bookingId,
-      tripId,
-      sessionId,
+    summary.bookings.forEach((booking) => {
+      cancelHold({
+        bookingId: booking.bookingId,
+        tripId: booking.tripId,
+        sessionId,
+      });
     });
-  }, [bookingId, tripId, sessionId, cancelHold, setStep, step]);
+  }, [summary, sessionId, cancelHold, setStep, step]);
 
   const handleCancel = useCallback(() => {
-    if (!sessionId || !tripId) return;
-
-    cancelHold(
-      { bookingId, tripId, sessionId },
-      {
-        onSuccess: () => {
-          reset();
-          router.replace("/trips");
+    if (!sessionId || !summary) return;
+    let completed = 0;
+    summary.bookings.forEach((booking) => {
+      cancelHold(
+        {
+          bookingId: booking.bookingId,
+          tripId: booking.tripId,
+          sessionId,
         },
-      },
-    );
-  }, [bookingId, tripId, sessionId, cancelHold, reset, router]);
+        {
+          onSettled: () => {
+            completed++;
 
+            if (completed === summary.bookings.length) {
+              reset();
+              router.replace("/trips");
+            }
+          },
+        },
+      );
+    });
+  }, [summary, sessionId, cancelHold, reset, router]);
   const handleRetry = useCallback(() => {
     initialCreatedRef.current = false;
     methodChangingRef.current = false;
@@ -289,6 +302,8 @@ const handleConfirmManualPayment = useCallback(() => {
 
   const handleChangeMethod = useCallback(
     (method: typeof selectedMethod) => {
+      if (!summary) return;
+
       if (method === selectedMethod) return;
       if (!sessionId) return;
       if (isCreating || isUpdatingMethod) return;
@@ -304,10 +319,13 @@ const handleConfirmManualPayment = useCallback(() => {
       };
 
       if (paymentId) {
+        let finished = 0;
+        let hasError = false;
+
         updatePaymentMethod(
           {
             paymentId,
-            bookingId,
+            bookingIds,
             paymentMethod: method,
             sessionId,
           },
@@ -315,22 +333,27 @@ const handleConfirmManualPayment = useCallback(() => {
             onSuccess: () => {
               setPaymentError(null);
             },
+
             onError: (error: any) => {
               setPaymentError(
-                error?.response?.data?.message ||
-                  error?.message ||
-                  "Không tạo được thanh toán. Vui lòng chọn phương thức khác.",
+                error?.response?.data?.message ??
+                  error?.message ??
+                  "Không tạo được thanh toán.",
               );
             },
-            onSettled,
+
+            onSettled: () => {
+              methodChangingRef.current = false;
+            },
           },
         );
+
         return;
       }
 
       createPayment(
         {
-          bookingId,
+          bookingIds,
           paymentMethod: method,
           sessionId,
         },
@@ -353,7 +376,7 @@ const handleConfirmManualPayment = useCallback(() => {
       selectedMethod,
       sessionId,
       paymentId,
-      bookingId,
+      bookingIds,
       setMethod,
       setStep,
       updatePaymentMethod,
@@ -370,12 +393,14 @@ const handleConfirmManualPayment = useCallback(() => {
 
     return {
       paymentId,
-      bookingId,
-      bookingCode: summary.bookingCode,
+      bookingIds: bookings.map((b) => b.bookingId),
+
+      bookingCodes: bookings.map((b) => b.bookingCode),
       transactionCode,
       paymentMethod: selectedMethod,
-      amount: summary.totalAmount,
-      status: paymentStatus?.status ?? ("PENDING" as const),
+
+      amount: totalAmount,
+      status: paymentStatus?.status ?? "PENDING",
 
       flowType,
       uiMode,
@@ -386,14 +411,14 @@ const handleConfirmManualPayment = useCallback(() => {
       deeplink,
       returnUrl,
       cancelUrl,
+
       manualInfo,
 
-      expiredAt: summary.holdExpiredAt ?? "",
+      expiredAt: summary.bookings[0].holdExpiredAt ?? "",
     };
   }, [
     summary,
     paymentId,
-    bookingId,
     transactionCode,
     selectedMethod,
     paymentStatus?.status,
@@ -407,12 +432,21 @@ const handleConfirmManualPayment = useCallback(() => {
     cancelUrl,
     manualInfo,
   ]);
+
   const handleRetrySummary = useCallback(() => {
     void refetchSummary();
   }, [refetchSummary]);
+
   const isResultStep =
     step === "success" || step === "failed" || step === "expired";
-  if (!Number.isFinite(bookingId) || bookingId <= 0) {
+
+  if (
+    bookings.length === 0 ||
+    bookings.some(
+      (booking) =>
+        !Number.isFinite(booking.bookingId) || booking.bookingId <= 0,
+    )
+  ) {
     return (
       <ErrorRenderer
         error={{
@@ -423,7 +457,6 @@ const handleConfirmManualPayment = useCallback(() => {
       />
     );
   }
-
   if (summaryPending && !summary) {
     return <BlockSkeleton height={500} />;
   }
@@ -469,22 +502,20 @@ const handleConfirmManualPayment = useCallback(() => {
           >
             {step === "success" && (
               <PaymentSuccess
-                bookingCode={summary.bookingCode}
+                bookingCodes={summary.bookings.map((b) => b.bookingCode)}
                 onToggleDetails={() => setShowDetails(!showDetails)}
                 showDetails={showDetails}
               />
             )}
             {step === "failed" && (
               <PaymentFailed
-                bookingId={bookingId}
+                bookingIds={bookingIds}
                 onRetry={handleRetry}
                 onToggleDetails={() => setShowDetails(!showDetails)}
                 showDetails={showDetails}
               />
             )}
-            {step === "expired" && (
-              <PaymentExpired bookingId={bookingId} />
-            )}{" "}
+            {step === "expired" && <PaymentExpired bookingIds={bookingIds} />}
           </div>
         ) : (
           <>
@@ -500,7 +531,7 @@ const handleConfirmManualPayment = useCallback(() => {
             <div className={styles.centerCol}>
               <BlockErrorBoundary fallback={<BlockSkeleton height={480} />}>
                 <CountdownTimer
-                  expiredAt={summary.holdExpiredAt}
+                  expiredAt={summary.bookings[0].holdExpiredAt}
                   onExpired={handleExpired}
                 />
                 {paymentError && (
@@ -552,7 +583,8 @@ const handleConfirmManualPayment = useCallback(() => {
                 )}
                 <QRPayment
                   method={selectedMethod}
-                  totalAmount={summary.totalAmount}
+                  totalAmount={totalAmount}
+                  bookingIds={bookings.map((b) => b.bookingId)}
                   paymentData={paymentData}
                   isSubmitting={
                     isCreating || isUpdatingMethod || isConfirmingManual
@@ -579,7 +611,7 @@ const handleConfirmManualPayment = useCallback(() => {
             }}
           >
             <BlockErrorBoundary fallback={<BlockSkeleton height={500} />}>
-              <PaymentSummary summary={summary} />
+              <PaymentSummary summary={summary} totalAmount={totalAmount} />
             </BlockErrorBoundary>
           </div>
         )}

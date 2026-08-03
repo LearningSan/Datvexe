@@ -64,69 +64,71 @@ export async function findCheckinBookingByIdentity(input: {
 }): Promise<CheckinBookingRow | null> {
   const rows = await query<CheckinBookingRow>(
     `
-      SELECT
-        b.booking_id AS bookingId,
-        b.booking_code AS bookingCode,
-        b.trip_id AS tripId,
+    SELECT
+      b.booking_id AS bookingId,
+      b.booking_code AS bookingCode,
+      b.trip_id AS tripId,
 
-        b.contact_name AS passengerName,
-        b.contact_phone AS passengerPhone,
-        b.contact_email AS passengerEmail,
+      b.contact_name AS passengerName,
+      b.contact_phone AS passengerPhone,
+      b.contact_email AS passengerEmail,
 
-        oc.city_name AS originCity,
-        dc.city_name AS destinationCity,
+      oc.city_name AS originCity,
+      dc.city_name AS destinationCity,
 
-        t.departure_datetime AS departureDatetime,
-        t.arrival_datetime AS arrivalDatetime,
+      t.departure_datetime AS departureDatetime,
+      t.arrival_datetime AS arrivalDatetime,
 
-        pp.point_name AS pickupPointName,
-        pp.address AS pickupPointAddress,
+      pp.point_name AS pickupPointName,
+      pp.address AS pickupPointAddress,
 
-        dp.point_name AS dropoffPointName,
-        dp.address AS dropoffPointAddress,
+      dp.point_name AS dropoffPointName,
+      dp.address AS dropoffPointAddress,
 
-        v.vehicle_name AS vehicleName,
-        v.license_plate AS licensePlate,
+      v.vehicle_name AS vehicleName,
+      v.license_plate AS licensePlate,
 
-        b.status AS bookingStatus,
+      b.status AS bookingStatus,
 
-        (
-          SELECT p.status
-          FROM payments p
-          WHERE p.booking_id = b.booking_id
-          ORDER BY p.payment_id DESC
-          LIMIT 1
-        ) AS paymentStatus,
+      (
+        SELECT p.status
+        FROM payment_bookings pb
+        INNER JOIN payments p
+          ON p.payment_id = pb.payment_id
+        WHERE pb.booking_id = b.booking_id
+        ORDER BY p.payment_id DESC
+        LIMIT 1
+      ) AS paymentStatus,
 
-        t.status AS tripStatus
+      t.status AS tripStatus
 
-      FROM bookings b
+    FROM bookings b
 
-      INNER JOIN trips t
-        ON t.trip_id = b.trip_id
+    INNER JOIN trips t
+      ON t.trip_id = b.trip_id
 
-      INNER JOIN routes r
-        ON r.route_id = t.route_id
+    INNER JOIN routes r
+      ON r.route_id = t.route_id
 
-      INNER JOIN cities oc
-        ON oc.city_id = r.origin_city_id
+    INNER JOIN cities oc
+      ON oc.city_id = r.origin_city_id
 
-      INNER JOIN cities dc
-        ON dc.city_id = r.destination_city_id
+    INNER JOIN cities dc
+      ON dc.city_id = r.destination_city_id
 
-      LEFT JOIN pickup_points pp
-        ON pp.pickup_point_id = b.pickup_point_id
+    LEFT JOIN pickup_points pp
+      ON pp.pickup_point_id = b.pickup_point_id
 
-      LEFT JOIN pickup_points dp
-        ON dp.pickup_point_id = b.dropoff_point_id
+    LEFT JOIN pickup_points dp
+      ON dp.pickup_point_id = b.dropoff_point_id
 
-      LEFT JOIN vehicles v
-        ON v.vehicle_id = t.vehicle_id
+    LEFT JOIN vehicles v
+      ON v.vehicle_id = t.vehicle_id
 
-      WHERE b.booking_id = ?
-        AND b.booking_code = ?
+    WHERE b.booking_id = ?
+      AND b.booking_code = ?
 
-      LIMIT 1
+    LIMIT 1
     `,
     [input.bookingId, input.bookingCode],
   );

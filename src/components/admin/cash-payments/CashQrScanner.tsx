@@ -27,11 +27,14 @@ export default function CashQrScanner({
   const controlsRef = useRef<IScannerControls | null>(null);
   const onDetectedRef = useRef(onDetected);
   const scannerSessionRef = useRef(0);
-  const lastResultRef = useRef<{ value: string; detectedAt: number } | null>(
-    null,
-  );
+
+  const lastResultRef = useRef<{
+    value: string;
+    detectedAt: number;
+  } | null>(null);
 
   const [scannerState, setScannerState] = useState<ScannerState>("IDLE");
+
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
@@ -40,9 +43,13 @@ export default function CashQrScanner({
 
   const stopMediaTracks = useCallback(() => {
     const video = videoRef.current;
+
     const stream =
       video?.srcObject instanceof MediaStream ? video.srcObject : null;
-    stream?.getTracks().forEach((track) => track.stop());
+
+    stream?.getTracks().forEach((track) => {
+      track.stop();
+    });
 
     if (video) {
       video.pause();
@@ -54,37 +61,120 @@ export default function CashQrScanner({
 
   const stopScanner = useCallback(() => {
     scannerSessionRef.current += 1;
+
     try {
       controlsRef.current?.stop();
     } catch (error) {
       console.warn("[STOP CASH QR SCANNER CONTROLS ERROR]", error);
     }
+
     controlsRef.current = null;
+
     stopMediaTracks();
+
     setScannerState("IDLE");
     setErrorMessage("");
   }, [stopMediaTracks]);
 
+  const handleScanResult = useCallback((rawValue: string) => {
+    const value = rawValue.trim();
+
+    if (!value) return;
+
+    const now = Date.now();
+    const previous = lastResultRef.current;
+
+    if (
+      previous &&
+      previous.value === value &&
+      now - previous.detectedAt < SCAN_COOLDOWN_MS
+    ) {
+      return;
+    }
+
+    lastResultRef.current = {
+      value,
+      detectedAt: now,
+    };
+
+    onDetectedRef.current(value);
+  }, []);
+
+  const startWithPreferredCamera = useCallback(
+    async (
+      reader: BrowserMultiFormatReader,
+      video: HTMLVideoElement,
+    ): Promise<IScannerControls> => {
+      const callback = (result: { getText(): string } | undefined) => {
+        if (!result) return;
+
+        handleScanResult(result.getText());
+      };
+
+      try {
+        /*
+         * Ưu tiên bắt buộc camera sau.
+         * Một số laptop không có camera environment nên có thể lỗi.
+         */
+        return await reader.decodeFromConstraints(
+          {
+            audio: false,
+            video: {
+              facingMode: {
+                exact: "environment",
+              },
+            },
+          },
+          video,
+          callback,
+        );
+      } catch (error: unknown) {
+        /*
+         * Chỉ fallback khi thiết bị không đáp ứng constraint.
+         * Các lỗi quyền camera hoặc camera đang bận vẫn được ném ra ngoài.
+         */
+        if (error instanceof Error && error.name !== "OverconstrainedError") {
+          throw error;
+        }
+
+        /*
+         * Fallback:
+         * - Điện thoại vẫn ưu tiên camera sau.
+         * - Laptop có thể dùng webcam mặc định.
+         */
+        return reader.decodeFromConstraints(
+          {
+            audio: false,
+            video: {
+              facingMode: {
+                ideal: "environment",
+              },
+              width: {
+                ideal: 1280,
+              },
+              height: {
+                ideal: 720,
+              },
+            },
+          },
+          video,
+          callback,
+        );
+      }
+    },
+    [handleScanResult],
+  );
+
   const startScanner = useCallback(async () => {
-    if (!enabled || !videoRef.current) return;
+    const video = videoRef.current;
+
+    if (!enabled || !video) return;
 
     if (!window.isSecureContext) {
       setScannerState("ERROR");
       setErrorMessage("Camera chỉ hoạt động trên HTTPS hoặc localhost.");
       return;
     }
-
-    try {
-      controlsRef.current?.stop();
-    } catch {}
-    controlsRef.current = null;
-    stopMediaTracks();
-
-    const currentSession = scannerSessionRef.current + 1;
-    scannerSessionRef.current = currentSession;
-
-    setScannerState("STARTING");
-    setErrorMessage("");
 
     if (
       typeof navigator === "undefined" ||
@@ -95,35 +185,25 @@ export default function CashQrScanner({
       return;
     }
 
+    try {
+      controlsRef.current?.stop();
+    } catch {}
+
+    controlsRef.current = null;
+
+    stopMediaTracks();
+
+    const currentSession = scannerSessionRef.current + 1;
+
+    scannerSessionRef.current = currentSession;
+
+    setScannerState("STARTING");
+    setErrorMessage("");
+
     const reader = new BrowserMultiFormatReader();
 
     try {
-      const controls = await reader.decodeFromConstraints(
-        {
-          audio: false,
-          video: { facingMode: { exact: "environment" } },
-        },
-        videoRef.current,
-        (result) => {
-          if (!result) return;
-          const value = result.getText().trim();
-          if (!value) return;
-
-          const now = Date.now();
-          const previous = lastResultRef.current;
-
-          if (
-            previous &&
-            previous.value === value &&
-            now - previous.detectedAt < SCAN_COOLDOWN_MS
-          ) {
-            return;
-          }
-
-          lastResultRef.current = { value, detectedAt: now };
-          onDetectedRef.current(value);
-        },
-      );
+      const controls = await startWithPreferredCamera(reader, video);
 
       if (scannerSessionRef.current !== currentSession || !enabled) {
         controls.stop();
@@ -132,15 +212,21 @@ export default function CashQrScanner({
       }
 
       controlsRef.current = controls;
+
       setScannerState("SCANNING");
     } catch (error: unknown) {
-      if (scannerSessionRef.current !== currentSession) return;
+      if (scannerSessionRef.current !== currentSession) {
+        return;
+      }
+
       console.error("[CASH QR SCANNER ERROR]", error);
+
       stopMediaTracks();
+
       setScannerState("ERROR");
       setErrorMessage(getCameraErrorMessage(error));
     }
-  }, [enabled, stopMediaTracks]);
+  }, [enabled, startWithPreferredCamera, stopMediaTracks]);
 
   useEffect(() => {
     if (enabled) {
@@ -151,15 +237,33 @@ export default function CashQrScanner({
 
     return () => {
       scannerSessionRef.current += 1;
+
       try {
         controlsRef.current?.stop();
       } catch {}
+
       controlsRef.current = null;
+
       stopMediaTracks();
     };
   }, [enabled, startScanner, stopScanner, stopMediaTracks]);
 
-  const isCameraActive = enabled && scannerState !== "ERROR";
+  const isCameraActive =
+    enabled && (scannerState === "STARTING" || scannerState === "SCANNING");
+
+  const handleToggleCamera = () => {
+    /*
+     * Khi enabled đang true nhưng scannerState là ERROR,
+     * gọi onToggleCamera sẽ biến enabled thành false.
+     * Vì vậy cần khởi động lại trực tiếp.
+     */
+    if (enabled && scannerState === "ERROR") {
+      void startScanner();
+      return;
+    }
+
+    onToggleCamera();
+  };
 
   return (
     <section className={styles.scannerCard}>
@@ -168,6 +272,7 @@ export default function CashQrScanner({
           <h3>Camera quét QR tại quầy</h3>
           <p>Đặt mã QR của khách hàng vào giữa khung hình.</p>
         </div>
+
         <span
           className={`${styles.statusBadge} ${
             scannerState === "SCANNING"
@@ -190,20 +295,19 @@ export default function CashQrScanner({
           autoPlay
         />
 
-        {/* LỚP PHỦ TIÊU ĐIỂM QUÉT */}
         <div className={styles.scanOverlay}>
           <span className={styles.cornerTopLeft} />
           <span className={styles.cornerTopRight} />
           <span className={styles.cornerBottomLeft} />
           <span className={styles.cornerBottomRight} />
+
           {scannerState === "SCANNING" && <div className={styles.scanLine} />}
         </div>
 
-        {/* NÚT ĐIỀU KHIỂN NỔI LÊN TRÊN KHUNG CAMERA */}
         <div className={styles.toggleContainer}>
           <button
             type="button"
-            onClick={onToggleCamera}
+            onClick={handleToggleCamera}
             className={`${styles.toggleButton} ${
               isCameraActive ? styles.toggleActive : styles.toggleInactive
             }`}
@@ -219,9 +323,8 @@ export default function CashQrScanner({
                   size={18}
                   className={scannerState === "STARTING" ? styles.spinIcon : ""}
                 />
-                {scannerState === "ERROR"
-                  ? "Thử lại / Bật camera"
-                  : "Bật camera"}
+
+                {scannerState === "ERROR" ? "Thử lại camera" : "Bật camera"}
               </>
             )}
           </button>
@@ -266,28 +369,39 @@ function getScannerStatusLabel(state: ScannerState) {
   switch (state) {
     case "SCANNING":
       return "Đang quét";
+
     case "STARTING":
       return "Đang khởi động";
+
     case "ERROR":
       return "Camera gặp lỗi";
+
     default:
       return "Tạm dừng";
   }
 }
 
 function getCameraErrorMessage(error: unknown) {
-  if (!(error instanceof Error)) return "Không thể truy cập camera.";
+  if (!(error instanceof Error)) {
+    return "Không thể truy cập camera.";
+  }
+
   switch (error.name) {
     case "NotAllowedError":
       return "Bạn chưa cấp quyền sử dụng camera cho trình duyệt.";
+
     case "NotFoundError":
       return "Không tìm thấy camera trên thiết bị.";
+
     case "NotReadableError":
       return "Camera đang được ứng dụng khác sử dụng.";
+
     case "OverconstrainedError":
       return "Camera không đáp ứng cấu hình yêu cầu.";
+
     case "SecurityError":
       return "Camera chỉ hoạt động trên localhost hoặc website HTTPS.";
+
     default:
       return error.message || "Không thể truy cập camera.";
   }

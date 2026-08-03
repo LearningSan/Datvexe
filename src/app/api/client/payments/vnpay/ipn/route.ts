@@ -89,11 +89,14 @@ export async function GET(request: NextRequest) {
     if (!result.alreadyProcessed) {
       try {
         await sendPaymentResultSideEffects({
-          bookingId: result.bookingId,
+          bookingIds: result.bookingIds,
           isPaid: status === "SUCCESS",
         });
       } catch (sideEffectError) {
-        console.error("[VNPAY SIDE EFFECT ERROR]", sideEffectError);
+        console.error("[VNPAY SIDE EFFECT ERROR]", {
+          bookingIds: result.bookingIds,
+          error: sideEffectError,
+        });
       }
     }
 

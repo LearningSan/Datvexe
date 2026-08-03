@@ -1,12 +1,15 @@
 "use client";
 
+import AdminAuthBootstrap from "@/providers/AdminAuthBootstrap";
+
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { LogOut, Menu } from "lucide-react";
-import AdminSidebar from "@/components/admin/layout/AdminSidebar";
 
+import AdminSidebar from "@/components/admin/layout/AdminSidebar";
 import { useAdminAuth } from "@/hooks/admin/useAuth";
+
 import styles from "@/components/admin/layout/AdminLayout.module.css";
 
 export default function AdminLayout({
@@ -14,18 +17,25 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  return (
+    <AdminAuthBootstrap>
+      <AdminLayoutContent>{children}</AdminLayoutContent>
+    </AdminAuthBootstrap>
+  );
+}
+
+function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
   const { initialized, isAuthenticated, logout } = useAdminAuth();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const isLoginPage = pathname === "/admin/login";
 
   useEffect(() => {
-    if (!initialized) {
-      return;
-    }
+    if (!initialized) return;
 
     if (isLoginPage && isAuthenticated) {
       router.replace("/admin/dashboard");
@@ -48,16 +58,18 @@ export default function AdminLayout({
       return null;
     }
 
-    return <>{children}</>;
+    return children;
   }
 
   if (!isAuthenticated) {
     return null;
   }
+
   const handleLogout = async () => {
     await logout();
     router.replace("/admin/login");
   };
+
   return (
     <div className={styles.layout}>
       <button
@@ -69,6 +81,7 @@ export default function AdminLayout({
       >
         <Menu size={24} />
       </button>
+
       {isSidebarOpen && (
         <button
           type="button"
@@ -77,10 +90,12 @@ export default function AdminLayout({
           aria-label="Đóng menu quản trị"
         />
       )}
+
       <AdminSidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
+
       <main className={styles.main}>
         <button
           type="button"

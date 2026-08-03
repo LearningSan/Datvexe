@@ -4,15 +4,13 @@ import { fetchTripSeats } from "@/services/client/seat.service";
 
 import type { TripSeatResponse } from "@/types/client/seat/seat-response.type";
 
-export function useTripSeats(tripId: number, initialData?: TripSeatResponse) {
+export function useTripSeats(tripId?: number) {
   return useQuery<TripSeatResponse>({
     queryKey: ["trip-seats", tripId],
 
-    queryFn: () => fetchTripSeats(tripId),
+    queryFn: () => fetchTripSeats(tripId!),
 
-    enabled: Number.isFinite(tripId) && tripId > 0,
-
-    initialData,
+    enabled: !!tripId,
 
     meta: {
       globalLoading: false,

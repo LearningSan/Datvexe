@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { loginOAuth } from "@/services/server/client/auth.service";
-import { setRefreshCookie } from "@/lib/server/cookie";
+import { setClientRefreshCookie } from "@/lib/server/client-cookie";
 
 interface FacebookTokenResponse {
   access_token: string;
@@ -74,10 +74,10 @@ export async function GET(req: NextRequest) {
     });
 
     const res = NextResponse.redirect(
-      `${process.env.APP_URL}/home?auth=success`,
+      `${process.env.APP_URL}/?auth=success`,
     );
 
-    setRefreshCookie(res, result.refreshToken);
+    setClientRefreshCookie(res, result.refreshToken);
 
     res.cookies.set("oauth_state", "", {
       path: "/",
@@ -85,10 +85,15 @@ export async function GET(req: NextRequest) {
     });
 
     return res;
-  } catch (error) {
+  } catch (error: any) {
     console.error("[FACEBOOK OAUTH ERROR]", error);
+
+    if (error.message === "USER_BLOCKED") {
+      return NextResponse.redirect(`${process.env.APP_URL}/?auth=blocked`);
+    }
+
     return NextResponse.redirect(
-      `${process.env.APP_URL}/home?auth=oauth_failed`,
+      `${process.env.APP_URL}/?auth=oauth_failed`,
     );
   }
 }

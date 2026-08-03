@@ -11,14 +11,14 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
 
     const parsed = searchTripsSchema.safeParse({
-      originCityId: Number(searchParams.get("origin")),
-
-      destinationCityId: Number(searchParams.get("destination")),
+      originCityId: searchParams.get("origin"),
+      destinationCityId: searchParams.get("destination"),
 
       date: searchParams.get("date"),
 
-      page: searchParams.get("page"),
+      requiredSeats: searchParams.get("requiredSeats"),
 
+      page: searchParams.get("page"),
       limit: searchParams.get("limit"),
 
       timeSlots: searchParams.getAll("timeSlots"),
@@ -27,6 +27,8 @@ export async function GET(request: NextRequest) {
       floors: searchParams.getAll("floors"),
 
       sort: searchParams.get("sort"),
+
+      onlyAvailable: searchParams.get("onlyAvailable"),
     });
     if (!parsed.success) {
       return errorResponse(

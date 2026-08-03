@@ -11,7 +11,9 @@ export const paymentMethodSchema = z.enum([
 ]);
 
 export const createPaymentSchema = z.object({
-  bookingId: z.coerce.number().int().positive("bookingId không hợp lệ"),
+  bookingIds: z
+    .array(z.coerce.number().int().positive())
+    .min(1, "Phải có ít nhất một booking"),
   paymentMethod: paymentMethodSchema,
   sessionId: z.string().trim().min(1, "sessionId không hợp lệ"),
 });
@@ -40,8 +42,13 @@ export const paymentWebhookSchema = z.object({
 
 export const updatePaymentMethodSchema = z.object({
   paymentId: z.coerce.number().int().positive("paymentId không hợp lệ"),
-  bookingId: z.coerce.number().int().positive("bookingId không hợp lệ"),
+
+  bookingIds: z
+    .array(z.coerce.number().int().positive("bookingId không hợp lệ"))
+    .min(1, "bookingIds không được để trống"),
+
   paymentMethod: paymentMethodSchema,
+
   sessionId: z.string().trim().min(1, "sessionId không hợp lệ"),
 });
 
@@ -53,4 +60,9 @@ export type UpdatePaymentMethodInput = z.infer<
 >;
 export const manualConfirmSchema = z.object({
   note: z.string().max(255).optional(),
+});
+export const bookingPaymentSummarySchema = z.object({
+  bookingIds: z
+    .array(z.coerce.number().int().positive())
+    .min(1, "Phải có ít nhất 1 bookingId"),
 });

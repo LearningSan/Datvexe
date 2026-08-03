@@ -133,11 +133,14 @@ export async function POST(request: NextRequest) {
     if (!result.alreadyProcessed) {
       try {
         await sendPaymentResultSideEffects({
-          bookingId: result.bookingId,
+          bookingIds: result.bookingIds,
           isPaid: true,
         });
       } catch (sideEffectError) {
-        console.error("[PAYOS SIDE EFFECT ERROR]", sideEffectError);
+        console.error("[PAYOS SIDE EFFECT ERROR]", {
+          bookingIds: result.bookingIds,
+          error: sideEffectError,
+        });
       }
     }
 

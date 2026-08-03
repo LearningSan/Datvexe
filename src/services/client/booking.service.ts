@@ -10,7 +10,7 @@ import type { ApiResponse } from "@/types/common/api.type";
 export type CreateBookingPayload = CreateBookingInput & {
   sessionId: string;
 };
-export async function createBooking(payload: CreateBookingPayload) {
+export async function createBooking(payload: CreateBookingInput) {
   const res = await api.post<ApiResponse<any>>("/client/bookings", payload);
 
   return res.data.data;

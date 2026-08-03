@@ -7,7 +7,6 @@ export async function findPaymentByTransactionCode(
 ) {
   const rows = await connQuery<{
     paymentId: number;
-    bookingId: number;
     amount: string | number;
     status: PaymentStatus;
     transactionCode: string;
@@ -16,7 +15,6 @@ export async function findPaymentByTransactionCode(
     `
     SELECT
       payment_id AS paymentId,
-      booking_id AS bookingId,
       amount,
       status,
       transaction_code AS transactionCode
@@ -75,7 +73,21 @@ export async function updateBookingStatus(
     [status, bookingId],
   );
 }
-
+export async function findBookingIdsByPaymentId(
+  conn: mysql.PoolConnection,
+  paymentId: number,
+) {
+  return connQuery<{ bookingId: number }>(
+    conn,
+    `
+        SELECT booking_id AS bookingId
+        FROM payment_bookings
+        WHERE payment_id = ?
+        ORDER BY booking_id
+        `,
+    [paymentId],
+  );
+}
 export async function findBookingSeats(bookingId: number) {
   const sql = `
     SELECT
@@ -201,8 +213,13 @@ export async function decrementAvailableSeats(
   );
 }
 
-export async function findBookingByIdForNotification(bookingId: number) {
+export async function findBookingsByIdsForNotification(bookingIds: number[]) {
+  if (!bookingIds.length) return [];
+
+  const placeholders = bookingIds.map(() => "?").join(",");
+
   const rows = await query<{
+    bookingId: number;
     bookingCode: string;
     userId: number | null;
     contactEmail: string | null;
@@ -216,6 +233,7 @@ export async function findBookingByIdForNotification(bookingId: number) {
 
     pickupPointName: string | null;
     pickupPointAddress: string | null;
+
     dropoffPointName: string | null;
     dropoffPointAddress: string | null;
 
@@ -226,6 +244,7 @@ export async function findBookingByIdForNotification(bookingId: number) {
   }>(
     `
     SELECT
+      b.booking_id AS bookingId,
       b.booking_code AS bookingCode,
       b.user_id AS userId,
       b.contact_email AS contactEmail,
@@ -286,31 +305,12 @@ export async function findBookingByIdForNotification(bookingId: number) {
     LEFT JOIN seat_layout_details sld
       ON sld.seat_layout_detail_id = bs.seat_layout_detail_id
 
-    WHERE b.booking_id = ?
+    WHERE b.booking_id IN (${placeholders})
 
-    GROUP BY
-      b.booking_id,
-      b.booking_code,
-      b.user_id,
-      b.contact_email,
-      b.contact_name,
-      b.contact_phone,
-      b.total_amount,
-      oc.city_name,
-      dc.city_name,
-      t.departure_datetime,
-      t.arrival_datetime,
-      pickup.point_name,
-      pickup.address,
-      dropoff.point_name,
-      dropoff.address,
-      v.vehicle_name,
-      v.license_plate
-
-    LIMIT 1
+    GROUP BY b.booking_id
     `,
-    [bookingId],
+    bookingIds,
   );
 
-  return rows[0] ?? null;
+  return rows;
 }

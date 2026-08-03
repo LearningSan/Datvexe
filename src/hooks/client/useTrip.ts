@@ -18,6 +18,7 @@ export function useTripSearch(filters: TripSearchFilters) {
       filters.originCityId,
       filters.destinationCityId,
       filters.date,
+      filters.requiredSeats,
       filters.page,
       filters.limit,
       filters.sort.field,
@@ -52,7 +53,7 @@ export function useTripSearch(filters: TripSearchFilters) {
     trips: query.data?.trips ?? [],
     pagination: query.data?.pagination ?? null,
 
-    isLoading: query.isPending,
+    isLoading: canSearch && query.isPending,
     isFetching: query.isFetching,
 
     isError: query.isError,
@@ -66,13 +67,17 @@ export function useTripFilterOptions(filters: {
   origin?: number;
   destination?: number;
   date?: string;
+  requiredSeats?: number;
 }) {
+  const canLoad = !!filters.origin && !!filters.destination && !!filters.date;
+
   return useQuery({
     queryKey: [
       "trip-filter-options",
       filters.origin,
       filters.destination,
       filters.date,
+      filters.requiredSeats ?? 1,
     ],
 
     queryFn: () =>
@@ -80,13 +85,11 @@ export function useTripFilterOptions(filters: {
         origin: Number(filters.origin),
         destination: Number(filters.destination),
         date: String(filters.date),
+        requiredSeats: filters.requiredSeats ?? 1,
       }),
 
-    enabled: !!filters.origin && !!filters.destination && !!filters.date,
+    enabled: canLoad,
 
-    /**
-     * Sidebar tự xử lý skeleton và lỗi riêng.
-     */
     meta: {
       globalLoading: false,
     },

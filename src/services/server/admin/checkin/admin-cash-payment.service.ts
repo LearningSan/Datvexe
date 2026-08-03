@@ -81,22 +81,24 @@ export async function confirmAdminCashPayment(
       },
     });
 
+    if (!result.alreadyProcessed) {
+      try {
+        await sendPaymentResultSideEffects({
+          bookingIds: confirmResult.bookingIds,
+          isPaid: true,
+        });
+      } catch (error) {
+        console.error("[CASH PAYMENT SIDE EFFECT ERROR]", {
+          bookingIds: confirmResult.bookingIds,
+          error,
+        });
+      }
+    }
     return {
       ...confirmResult,
       paymentId: Number(payment.paymentId),
     };
   });
-
-  if (!result.alreadyProcessed) {
-    try {
-      await sendPaymentResultSideEffects({
-        bookingId: result.bookingId,
-        isPaid: true,
-      });
-    } catch (error) {
-      console.error("[CASH PAYMENT SIDE EFFECT ERROR]", error);
-    }
-  }
 
   return result;
 }

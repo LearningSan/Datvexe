@@ -1,16 +1,19 @@
 import crypto from "crypto";
 
+export interface CheckinQrBooking {
+  bookingId: number;
+  bookingCode: string;
+}
+
 export interface CheckinQrPayload {
   type: "CHECKIN";
   version: 1;
 
-  bookingId: number;
-  bookingCode: string;
+  bookings: CheckinQrBooking[];
 
   issuedAt: number;
   signature: string;
 }
-
 type UnsignedCheckinQrPayload = Omit<CheckinQrPayload, "signature">;
 
 function getCheckinQrSecret(): string {
@@ -27,8 +30,7 @@ function createSignature(payload: UnsignedCheckinQrPayload): string {
   const rawData = [
     payload.type,
     payload.version,
-    payload.bookingId,
-    payload.bookingCode,
+    JSON.stringify(payload.bookings),
     payload.issuedAt,
   ].join("|");
 
@@ -39,24 +41,35 @@ function createSignature(payload: UnsignedCheckinQrPayload): string {
 }
 
 export function createCheckinQrPayload(input: {
-  bookingId: number;
-  bookingCode: string;
+  bookings: CheckinQrBooking[];
 }): CheckinQrPayload {
-  if (!Number.isInteger(input.bookingId) || input.bookingId <= 0) {
-    throw new Error("bookingId tạo QR check-in không hợp lệ");
+  if (!Array.isArray(input.bookings) || input.bookings.length === 0) {
+    throw new Error("Danh sách booking tạo QR check-in không hợp lệ");
   }
 
-  const bookingCode = input.bookingCode.trim();
+  const bookings = input.bookings.map((booking) => {
+    if (!Number.isInteger(booking.bookingId) || booking.bookingId <= 0) {
+      throw new Error("bookingId tạo QR check-in không hợp lệ");
+    }
 
-  if (!bookingCode) {
-    throw new Error("bookingCode tạo QR check-in không hợp lệ");
-  }
+    const bookingCode = booking.bookingCode.trim();
 
-  const unsignedPayload: UnsignedCheckinQrPayload = {
-    type: "CHECKIN",
-    version: 1,
-    bookingId: input.bookingId,
-    bookingCode,
+    if (!bookingCode) {
+      throw new Error("bookingCode tạo QR check-in không hợp lệ");
+    }
+
+    return {
+      bookingId: booking.bookingId,
+      bookingCode,
+    };
+  });
+
+  const unsignedPayload = {
+    type: "CHECKIN" as const,
+    version: 1 as const,
+
+    bookings,
+
     issuedAt: Date.now(),
   };
 
@@ -67,8 +80,7 @@ export function createCheckinQrPayload(input: {
 }
 
 export function encodeCheckinQrPayload(input: {
-  bookingId: number;
-  bookingCode: string;
+  bookings: CheckinQrBooking[];
 }): string {
   return JSON.stringify(createCheckinQrPayload(input));
 }
@@ -84,10 +96,31 @@ export function verifyCheckinQrPayload(input: unknown): CheckinQrPayload {
     throw new Error("QR không phải mã check-in của XeKhachPT");
   }
 
-  const bookingId = Number(value.bookingId);
+  if (!Array.isArray(value.bookings)) {
+    throw new Error("QR không có danh sách booking");
+  }
 
-  const bookingCode =
-    typeof value.bookingCode === "string" ? value.bookingCode.trim() : "";
+  const bookings = value.bookings.map((item) => {
+    if (typeof item !== "object" || item === null) {
+      throw new Error("Thông tin booking trong QR không hợp lệ");
+    }
+
+    const booking = item as Record<string, unknown>;
+
+    const bookingId = Number(booking.bookingId);
+
+    const bookingCode =
+      typeof booking.bookingCode === "string" ? booking.bookingCode.trim() : "";
+
+    if (!Number.isInteger(bookingId) || bookingId <= 0 || !bookingCode) {
+      throw new Error("Thông tin booking trong QR không hợp lệ");
+    }
+
+    return {
+      bookingId,
+      bookingCode,
+    };
+  });
 
   const issuedAt = Number(value.issuedAt);
 
@@ -95,9 +128,7 @@ export function verifyCheckinQrPayload(input: unknown): CheckinQrPayload {
     typeof value.signature === "string" ? value.signature.trim() : "";
 
   if (
-    !Number.isInteger(bookingId) ||
-    bookingId <= 0 ||
-    !bookingCode ||
+    bookings.length === 0 ||
     !Number.isFinite(issuedAt) ||
     issuedAt <= 0 ||
     !signature
@@ -108,8 +139,7 @@ export function verifyCheckinQrPayload(input: unknown): CheckinQrPayload {
   const unsignedPayload: UnsignedCheckinQrPayload = {
     type: "CHECKIN",
     version: 1,
-    bookingId,
-    bookingCode,
+    bookings,
     issuedAt,
   };
 

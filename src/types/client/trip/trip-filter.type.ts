@@ -1,11 +1,12 @@
 export type SortField = "price" | "departure" | "availableSeats";
-
 export type SortOrder = "asc" | "desc";
 
 export interface TripSearchFilters {
   originCityId: number | null;
   destinationCityId: number | null;
   date: string;
+
+  requiredSeats: number;
 
   page: number;
   limit: number;

@@ -1,6 +1,11 @@
-// src/app/page.tsx
 import { redirect } from "next/navigation";
 
-export default function RootPage() {
-  redirect("/home");
+export default async function RootPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ auth?: string }>;
+}) {
+  const { auth } = await searchParams;
+
+  redirect(auth ? `/home?auth=${auth}` : "/home");
 }

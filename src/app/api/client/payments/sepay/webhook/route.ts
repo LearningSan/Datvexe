@@ -166,7 +166,7 @@ export async function POST(req: NextRequest) {
     console.log("[SEPAY WEBHOOK SUCCESS]", {
       sepayTransactionId: payload.id,
       transactionCode,
-      bookingId: result.bookingId,
+      bookingIds: result.bookingIds,
       alreadyProcessed: result.alreadyProcessed,
     });
 
@@ -174,7 +174,7 @@ export async function POST(req: NextRequest) {
       success: true,
       data: {
         transactionCode,
-        bookingId: result.bookingId,
+        bookingIds: result.bookingIds,
         alreadyProcessed: result.alreadyProcessed,
       },
     });

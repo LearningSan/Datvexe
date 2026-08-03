@@ -1,20 +1,18 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-
 import { ChevronRight, MapPin, Building2 } from "lucide-react";
 
 import styles from "./LocationAutocomplete.module.css";
 
-import { SelectedLocation } from "@/types/client/route/location-search.type";
-
+import type { SelectedLocation } from "@/types/client/route/location-search.type";
 import { useLocationSearch } from "@/hooks/client/useRoute";
 
 type Props = {
   label: string;
   placeholder: string;
   value: SelectedLocation | null;
-  onSelect: (value: SelectedLocation) => void;
+  onSelect: (value: SelectedLocation | null) => void;
 };
 
 export default function LocationAutocomplete({
@@ -26,32 +24,39 @@ export default function LocationAutocomplete({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const [keyword, setKeyword] = useState("");
-
   const [open, setOpen] = useState(false);
-
   const [focused, setFocused] = useState(false);
-
-  const [expandedZones, setExpandedZones] = useState<number[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [expandedZones, setExpandedZones] = useState<number[]>([]);
 
-  const { data, isFetching } = useLocationSearch(keyword, open && isTyping);
-  const searchData = data || [];
+  const normalizedKeyword = keyword.trim();
+
+  const { data = [], isFetching } = useLocationSearch(
+    normalizedKeyword,
+    open && isTyping,
+  );
+
   useEffect(() => {
-    if (value?.label) {
+    if (value) {
       setKeyword(value.label);
       setIsTyping(false);
       setOpen(false);
-    } else {
-      setKeyword("");
-      setIsTyping(false);
+      return;
     }
-  }, [value?.id, value?.label]);
+
+    setKeyword("");
+    setIsTyping(false);
+    setOpen(false);
+  }, [value]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
+      const target = event.target;
+
       if (
         wrapperRef.current &&
-        !wrapperRef.current.contains(event.target as Node)
+        target instanceof Node &&
+        !wrapperRef.current.contains(target)
       ) {
         setOpen(false);
         setFocused(false);
@@ -65,32 +70,23 @@ export default function LocationAutocomplete({
     };
   }, []);
 
-  const toggleZone = (zoneId: number) => {
-    setExpandedZones((prev) =>
-      prev.includes(zoneId)
-        ? prev.filter((id) => id !== zoneId)
-        : [...prev, zoneId],
+  function toggleZone(zoneId: number) {
+    setExpandedZones((previous) =>
+      previous.includes(zoneId)
+        ? previous.filter((id) => id !== zoneId)
+        : [...previous, zoneId],
     );
-  };
+  }
 
-  const createCitySelection = (
-    cityId: number,
-    label: string,
-  ): SelectedLocation => {
-    return {
-      type: "CITY",
-      id: cityId,
-      label,
-    };
-  };
-  const handleSelectLocation = (selected: SelectedLocation) => {
+  function handleSelectLocation(selected: SelectedLocation) {
     setKeyword(selected.label);
     setIsTyping(false);
     setOpen(false);
     setExpandedZones([]);
 
     onSelect(selected);
-  };
+  }
+
   return (
     <div ref={wrapperRef} className={styles.wrapper}>
       <label className={styles.label}>{label}</label>
@@ -107,25 +103,41 @@ export default function LocationAutocomplete({
           value={keyword}
           placeholder={placeholder}
           className={styles.input}
+          autoComplete="off"
           onFocus={() => {
             setFocused(true);
 
-            if (isTyping && keyword.trim().length >= 2) {
+            if (isTyping && normalizedKeyword.length >= 2) {
               setOpen(true);
             }
           }}
-          onKeyDown={(e) => {
-            // ❌ chặn enter submit form
-            if (e.key === "Enter") {
-              e.preventDefault();
-            }
-          }}
-          onChange={(e) => {
-            const nextKeyword = e.target.value;
+          onChange={(event) => {
+            const nextKeyword = event.target.value;
 
             setKeyword(nextKeyword);
             setIsTyping(true);
             setOpen(nextKeyword.trim().length >= 2);
+
+            /*
+             * Người dùng đã sửa text sau khi chọn địa điểm.
+             * Phải xóa SelectedLocation cũ.
+             */
+            if (value && nextKeyword !== value.label) {
+              onSelect(null);
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              setOpen(false);
+            }
+
+            /*
+             * Chỉ chặn Enter khi dropdown đang mở.
+             * Nếu dropdown đóng thì Enter vẫn có thể submit form.
+             */
+            if (event.key === "Enter" && open) {
+              event.preventDefault();
+            }
           }}
         />
       </div>
@@ -134,38 +146,39 @@ export default function LocationAutocomplete({
         <div className={styles.dropdown}>
           {isFetching && <div className={styles.loading}>Đang tìm kiếm...</div>}
 
-          {!isFetching && !searchData.length && (
+          {!isFetching && data.length === 0 && (
             <div className={styles.empty}>Không tìm thấy kết quả</div>
           )}
 
           {!isFetching &&
-            searchData.map((city) => (
+            data.map((city) => (
               <div key={city.city_id} className={styles.cityBlock}>
-                {/* CITY */}
                 <div className={styles.sectionTitle}>TỈNH / THÀNH</div>
 
                 <button
                   type="button"
                   className={styles.cityItem}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSelectLocation(
-                      createCitySelection(city.city_id, city.city_name),
-                    );
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={(event) => {
+                    event.stopPropagation();
+
+                    handleSelectLocation({
+                      type: "CITY",
+                      id: city.city_id,
+                      cityId: city.city_id,
+                      label: city.city_name,
+                    });
                   }}
                 >
                   <MapPin size={18} />
 
                   <div className={styles.cityContent}>
                     <div className={styles.cityName}>{city.city_name}</div>
-
                     <small>Tỉnh / Thành phố</small>
                   </div>
                 </button>
 
-                {/* ZONES */}
-                {!!city.zones.length && (
+                {city.zones.length > 0 && (
                   <>
                     <div className={styles.sectionTitle}>QUẬN / HUYỆN</div>
 
@@ -174,10 +187,9 @@ export default function LocationAutocomplete({
                         <button
                           type="button"
                           className={styles.zoneItem}
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={(e) => {
-                            e.stopPropagation();
-
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={(event) => {
+                            event.stopPropagation();
                             toggleZone(zone.zone_id);
                           }}
                         >
@@ -186,7 +198,9 @@ export default function LocationAutocomplete({
                               {zone.zone_name}
                             </div>
 
-                            <small>{zone.pickupPointCount} văn phòng</small>
+                            <small>
+                              {zone.pickupPointCount} điểm đón/văn phòng
+                            </small>
                           </div>
 
                           <ChevronRight
@@ -206,16 +220,18 @@ export default function LocationAutocomplete({
                                 key={office.pickup_point_id}
                                 type="button"
                                 className={styles.officeItem}
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={(e) => {
-                                  e.stopPropagation();
+                                onMouseDown={(event) => event.preventDefault()}
+                                onClick={(event) => {
+                                  event.stopPropagation();
 
-                                  handleSelectLocation(
-                                    createCitySelection(
-                                      city.city_id,
-                                      office.point_name,
-                                    ),
-                                  );
+                                  handleSelectLocation({
+                                    type: "OFFICE",
+                                    id: office.pickup_point_id,
+                                    cityId: city.city_id,
+                                    zoneId: zone.zone_id,
+                                    label: office.point_name,
+                                    address: office.address,
+                                  });
                                 }}
                               >
                                 <Building2 size={15} />
@@ -236,8 +252,7 @@ export default function LocationAutocomplete({
                   </>
                 )}
 
-                {/* DIRECT OFFICES */}
-                {!!city.directPickupPoints.length && (
+                {city.directPickupPoints.length > 0 && (
                   <>
                     <div className={styles.sectionTitle}>VĂN PHÒNG</div>
 
@@ -247,16 +262,18 @@ export default function LocationAutocomplete({
                           key={office.pickup_point_id}
                           type="button"
                           className={styles.officeItem}
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={(e) => {
-                            e.stopPropagation();
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={(event) => {
+                            event.stopPropagation();
 
-                            handleSelectLocation(
-                              createCitySelection(
-                                city.city_id,
-                                office.point_name,
-                              ),
-                            );
+                            handleSelectLocation({
+                              type: "OFFICE",
+                              id: office.pickup_point_id,
+                              cityId: city.city_id,
+                              zoneId: office.zone_id ?? undefined,
+                              label: office.point_name,
+                              address: office.address,
+                            });
                           }}
                         >
                           <Building2 size={15} />

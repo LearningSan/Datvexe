@@ -1,9 +1,7 @@
 import "@/styles/globals.css";
 import QueryProvider from "@/providers/query-provider";
 import GlobalLoading from "@/providers/GlobalLoading";
-import { Toaster } from "sonner";
-import AuthBootstrap from "@/providers/AuthBootstrap";
-
+import { Toaster } from "react-hot-toast";
 export default function RootLayout({
   children,
 }: {
@@ -12,13 +10,28 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <body>
-        <AuthBootstrap>
-          <QueryProvider>
-            <GlobalLoading />
-            {children}
-            <Toaster position="top-right" richColors />
-          </QueryProvider>
-        </AuthBootstrap>
+        <QueryProvider>
+          <GlobalLoading />
+          {children}
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+              success: {
+                style: {
+                  background: "#22c55e",
+                  color: "#fff",
+                },
+              },
+              error: {
+                style: {
+                  background: "#ef4444",
+                  color: "#fff",
+                },
+              },
+            }}
+          />{" "}
+        </QueryProvider>
       </body>
     </html>
   );

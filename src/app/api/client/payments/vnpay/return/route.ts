@@ -152,15 +152,17 @@ export async function POST(request: NextRequest) {
         gatewayResponse: body,
       });
     });
-
     if (!result.alreadyProcessed) {
       try {
         await sendPaymentResultSideEffects({
-          bookingId: result.bookingId,
+          bookingIds: result.bookingIds,
           isPaid: true,
         });
       } catch (sideEffectError) {
-        console.error("[ZALOPAY SIDE EFFECT ERROR]", sideEffectError);
+        console.error("[ZALOPAY SIDE EFFECT ERROR]", {
+          bookingIds: result.bookingIds,
+          error: sideEffectError,
+        });
       }
     }
 

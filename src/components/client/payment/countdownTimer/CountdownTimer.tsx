@@ -12,6 +12,9 @@ export default function CountdownTimer({
   expiredAt,
   onExpired,
 }: CountdownTimerProps) {
+  console.log("expiredAt:", expiredAt);
+  console.log(new Date(expiredAt));
+  console.log(new Date(expiredAt).getTime());
   const onExpiredRef = useRef(onExpired);
   const expiredCalledRef = useRef(false);
 

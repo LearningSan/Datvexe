@@ -1,48 +1,33 @@
 import { cookies } from "next/headers";
-import type { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-const DEFAULT_ADMIN_REFRESH_COOKIE = "admin_refresh";
-const DEFAULT_ADMIN_REFRESH_MAX_AGE = 60 * 60 * 24 * 7;
-
-const ADMIN_REFRESH_COOKIE =
-  process.env.ADMIN_REFRESH_COOKIE_NAME?.trim() || DEFAULT_ADMIN_REFRESH_COOKIE;
-
-const parsedMaxAge = Number(process.env.ADMIN_REFRESH_COOKIE_MAX_AGE);
-
-const ADMIN_REFRESH_MAX_AGE =
-  Number.isFinite(parsedMaxAge) && parsedMaxAge > 0
-    ? parsedMaxAge
-    : DEFAULT_ADMIN_REFRESH_MAX_AGE;
-
-function getAdminCookieOptions() {
-  return {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
-    path: "/api/admin/auth",
-  };
-}
+const ADMIN_REFRESH_COOKIE = "admin_refresh_token";
 
 export function setAdminRefreshCookie(
-  response: NextResponse,
-  refreshToken: string,
+  res: NextResponse,
+  token: string,
 ) {
-  response.cookies.set(ADMIN_REFRESH_COOKIE, refreshToken, {
-    ...getAdminCookieOptions(),
-    maxAge: ADMIN_REFRESH_MAX_AGE,
+  res.cookies.set(ADMIN_REFRESH_COOKIE, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/api/admin",
+    maxAge: 60 * 60 * 24 * 7,
   });
 }
 
-export async function getAdminRefreshCookie(): Promise<string | null> {
+export async function getAdminRefreshCookie() {
   const cookieStore = await cookies();
 
   return cookieStore.get(ADMIN_REFRESH_COOKIE)?.value ?? null;
 }
 
-export function clearAdminRefreshCookie(response: NextResponse) {
-  response.cookies.set(ADMIN_REFRESH_COOKIE, "", {
-    ...getAdminCookieOptions(),
+export function clearAdminRefreshCookie(res: NextResponse) {
+  res.cookies.set(ADMIN_REFRESH_COOKIE, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/api/admin",
     maxAge: 0,
-    expires: new Date(0),
   });
 }

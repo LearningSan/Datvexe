@@ -1,4 +1,4 @@
-import { withTransaction } from "@/lib/server/mysql";
+import { withTransaction, PoolConnection } from "@/lib/server/mysql";
 import {
   insertBookingShuttleBulk,
   findBookingSummaryRaw,
@@ -15,6 +15,9 @@ import {
   deleteBookingPromotionsByBooking,
   insertBookingPromotion,
   findPromotionByCode,
+  createBookingGroup,
+  updateBookingGroupAmount,
+  findBookingsByGroupId,
 } from "@/repositories/client/booking.repo";
 
 import {
@@ -30,7 +33,10 @@ import { createShuttleRequest } from "@/repositories/client/shuttle.repo";
 import type { BookingPaymentSummary } from "@/types/client/payment/payment.type";
 
 import { HoldSeatsPayload } from "@/types/client/payment/hold-seat.type";
-import { CreateBookingInput } from "@/validators/client/booking.validator";
+import {
+  CreateBookingInput,
+  CreateSingleBookingInput,
+} from "@/validators/client/booking.validator";
 import { formatDateTimeVN } from "@/lib/client/helpers";
 export async function holdSeats(
   payload: HoldSeatsPayload,
@@ -197,160 +203,271 @@ export async function cancelHold(
     return true;
   });
 }
-export async function createPendingBooking(
-  payload: CreateBookingInput,
+export async function createPendingBookingTx(
+  conn: PoolConnection,
+  bookingGroupId: number,
+  payload: CreateSingleBookingInput,
   userId: number | null,
 ) {
-  return withTransaction(async (conn) => {
-    const trip = await findTripById(conn, payload.tripId);
+  const trip = await findTripById(conn, payload.tripId);
 
-    if (!trip) {
-      throw new Error("TRIP_NOT_FOUND");
+  if (!trip) {
+    throw new Error("TRIP_NOT_FOUND");
+  }
+
+  const seatIds = payload.seats.map((s) => s.seatLayoutDetailId);
+
+  // ======================================================
+  // 1. CHECK BOOKED
+  // ======================================================
+  const booked = await checkSeatsAlreadyBooked(conn, payload.tripId, seatIds);
+
+  if (booked.length > 0) {
+    throw new Error("SEATS_ALREADY_BOOKED");
+  }
+
+  // ======================================================
+  // 2. CHECK HELD BY OTHERS
+  // ======================================================
+  const heldByOthers = await checkSeatsNotHeld(
+    conn,
+    payload.tripId,
+    seatIds,
+    payload.sessionId,
+  );
+
+  if (heldByOthers.length > 0) {
+    throw new Error("SEATS_ALREADY_HELD");
+  }
+
+  // ======================================================
+  // 3. CHECK USER OWNS HOLD (IMPORTANT)
+  // ======================================================
+  const heldBySession = await checkSeatsHeldBySession(
+    conn,
+    payload.tripId,
+    seatIds,
+    payload.sessionId,
+  );
+
+  if (heldBySession.length !== seatIds.length) {
+    throw new Error("SEAT_HOLD_NOT_FOUND");
+  }
+
+  // ======================================================
+  // 4. CREATE BOOKING
+  // ======================================================
+  const subtotal = payload.seats.reduce((sum, seat) => sum + seat.seatPrice, 0);
+
+  let discountAmount = 0;
+  let promotionId: number | null = null;
+
+  if (payload.promoCode) {
+    const promotion = await findPromotionByCode(conn, payload.promoCode);
+
+    if (!promotion) {
+      throw new Error("PROMOTION_NOT_FOUND");
     }
 
-    const seatIds = payload.seats.map((s) => s.seatLayoutDetailId);
-
-    // ======================================================
-    // 1. CHECK BOOKED
-    // ======================================================
-    const booked = await checkSeatsAlreadyBooked(conn, payload.tripId, seatIds);
-
-    if (booked.length > 0) {
-      throw new Error("SEATS_ALREADY_BOOKED");
+    if (subtotal < Number(promotion.minOrderAmount)) {
+      throw new Error("MIN_ORDER_NOT_ENOUGH");
     }
 
-    // ======================================================
-    // 2. CHECK HELD BY OTHERS
-    // ======================================================
-    const heldByOthers = await checkSeatsNotHeld(
-      conn,
-      payload.tripId,
-      seatIds,
-      payload.sessionId,
-    );
+    promotionId = promotion.promotionId;
 
-    if (heldByOthers.length > 0) {
-      throw new Error("SEATS_ALREADY_HELD");
+    if (promotion.discountType === "PERCENT") {
+      discountAmount = subtotal * (Number(promotion.discountValue) / 100);
+    } else {
+      discountAmount = Number(promotion.discountValue);
     }
 
-    // ======================================================
-    // 3. CHECK USER OWNS HOLD (IMPORTANT)
-    // ======================================================
-    const heldBySession = await checkSeatsHeldBySession(
-      conn,
-      payload.tripId,
-      seatIds,
-      payload.sessionId,
-    );
+    discountAmount = Math.min(discountAmount, subtotal);
+  }
 
-    if (heldBySession.length !== seatIds.length) {
-      throw new Error("SEAT_HOLD_NOT_FOUND");
-    }
+  const totalAmount = subtotal - discountAmount;
 
-    // ======================================================
-    // 4. CREATE BOOKING
-    // ======================================================
-    const subtotal = payload.seats.reduce(
-      (sum, seat) => sum + seat.seatPrice,
-      0,
-    );
+  const bookingCode = "BK" + Date.now().toString().slice(-10);
 
-    let discountAmount = 0;
-    let promotionId: number | null = null;
+  const holdExpiredAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    if (payload.promoCode) {
-      const promotion = await findPromotionByCode(conn, payload.promoCode);
+  const bookingId = await createBooking(conn, {
+    bookingGroupId,
+    bookingCode,
+    userId: userId ?? null,
+    tripId: payload.tripId,
 
-      if (!promotion) {
-        throw new Error("PROMOTION_NOT_FOUND");
-      }
+    pickupPointId: payload.pickup.pickupPointId ?? null,
+    dropoffPointId: payload.dropoff.pickupPointId ?? null,
 
-      if (subtotal < Number(promotion.minOrderAmount)) {
-        throw new Error("MIN_ORDER_NOT_ENOUGH");
-      }
+    pickupMethod: payload.pickup.method,
+    dropoffMethod: payload.dropoff.method,
 
-      promotionId = promotion.promotionId;
+    seatPrice: payload.seats[0].seatPrice,
 
-      if (promotion.discountType === "PERCENT") {
-        discountAmount = subtotal * (Number(promotion.discountValue) / 100);
-      } else {
-        discountAmount = Number(promotion.discountValue);
-      }
+    totalAmount,
 
-      discountAmount = Math.min(discountAmount, subtotal);
-    }
-
-    const totalAmount = subtotal - discountAmount;
-
-    const bookingCode = "BK" + Date.now().toString().slice(-10);
-
-    const holdExpiredAt = new Date(Date.now() + 10 * 60 * 1000);
-
-    const bookingId = await createBooking(conn, {
-      bookingCode,
-      userId: userId ?? null,
-      tripId: payload.tripId,
-
-      pickupPointId: payload.pickup.pickupPointId ?? null,
-      dropoffPointId: payload.dropoff.pickupPointId ?? null,
-
-      pickupMethod: payload.pickup.method,
-      dropoffMethod: payload.dropoff.method,
-
-      seatPrice: payload.seats[0].seatPrice,
-
-      totalAmount,
-
-      contactName: payload.contactName,
-      contactPhone: payload.contactPhone,
-      contactEmail: payload.contactEmail,
-      holdExpiredAt,
+    contactName: payload.contactName,
+    contactPhone: payload.contactPhone,
+    contactEmail: payload.contactEmail,
+    holdExpiredAt,
+  });
+  if (promotionId && discountAmount > 0) {
+    await insertBookingPromotion(conn, {
+      bookingId,
+      promotionId,
+      discountAmount,
     });
-    if (promotionId && discountAmount > 0) {
-      await insertBookingPromotion(conn, {
-        bookingId,
-        promotionId,
-        discountAmount,
-      });
-    }
-    await conn.query(
-      `
+  }
+  await conn.query(
+    `
   UPDATE seat_holds
   SET booking_id = ?
   WHERE trip_id = ?
     AND seat_layout_detail_id IN (${seatIds.map(() => "?").join(",")})
     AND session_id = ?
   `,
-      [bookingId, payload.tripId, ...seatIds, payload.sessionId],
+    [bookingId, payload.tripId, ...seatIds, payload.sessionId],
+  );
+
+  // ======================================================
+  // 7. SHUTTLE
+  // ======================================================
+  if (payload.pickup.method === "SHUTTLE") {
+    await createShuttleRequest(conn, {
+      bookingId,
+      type: "PICKUP",
+      address: payload.pickup.address!,
+      latitude: payload.pickup.latitude,
+      longitude: payload.pickup.longitude,
+    });
+  }
+
+  if (payload.dropoff.method === "SHUTTLE") {
+    await createShuttleRequest(conn, {
+      bookingId,
+      type: "DROPOFF",
+      address: payload.dropoff.address!,
+      latitude: payload.dropoff.latitude,
+      longitude: payload.dropoff.longitude,
+    });
+  }
+
+  return {
+    bookingId,
+    bookingCode,
+    holdExpiredAt,
+  };
+}
+export async function createRoundTripBooking(
+  payload: CreateBookingInput,
+  userId: number | null,
+) {
+  return withTransaction(async (conn) => {
+    //---------------------------------------
+    // tạo group
+    //---------------------------------------
+
+    const group = await createBookingGroup(conn, {
+      userId,
+      tripType: payload.return ? "ROUND_TRIP" : "ONE_WAY",
+
+      contactName: payload.contactName,
+      contactPhone: payload.contactPhone,
+      contactEmail: payload.contactEmail,
+    });
+
+    //---------------------------------------
+    // chiều đi
+    //---------------------------------------
+
+    const outbound = await createPendingBookingTx(
+      conn,
+      group.bookingGroupId,
+      {
+        tripId: payload.outbound.tripId,
+        sessionId: payload.sessionId,
+        promoCode: payload.promoCode,
+
+        seats: payload.outbound.seats,
+        pickup: payload.outbound.pickup,
+        dropoff: payload.outbound.dropoff,
+
+        contactName: payload.contactName,
+        contactPhone: payload.contactPhone,
+        contactEmail: payload.contactEmail,
+      },
+      userId,
     );
 
-    // ======================================================
-    // 7. SHUTTLE
-    // ======================================================
-    if (payload.pickup.method === "SHUTTLE") {
-      await createShuttleRequest(conn, {
-        bookingId,
-        type: "PICKUP",
-        address: payload.pickup.address!,
-        latitude: payload.pickup.latitude,
-        longitude: payload.pickup.longitude,
-      });
+    //---------------------------------------
+    // chiều về
+    //---------------------------------------
+
+    let returnBooking = null;
+
+    if (payload.return) {
+      returnBooking = await createPendingBookingTx(
+        conn,
+        group.bookingGroupId,
+        {
+          tripId: payload.return.tripId,
+          sessionId: payload.sessionId,
+          promoCode: payload.promoCode,
+
+          seats: payload.return.seats,
+          pickup: payload.return.pickup,
+          dropoff: payload.return.dropoff,
+
+          contactName: payload.contactName,
+          contactPhone: payload.contactPhone,
+          contactEmail: payload.contactEmail,
+        },
+        userId,
+      );
     }
 
-    if (payload.dropoff.method === "SHUTTLE") {
-      await createShuttleRequest(conn, {
-        bookingId,
-        type: "DROPOFF",
-        address: payload.dropoff.address!,
-        latitude: payload.dropoff.latitude,
-        longitude: payload.dropoff.longitude,
-      });
-    }
+    //---------------------------------------
+    // update tổng group
+    //---------------------------------------
+
+    await updateBookingGroupAmount(conn, group.bookingGroupId);
 
     return {
-      bookingId,
-      bookingCode,
-      holdExpiredAt,
+      bookingGroupId: group.bookingGroupId,
+      bookingGroupCode: group.bookingGroupCode,
+
+      bookingIds: [
+        outbound.bookingId,
+        ...(returnBooking ? [returnBooking.bookingId] : []),
+      ],
+
+      outbound,
+      return: returnBooking,
     };
   });
+}
+export async function getBookingsByGroupId(bookingGroupId: number) {
+  const bookings = await findBookingsByGroupId(bookingGroupId);
+
+  if (!bookings.length) {
+    throw new Error("Không tìm thấy booking");
+  }
+
+  return {
+    bookingGroupId,
+
+    bookings: bookings.map((item: any) => ({
+      bookingId: Number(item.bookingId),
+
+      bookingCode: item.bookingCode,
+
+      tripId: Number(item.tripId),
+
+      bookingType: item.bookingType,
+
+      status: item.status,
+
+      totalAmount: Number(item.totalAmount),
+    })),
+  };
 }

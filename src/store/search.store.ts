@@ -1,10 +1,17 @@
 "use client";
 
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 
-import { SelectedLocation } from "@/types/client/route/location-search.type";
+import type { SelectedLocation } from "@/types/client/route/location-search.type";
 
+/* =========================
+   TYPES
+========================= */
+
+/*
+ * Lịch sử tìm kiếm chỉ lưu chiều đi.
+ */
 export interface RecentSearch {
   origin: SelectedLocation | null;
   destination: SelectedLocation | null;
@@ -12,14 +19,29 @@ export interface RecentSearch {
   ticketCount: number;
 }
 
+/*
+ * Tìm kiếm hiện tại lưu thêm thông tin khứ hồi.
+ */
+export interface CurrentSearch extends RecentSearch {
+  isRoundTrip: boolean;
+  returnDate: string | null;
+}
+
 interface SearchStore {
-  currentSearch: RecentSearch | null;
+  currentSearch: CurrentSearch | null;
   recentSearches: RecentSearch[];
 
-  setSearch: (payload: RecentSearch) => void;
+  setSearch: (payload: CurrentSearch) => void;
+
+  clearCurrentSearch: () => void;
   clearRecentSearches: () => void;
+
   swapLocation: () => void;
 }
+
+/* =========================
+   STORE
+========================= */
 
 export const useSearchStore = create<SearchStore>()(
   persist(
@@ -33,18 +55,38 @@ export const useSearchStore = create<SearchStore>()(
       setSearch: (payload) => {
         const oldSearches = get().recentSearches;
 
+        /*
+         * Recent search chỉ lưu chiều đi.
+         */
+        const recentItem: RecentSearch = {
+          origin: payload.origin,
+          destination: payload.destination,
+          departureDate: payload.departureDate,
+          ticketCount: payload.ticketCount,
+        };
+
         const filtered = oldSearches.filter(
           (item) =>
             !(
-              item.origin?.id === payload.origin?.id &&
-              item.destination?.id === payload.destination?.id &&
-              item.departureDate === payload.departureDate
+              item.origin?.type === recentItem.origin?.type &&
+              item.origin?.id === recentItem.origin?.id &&
+              item.destination?.type === recentItem.destination?.type &&
+              item.destination?.id === recentItem.destination?.id &&
+              item.departureDate === recentItem.departureDate
             ),
         );
 
         set({
-          currentSearch: payload,
-          recentSearches: [payload, ...filtered].slice(0, 3),
+          currentSearch: {
+            ...payload,
+
+            /*
+             * Vé một chiều không lưu ngày về.
+             */
+            returnDate: payload.isRoundTrip ? payload.returnDate : null,
+          },
+
+          recentSearches: [recentItem, ...filtered].slice(0, 3),
         });
       },
 
@@ -53,6 +95,7 @@ export const useSearchStore = create<SearchStore>()(
       // ======================
       swapLocation: () => {
         const current = get().currentSearch;
+
         if (!current) return;
 
         set({
@@ -63,6 +106,14 @@ export const useSearchStore = create<SearchStore>()(
           },
         });
       },
+
+      // ======================
+      // CLEAR CURRENT
+      // ======================
+      clearCurrentSearch: () =>
+        set({
+          currentSearch: null,
+        }),
 
       // ======================
       // CLEAR HISTORY

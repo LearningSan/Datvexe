@@ -42,11 +42,16 @@ export async function fetchPopularRoutes() {
   return res.data.data;
 }
 export async function searchLocations(keyword: string) {
-  const res = await api.get<ApiResponse<SearchLocationResponse>>(
-    `/client/routes/location-search?q=${keyword}`,
+  const response = await api.get<ApiResponse<SearchLocationResponse>>(
+    "/client/routes/location-search",
+    {
+      params: {
+        q: keyword,
+      },
+    },
   );
 
-  return res.data.data;
+  return response.data.data;
 }
 export async function fetchOfficePickupPoints(cityId: number, zoneId: number) {
   const res = await api.get<ApiResponse<PickupPointResponse>>(

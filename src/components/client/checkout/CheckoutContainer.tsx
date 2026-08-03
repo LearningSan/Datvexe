@@ -34,9 +34,20 @@ export default function CheckoutContainer({ tripId }: Props) {
   const hydrated = useBookingStore((state) => state.hydrated);
 
   // Dữ liệu bắt buộc của trang checkout
-  const selectedTrip = useBookingStore((state) => state.selectedTrip);
+  const {
+    activeJourney,
 
-  const selectedSeats = useBookingStore((state) => state.selectedSeats);
+    outboundTrip,
+    returnTrip,
+
+    outboundSeats,
+    returnSeats,
+  } = useBookingStore();
+
+  const currentTrip = activeJourney === "OUTBOUND" ? outboundTrip : returnTrip;
+
+  const currentSeats =
+    activeJourney === "OUTBOUND" ? outboundSeats : returnSeats;
 
   const [termError, setTermError] = useState(false);
 
@@ -64,7 +75,7 @@ export default function CheckoutContainer({ tripId }: Props) {
     );
   }
 
-  if (!selectedTrip || selectedSeats.length === 0) {
+  if (!currentTrip || currentSeats.length === 0) {
     return (
       <ErrorRenderer
         error={{
@@ -78,7 +89,7 @@ export default function CheckoutContainer({ tripId }: Props) {
       />
     );
   }
-  if (selectedTrip.id !== tripId) {
+  if (outboundTrip?.id !== tripId) {
     return (
       <ErrorRenderer
         error={{
@@ -119,7 +130,7 @@ export default function CheckoutContainer({ tripId }: Props) {
               />
             }
           >
-            <PickupDropoff tripId={tripId} />
+            <PickupDropoff tripId={currentTrip.id} />{" "}
           </BlockErrorBoundary>
         </div>
         <div className={styles.fullWidthRow}>

@@ -1,41 +1,30 @@
 import {
-    findTripSeats,
-    findTripSeatMeta
+  findTripSeats,
+  findTripSeatMeta,
 } from "@/repositories/client/seat.repo";
 
 import { TripSeatResponse } from "@/types/client/seat/seat-response.type";
 
-export async function getTripSeats(
-    tripId: number
-): Promise<TripSeatResponse> {
+export async function getTripSeats(tripId: number): Promise<TripSeatResponse> {
+  const meta = await findTripSeatMeta(tripId);
 
-    const meta = await findTripSeatMeta(
-        tripId
-    );
+  if (!meta) {
+    throw new Error("Trip not found");
+  }
 
-    if (!meta) {
+  const seats = await findTripSeats(tripId);
 
-        throw new Error(
-            "Trip not found"
-        );
-    }
+  return {
+    tripId: meta.tripId,
 
-    const seats = await findTripSeats(
-        tripId
-    );
+    vehicleName: meta.vehicleName,
 
-    return {
+    licensePlate: meta.licensePlate,
 
-        tripId: meta.tripId,
+    floorCount: meta.floorCount,
 
-        vehicleName: meta.vehicleName,
+    totalSeats: meta.totalSeats,
 
-        licensePlate: meta.licensePlate,
-
-        floorCount: meta.floorCount,
-
-        totalSeats: meta.totalSeats,
-
-        seats
-    };
+    seats,
+  };
 }

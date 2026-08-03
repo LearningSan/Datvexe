@@ -20,7 +20,7 @@ import {
   insertDemoPaymentSession,
   type DemoPaymentProvider,
 } from "@/repositories/client/demo-payment.repo";
-
+import { findBookingIdsByPaymentId } from "@/repositories/client/payment-webhook.repo";
 import type { PoolConnection } from "@/lib/server/mysql";
 
 function requireEnv(name: string): string {
@@ -391,9 +391,14 @@ export async function confirmDemoPayment(input: ConfirmDemoPaymentInput) {
     validateDemoProvider(session.provider, input.provider);
 
     if (session.status === "SUCCESS" || session.paymentStatus === "PAID") {
+      const bookings = await findBookingIdsByPaymentId(
+        conn,
+        Number(session.paymentId),
+      );
+
       return {
         success: true,
-        bookingId: Number(session.bookingId),
+        bookingIds: bookings.map((b) => b.bookingId),
         transactionCode: session.transactionCode,
         alreadyProcessed: true,
       };
@@ -427,17 +432,28 @@ export async function confirmDemoPayment(input: ConfirmDemoPaymentInput) {
 
     const confirmation = await confirmPaymentByTransactionCode({
       conn,
+
       transactionCode: session.transactionCode,
+
       status: "SUCCESS",
+
       amount: Number(session.amount),
+
       gatewayTransactionId: `DEMO-${input.provider}-${Date.now()}`,
+
       gatewayResponse: {
         environment: "SANDBOX_DEMO",
+
         provider: input.provider,
+
         demoSessionId: Number(session.demoSessionId),
+
         selectedBank: session.selectedBank,
+
         accountNumberMasked: session.accountNumberMasked,
+
         accountHolder: session.accountHolder,
+
         paymentSource: session.paymentSource,
       },
     });
@@ -446,29 +462,27 @@ export async function confirmDemoPayment(input: ConfirmDemoPaymentInput) {
 
     return {
       success: true,
-      bookingId: confirmation.bookingId,
+
+      bookingIds: confirmation.bookingIds,
+
       transactionCode: session.transactionCode,
+
       alreadyProcessed: confirmation.alreadyProcessed,
     };
   });
 
+  /*
+   * Side effect sau khi transaction commit
+   */
   if (!result.alreadyProcessed) {
-    console.log("[DEMO PAYMENT SIDE EFFECT START]", {
-      bookingId: result.bookingId,
-    });
-
     try {
       await sendPaymentResultSideEffects({
-        bookingId: result.bookingId,
+        bookingIds: result.bookingIds,
         isPaid: true,
-      });
-
-      console.log("[DEMO PAYMENT SIDE EFFECT SUCCESS]", {
-        bookingId: result.bookingId,
       });
     } catch (error) {
       console.error("[DEMO PAYMENT SIDE EFFECT ERROR]", {
-        bookingId: result.bookingId,
+        bookingIds: result.bookingIds,
         error,
       });
     }

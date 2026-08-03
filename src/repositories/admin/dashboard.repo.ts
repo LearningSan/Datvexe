@@ -51,9 +51,15 @@ export async function findDashboardKpis(filter: DashboardFilter) {
           WHEN p.status = 'REFUNDED'
           THEN p.amount ELSE 0 END), 0) AS netRevenue
 
-      FROM trips t
-      LEFT JOIN bookings b ON b.trip_id = t.trip_id
-      LEFT JOIN payments p ON p.booking_id = b.booking_id
+ FROM trips t
+LEFT JOIN bookings b 
+  ON b.trip_id = t.trip_id
+
+LEFT JOIN payment_bookings pb
+  ON pb.booking_id = b.booking_id
+
+LEFT JOIN payments p
+  ON p.payment_id = pb.payment_id
       WHERE DATE(t.departure_datetime) BETWEEN ? AND ?
     ),
 
@@ -112,9 +118,17 @@ export async function findDashboardKpis(filter: DashboardFilter) {
       LEFT JOIN trip_drivers td 
         ON td.trip_id = t.trip_id 
         AND td.assigned_role = 'MAIN'
-      LEFT JOIN bookings b ON b.trip_id = t.trip_id
-      LEFT JOIN booking_seats bs ON bs.booking_id = b.booking_id
-      LEFT JOIN payments p ON p.booking_id = b.booking_id
+      LEFT JOIN bookings b 
+  ON b.trip_id = t.trip_id
+
+LEFT JOIN booking_seats bs 
+  ON bs.booking_id = b.booking_id
+
+LEFT JOIN payment_bookings pb
+  ON pb.booking_id = b.booking_id
+
+LEFT JOIN payments p
+  ON p.payment_id = pb.payment_id
       WHERE DATE(t.departure_datetime) BETWEEN ? AND ?
     )
 
@@ -176,8 +190,15 @@ export async function findRevenueTrend(filter: DashboardFilter) {
     THEN p.amount ELSE 0 END), 0) AS netRevenue
 
 FROM trips t
-LEFT JOIN bookings b ON b.trip_id = t.trip_id
-LEFT JOIN payments p ON p.booking_id = b.booking_id
+
+LEFT JOIN bookings b 
+  ON b.trip_id = t.trip_id
+
+LEFT JOIN payment_bookings pb
+  ON pb.booking_id = b.booking_id
+
+LEFT JOIN payments p
+  ON p.payment_id = pb.payment_id
 
 WHERE DATE(t.departure_datetime) BETWEEN ? AND ?
 
@@ -236,18 +257,35 @@ export async function findTopRoutes(filter: DashboardFilter) {
         2
       ) AS occupancyRate
 
-    FROM routes r
-    INNER JOIN cities oc ON oc.city_id = r.origin_city_id
-    INNER JOIN cities dc ON dc.city_id = r.destination_city_id
-    INNER JOIN trips t ON t.route_id = r.route_id
-    LEFT JOIN vehicles v ON v.vehicle_id = t.vehicle_id
-    LEFT JOIN seat_layouts sl ON sl.seat_layout_id = v.seat_layout_id
-    LEFT JOIN bookings b 
-      ON b.trip_id = t.trip_id 
-      AND b.status = 'CONFIRMED'
-    LEFT JOIN booking_seats bs ON bs.booking_id = b.booking_id
-    LEFT JOIN payments p ON p.booking_id = b.booking_id
+  FROM routes r
 
+INNER JOIN cities oc 
+  ON oc.city_id = r.origin_city_id
+
+INNER JOIN cities dc 
+  ON dc.city_id = r.destination_city_id
+
+INNER JOIN trips t 
+  ON t.route_id = r.route_id
+
+LEFT JOIN vehicles v 
+  ON v.vehicle_id = t.vehicle_id
+
+LEFT JOIN seat_layouts sl 
+  ON sl.seat_layout_id = v.seat_layout_id
+
+LEFT JOIN bookings b
+  ON b.trip_id = t.trip_id
+  AND b.status = 'CONFIRMED'
+
+LEFT JOIN booking_seats bs
+  ON bs.booking_id = b.booking_id
+
+LEFT JOIN payment_bookings pb
+  ON pb.booking_id = b.booking_id
+
+LEFT JOIN payments p
+  ON p.payment_id = pb.payment_id
     WHERE DATE(t.departure_datetime) BETWEEN ? AND ?
 
     GROUP BY r.route_id, oc.city_name, dc.city_name
@@ -573,12 +611,26 @@ async function getComparisonBase(fromDate: string, toDate: string) {
         2
       ) AS occupancyRate
 
-    FROM trips t
-    LEFT JOIN vehicles v ON v.vehicle_id = t.vehicle_id
-    LEFT JOIN seat_layouts sl ON sl.seat_layout_id = v.seat_layout_id
-    LEFT JOIN bookings b ON b.trip_id = t.trip_id
-    LEFT JOIN booking_seats bs ON bs.booking_id = b.booking_id
-    LEFT JOIN payments p ON p.booking_id = b.booking_id
+   FROM trips t
+
+    LEFT JOIN vehicles v 
+      ON v.vehicle_id = t.vehicle_id
+
+    LEFT JOIN seat_layouts sl 
+      ON sl.seat_layout_id = v.seat_layout_id
+
+    LEFT JOIN bookings b 
+      ON b.trip_id = t.trip_id
+
+    LEFT JOIN booking_seats bs 
+      ON bs.booking_id = b.booking_id
+
+    LEFT JOIN payment_bookings pb
+      ON pb.booking_id = b.booking_id
+
+    LEFT JOIN payments p
+      ON p.payment_id = pb.payment_id
+
     WHERE DATE(t.departure_datetime) BETWEEN ? AND ?
   `;
 
@@ -658,8 +710,11 @@ export async function findLowPerformanceTrips(filter: DashboardFilter) {
       ON b.trip_id = t.trip_id
       AND b.status = 'CONFIRMED'
     LEFT JOIN booking_seats bs ON bs.booking_id = b.booking_id
-    LEFT JOIN payments p ON p.booking_id = b.booking_id
+LEFT JOIN payment_bookings pb
+  ON pb.booking_id = b.booking_id
 
+LEFT JOIN payments p
+  ON p.payment_id = pb.payment_id
     WHERE DATE(t.departure_datetime) BETWEEN ? AND ?
       AND sl.total_seats IS NOT NULL
 
@@ -699,17 +754,35 @@ export async function findTopSellingRoutes(filter: DashboardFilter) {
         / NULLIF(SUM(DISTINCT sl.total_seats), 0) * 100,
         2
       ) AS occupancyRate
-    FROM routes r
-    INNER JOIN cities oc ON oc.city_id = r.origin_city_id
-    INNER JOIN cities dc ON dc.city_id = r.destination_city_id
-    INNER JOIN trips t ON t.route_id = r.route_id
-    LEFT JOIN vehicles v ON v.vehicle_id = t.vehicle_id
-    LEFT JOIN seat_layouts sl ON sl.seat_layout_id = v.seat_layout_id
-    LEFT JOIN bookings b 
-      ON b.trip_id = t.trip_id 
-      AND b.status = 'CONFIRMED'
-    LEFT JOIN booking_seats bs ON bs.booking_id = b.booking_id
-    LEFT JOIN payments p ON p.booking_id = b.booking_id
+ FROM routes r
+
+INNER JOIN cities oc 
+  ON oc.city_id = r.origin_city_id
+
+INNER JOIN cities dc 
+  ON dc.city_id = r.destination_city_id
+
+INNER JOIN trips t 
+  ON t.route_id = r.route_id
+
+LEFT JOIN vehicles v 
+  ON v.vehicle_id = t.vehicle_id
+
+LEFT JOIN seat_layouts sl 
+  ON sl.seat_layout_id = v.seat_layout_id
+
+LEFT JOIN bookings b 
+  ON b.trip_id = t.trip_id 
+  AND b.status = 'CONFIRMED'
+
+LEFT JOIN booking_seats bs 
+  ON bs.booking_id = b.booking_id
+
+LEFT JOIN payment_bookings pb
+  ON pb.booking_id = b.booking_id
+
+LEFT JOIN payments p
+  ON p.payment_id = pb.payment_id
     WHERE DATE(t.departure_datetime) BETWEEN ? AND ?
     GROUP BY r.route_id, oc.city_name, dc.city_name
     ORDER BY ticketsSold DESC, revenue DESC
@@ -817,8 +890,12 @@ export async function findRoutePerformance(filter: {
       AND b.status = 'CONFIRMED'
 
     LEFT JOIN booking_seats bs ON bs.booking_id = b.booking_id
-    LEFT JOIN payments p ON p.booking_id = b.booking_id
 
+LEFT JOIN payment_bookings pb
+  ON pb.booking_id = b.booking_id
+
+LEFT JOIN payments p
+  ON p.payment_id = pb.payment_id
     WHERE r.origin_city_id = ?
       AND r.destination_city_id = ?
       AND DATE(t.departure_datetime) BETWEEN ? AND ?

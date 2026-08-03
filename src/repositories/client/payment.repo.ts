@@ -79,14 +79,16 @@ export async function findBookingPaymentSummaryRaw(bookingId: number) {
     LEFT JOIN seat_layout_details sld
       ON sld.seat_layout_detail_id = COALESCE(bs.seat_layout_detail_id, sh.seat_layout_detail_id)
 
-    LEFT JOIN payments p
-      ON p.payment_id = (
-        SELECT p2.payment_id
-        FROM payments p2
-        WHERE p2.booking_id = b.booking_id
-        ORDER BY p2.created_at DESC
-        LIMIT 1
-      )
+  LEFT JOIN payments p
+ON p.payment_id = (
+    SELECT pb.payment_id
+    FROM payment_bookings pb
+    JOIN payments p2
+        ON p2.payment_id = pb.payment_id
+    WHERE pb.booking_id = b.booking_id
+    ORDER BY p2.created_at DESC
+    LIMIT 1
+)
 
     WHERE b.booking_id = ?
 
@@ -177,18 +179,26 @@ export async function findPendingPaymentByBooking(
   }>(
     conn,
     `
-    SELECT
-      payment_id AS paymentId,
-      booking_id AS bookingId,
-      payment_method AS paymentMethod,
-      amount,
-      status,
-      transaction_code AS transactionCode
-    FROM payments
-    WHERE booking_id = ?
-      AND status IN ('PENDING', 'PROCESSING', 'WAITING_CONFIRM', 'REJECTED', 'FAILED')
-    ORDER BY payment_id DESC
-    LIMIT 1
+  SELECT
+    p.payment_id AS paymentId,
+    pb.booking_id AS bookingId,
+    p.payment_method AS paymentMethod,
+    p.amount,
+    p.status,
+    p.transaction_code AS transactionCode
+FROM payment_bookings pb
+JOIN payments p
+    ON p.payment_id = pb.payment_id
+WHERE pb.booking_id = ?
+AND p.status IN (
+    'PENDING',
+    'PROCESSING',
+    'WAITING_CONFIRM',
+    'FAILED',
+    'REJECTED'
+)
+ORDER BY p.payment_id DESC
+LIMIT 1;
     `,
     [bookingId],
   );
@@ -199,7 +209,6 @@ export async function findPendingPaymentByBooking(
 export async function insertPayment(
   conn: mysql.PoolConnection,
   data: {
-    bookingId: number;
     paymentMethod: PaymentMethodType;
     amount: number;
     transactionCode: string;
@@ -212,7 +221,6 @@ export async function insertPayment(
     conn,
     `
     INSERT INTO payments (
-      booking_id,
       payment_method,
       amount,
       status,
@@ -222,10 +230,9 @@ export async function insertPayment(
       gateway_response,
       created_at
     )
-    VALUES (?, ?, ?, 'PENDING', ?, ?, ?, ?, NOW())
+    VALUES (?, ?, 'PENDING', ?, ?, ?, ?, NOW())
     `,
     [
-      data.bookingId,
       data.paymentMethod,
       data.amount,
       data.transactionCode,
@@ -322,19 +329,17 @@ export async function updatePaymentGatewayData(
 export async function findPaymentStatusById(paymentId: number) {
   const rows = await query<{
     paymentId: number;
-    bookingId: number;
     status: PaymentStatus;
     paymentMethod: PaymentMethodType;
   }>(
     `
-    SELECT
-      payment_id AS paymentId,
-      booking_id AS bookingId,
-      status,
-      payment_method AS paymentMethod
-    FROM payments
-    WHERE payment_id = ?
-    LIMIT 1
+SELECT
+    payment_id AS paymentId,
+    status,
+    payment_method AS paymentMethod
+FROM payments
+WHERE payment_id = ?
+LIMIT 1;
     `,
     [paymentId],
   );
@@ -400,22 +405,29 @@ export async function findOrCreateWalletForUpdate(
 
 export async function findBookingUserIdForWallet(
   conn: mysql.PoolConnection,
-  bookingId: number,
-) {
+  bookingIds: number[],
+): Promise<
+  {
+    bookingId: number;
+    userId: number | null;
+  }[]
+> {
   const rows = await connQuery<{
+    bookingId: number;
     userId: number | null;
   }>(
     conn,
     `
-    SELECT user_id AS userId
-    FROM bookings
-    WHERE booking_id = ?
-    LIMIT 1
+      SELECT
+        booking_id AS bookingId,
+        user_id AS userId
+      FROM bookings
+      WHERE booking_id IN (?)
     `,
-    [bookingId],
+    [bookingIds],
   );
 
-  return rows[0] ?? null;
+  return rows;
 }
 
 export async function deductWalletBalance(
@@ -581,6 +593,7 @@ export async function findPaymentForConfirm(
 ) {
   const rows = await connQuery<{
     paymentId: number;
+
     bookingId: number;
     bookingCode: string;
 
@@ -589,6 +602,7 @@ export async function findPaymentForConfirm(
     paymentMethod: PaymentMethodType;
     amount: string | number;
     transactionCode: string;
+
     status: PaymentStatus;
 
     bookingStatus: BookingStatus;
@@ -596,33 +610,67 @@ export async function findPaymentForConfirm(
   }>(
     conn,
     `
-      SELECT
-        p.payment_id AS paymentId,
-        p.booking_id AS bookingId,
-        p.payment_method AS paymentMethod,
-        p.amount,
-        p.transaction_code AS transactionCode,
-        p.status,
+    SELECT
+      p.payment_id AS paymentId,
 
-        b.booking_code AS bookingCode,
-        b.user_id AS bookingUserId,
-        b.status AS bookingStatus,
-        b.hold_expired_at AS holdExpiredAt
+      b.booking_id AS bookingId,
+      b.booking_code AS bookingCode,
 
-      FROM payments p
+      b.user_id AS bookingUserId,
 
-      INNER JOIN bookings b
-        ON b.booking_id = p.booking_id
+      p.payment_method AS paymentMethod,
+      p.amount,
+      p.transaction_code AS transactionCode,
+      p.status,
 
-      WHERE p.payment_id = ?
+      b.status AS bookingStatus,
+      b.hold_expired_at AS holdExpiredAt
 
-      LIMIT 1
-      FOR UPDATE
+    FROM payments p
+
+    INNER JOIN bookings b
+      ON b.booking_id = p.booking_id
+
+    WHERE p.payment_id = ?
+
+    LIMIT 1
+    FOR UPDATE
     `,
     [paymentId],
   );
 
-  return rows[0] ?? null;
+  if (!rows.length) {
+    return null;
+  }
+
+  const payment = rows[0];
+
+  return {
+    paymentId: Number(payment.paymentId),
+
+    bookings: [
+      {
+        bookingId: Number(payment.bookingId),
+        bookingCode: payment.bookingCode,
+      },
+    ],
+
+    bookingIds: [Number(payment.bookingId)],
+
+    bookingUserId: payment.bookingUserId,
+
+    paymentMethod: payment.paymentMethod,
+
+    amount: payment.amount,
+
+    transactionCode: payment.transactionCode,
+
+    status: payment.status,
+
+    bookingStatus: payment.bookingStatus,
+
+    holdExpiredAt: payment.holdExpiredAt,
+  };
 }
 
 export async function findPaymentByProviderOrderCode(
@@ -650,4 +698,78 @@ export async function findPaymentByProviderOrderCode(
   );
 
   return rows[0] ?? null;
+}
+export async function insertPaymentBooking(
+  conn: mysql.PoolConnection,
+  payload: {
+    paymentId: number;
+    bookingId: number;
+  },
+) {
+  await conn.execute(
+    `
+    INSERT INTO payment_bookings (
+      payment_id,
+      booking_id
+    )
+    VALUES (?, ?)
+    `,
+    [payload.paymentId, payload.bookingId],
+  );
+}
+export async function insertPaymentBookingIfNotExists(
+  conn: mysql.PoolConnection,
+  data: {
+    paymentId: number;
+    bookingId: number;
+  },
+) {
+  await connQuery(
+    conn,
+    `
+    INSERT IGNORE INTO payment_bookings (
+      payment_id,
+      booking_id
+    )
+    VALUES (?, ?)
+    `,
+    [data.paymentId, data.bookingId],
+  );
+}
+export async function validatePaymentBookings(
+  conn: mysql.PoolConnection,
+  params: {
+    paymentId: number;
+    bookingIds: number[];
+  },
+) {
+  const placeholders = params.bookingIds.map(() => "?").join(",");
+
+  const rows = await connQuery<{ total: number }>(
+    conn,
+    `
+      SELECT COUNT(*) AS total
+      FROM payment_bookings
+      WHERE payment_id = ?
+      AND booking_id IN (${placeholders})
+    `,
+    [params.paymentId, ...params.bookingIds],
+  );
+
+  const totalRows = await connQuery<{ total: number }>(
+    conn,
+    `
+      SELECT COUNT(*) AS total
+      FROM payment_bookings
+      WHERE payment_id = ?
+    `,
+    [params.paymentId],
+  );
+
+  if (
+    rows[0].total !== params.bookingIds.length ||
+    totalRows[0].total !== params.bookingIds.length
+  ) {
+    throw new Error("Payment không khớp với nhóm booking");
+  }
 }

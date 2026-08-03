@@ -1,42 +1,91 @@
 import {
   LayoutDashboard,
-  Users,
-  UserCog,
-  Bus,
-  CalendarClock,
-  Ticket,
-  CreditCard,
-  Star,
-  Route,
-  MapPin,
-  CarFront,
-  Armchair,
   QrCode,
-  Wallet,
   ScanLine,
   UserCheck,
+  Ticket,
+  CreditCard,
+  Wallet,
+  Bus,
+  CalendarClock,
+  CarFront,
+  UserCog,
+  Route,
+  MapPin,
+  Armchair,
+  Users,
+  Star,
 } from "lucide-react";
 
 export const ADMIN_MENU = [
+  // ==========================
+  // TỔNG QUAN
+  // ==========================
   {
     href: "/admin/dashboard",
     label: "Dashboard Tổng Quan",
     icon: LayoutDashboard,
   },
+
+  // ==========================
+  // NGHIỆP VỤ HẰNG NGÀY
+  // ==========================
   {
     href: "/admin/cash-payments",
     label: "Thanh toán tại quầy",
     icon: QrCode,
   },
   {
+    href: "/admin/checkins",
+    label: "Check-in hành khách",
+    icon: ScanLine,
+  },
+  {
+    href: "/admin/checkins/dashboard",
+    label: "Dashboard Check-in",
+    icon: UserCheck,
+  },
+
+  // ==========================
+  // ĐẶT VÉ & THANH TOÁN
+  // ==========================
+  {
+    href: "/admin/tickets",
+    label: "Quản lý Vé xe",
+    icon: Ticket,
+  },
+  {
+    href: "/admin/payments",
+    label: "Lịch sử Thanh toán",
+    icon: CreditCard,
+  },
+  {
     href: "/admin/wallets",
     label: "Quản lý Ví nội bộ",
     icon: Wallet,
   },
+
+  // ==========================
+  // VẬN HÀNH
+  // ==========================
   {
-    href: "/admin/users",
-    label: "Quản lý Người dùng",
-    icon: Users,
+    href: "/admin/trips",
+    label: "Quản lý Chuyến xe",
+    icon: Bus,
+  },
+  {
+    href: "/admin/schedule-templates",
+    label: "Quản lý Lịch chạy",
+    icon: CalendarClock,
+  },
+
+  // ==========================
+  // DỮ LIỆU HỆ THỐNG
+  // ==========================
+  {
+    href: "/admin/vehicles",
+    label: "Quản lý Xe",
+    icon: CarFront,
   },
   {
     href: "/admin/drivers",
@@ -54,48 +103,18 @@ export const ADMIN_MENU = [
     icon: MapPin,
   },
   {
-    href: "/admin/vehicles",
-    label: "Quản lý Xe",
-    icon: CarFront,
-  },
-  {
     href: "/admin/seat-layouts",
     label: "Quản lý Sơ đồ ghế",
     icon: Armchair,
   },
-  // ==========================
-  // VẬN HÀNH
-  // ==========================
-  {
-    href: "/admin/schedule-templates",
-    label: "Quản lý Lịch chạy",
-    icon: CalendarClock,
-  },
-  {
-    href: "/admin/trips",
-    label: "Quản lý Chuyến xe",
-    icon: Bus,
-  },
 
+  // ==========================
+  // KHÁCH HÀNG
+  // ==========================
   {
-    href: "/admin/tickets",
-    label: "Quản lý Vé xe",
-    icon: Ticket,
-  },
-  {
-    href: "/admin/checkins",
-    label: "Check-in hành khách",
-    icon: ScanLine,
-  },
-  {
-    label: "Check-in Dashboard",
-    href: "/admin/checkins/dashboard",
-    icon: UserCheck,
-  },
-  {
-    href: "/admin/payments",
-    label: "Lịch sử Thanh toán",
-    icon: CreditCard,
+    href: "/admin/users",
+    label: "Quản lý Người dùng",
+    icon: Users,
   },
   {
     href: "/admin/reviews",

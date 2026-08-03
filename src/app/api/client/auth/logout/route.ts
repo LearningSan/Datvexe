@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getRefreshCookie, clearRefreshCookie } from "@/lib/server/cookie";
+import { getClientRefreshCookie, clearClientRefreshCookie } from "@/lib/server/client-cookie";
 import { logoutAuth } from "@/services/server/client/auth.service";
 
 export async function POST() {
   try {
-    const refreshToken = await getRefreshCookie();
+    const refreshToken = await getClientRefreshCookie();
 
     await logoutAuth(refreshToken);
 
@@ -16,7 +16,7 @@ export async function POST() {
       },
     });
 
-    clearRefreshCookie(res);
+    clearClientRefreshCookie(res);
 
     return res;
   } catch (error) {
@@ -30,7 +30,7 @@ export async function POST() {
       },
     });
 
-    clearRefreshCookie(res);
+    clearClientRefreshCookie(res);
 
     return res;
   }

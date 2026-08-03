@@ -1,105 +1,142 @@
 .wrapper {
-  background: #f8fafc; /* Màu nền xám xanh rất nhẹ tạo sự khác biệt với nền trắng */
-  border: 2px solid #2563eb; /* Viền màu xanh chủ đạo dày hơn hẳn để hút mắt */
-  border-radius: 20px;
-  padding: 24px;
-  /* Đổ bóng lớn và đậm hơn để tạo cảm giác Form nổi hẳn lên trên bề mặt */
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #2563eb;
+  border-radius: 12px;
+  padding: 24px 20px;
+  /* Đổ bóng đa tầng giúp thẻ nổi hẳn lên khỏi bề mặt */
   box-shadow:
-    0 10px 25px -5px rgba(37, 99, 235, 0.15),
-    0 8px 10px -6px rgba(37, 99, 235, 0.15);
-  position: relative; /* Để làm điểm tựa cho Badge nếu cần */
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-  height: 100%; /* Cao bằng khối cha bên ngoài */
+    0 4px 6px -1px rgba(37, 99, 235, 0.06),
+    0 10px 15px -3px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  position: relative;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
-/* Thêm hiệu ứng khi user rê chuột qua hoặc nhấn vào form sẽ càng nổi bật */
-.wrapper:focus-within {
+/* Hiệu ứng nổi nhẹ khi rê chuột vào Form */
+.wrapper:hover {
   transform: translateY(-2px);
-  box-shadow: 0 20px 30px -10px rgba(37, 99, 235, 0.25);
+  box-shadow:
+    0 8px 12px -2px rgba(37, 99, 235, 0.1),
+    0 16px 24px -4px rgba(15, 23, 42, 0.1);
 }
 
 .header {
-  font-size: 24px; /* Tăng từ 20px lên 24px cho to rõ ràng */
-  font-weight: 850; /* Tăng độ đậm nét */
-  color: #1e3a8a;
-  margin-bottom: 28px; /* Tăng khoảng cách dưới tiêu đề */
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 22px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  font-family: inherit;
 }
 
-/* Tạo một cái chấm đỏ hoặc icon nhỏ kế bên tiêu đề để nhấn mạnh */
+/* Chấm đỏ phát sáng nhẹ (Pulse Animation) */
 .header::before {
   content: "";
   display: inline-block;
-  width: 10px; /* Tăng kích thước chấm đỏ một chút cho cân đối với chữ to */
-  height: 10px;
-  background-color: #dc2626;
+  width: 8px;
+  height: 8px;
+  background-color: #ef4444;
   border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  animation: pulse 2s infinite;
 }
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
 .form {
   display: flex;
   flex-direction: column;
-  flex: 1; /* Chiếm trọn không gian còn lại của thẻ wrapper */
-
-  /* Thay vì gom cụm ở giữa, dùng space-between hoặc space-around 
-     để tự động chia đều khoảng cách trống cho các ô input */
-  justify-content: space-between;
-
-  padding-bottom: 12px; /* Thêm chút đệm ở đáy form cho thoáng mắt */
+  gap: 20px;
 }
 
-/* Giữ nguyên chiều cao cố định của ô input để tránh bị méo font */
-.input {
-  width: 100%;
-  height: 50px;
-  border: 1.5px solid #cbd5e1;
-  border-radius: 12px;
-  padding: 0 16px;
-  font-size: 15px;
-  background-color: #ffffff;
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-/* Các thuộc tính .group, .label, .error, .inputError giữ nguyên của bạn */
 .group {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.label {
-  font-size: 14px;
-  font-weight: 700;
-  color: #1e293b;
+.group label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #334155;
+  font-family: inherit;
 }
 
+.input {
+  width: 100%;
+  height: 44px; 
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #0f172a;
+  background-color: #f8fafc; 
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+/* Hiệu ứng nổi bật khi người dùng nhấp chuột vào ô điền */
 .input:focus {
-  border-color: #2563eb;
   background-color: #ffffff;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+  transform: translateY(-1px);
 }
 
 .input::placeholder {
   color: #94a3b8;
 }
 
-/* ERROR */
 .error {
-  margin-top: 6px;
-  font-size: 13px;
+  font-size: 12px;
   color: #dc2626;
   font-weight: 600;
-  line-height: 1.4;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: shake 0.3s ease-in-out;
 }
 
-/* INVALID INPUT */
+/* Hiệu ứng rung nhẹ khi có lỗi validation */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+
 .inputError {
-  border-color: #dc2626;
-  background: #fff5f5;
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
 }

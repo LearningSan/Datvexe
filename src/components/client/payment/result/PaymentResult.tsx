@@ -5,19 +5,19 @@ import styles from "./PaymentResult.module.css";
 import { useRouter } from "next/navigation";
 
 interface SuccessProps {
-  bookingCode: string;
+  bookingCodes: string[];
   showDetails: boolean;
   onToggleDetails: () => void;
 }
 
 interface FailedProps {
-  bookingId?: number;
+  bookingIds: number[];
   onRetry: () => void;
   showDetails: boolean;
   onToggleDetails: () => void;
 }
 export function PaymentSuccess({
-  bookingCode,
+  bookingCodes,
   showDetails,
   onToggleDetails,
 }: SuccessProps) {
@@ -35,8 +35,11 @@ export function PaymentSuccess({
       </p>
 
       <div className={styles.quickInfo}>
-        <span>Mã đặt vé của bạn</span>
-        <span className={styles.bookingCodeHighlight}>{bookingCode}</span>
+        <span>Các mã đặt vé của bạn</span>
+
+        <span className={styles.bookingCodeHighlight}>
+          {bookingCodes.join(" • ")}
+        </span>
       </div>
 
       <div className={styles.btnGroup}>
@@ -60,7 +63,7 @@ export function PaymentSuccess({
 // ============================================================
 
 export function PaymentFailed({
-  bookingId,
+  bookingIds,
   onRetry,
   showDetails,
   onToggleDetails,
@@ -86,10 +89,12 @@ export function PaymentFailed({
           {showDetails ? "Ẩn chi tiết" : "Xem thông tin vé đang giữ"}
         </button>
 
-        {bookingId && (
+        {bookingIds.length > 0 && (
           <button
             className={`${styles.btn} ${styles.btnSecondary}`}
-            onClick={() => router.push(`/payment/${bookingId}`)}
+            onClick={() =>
+              router.push(`/payment?bookingIds=${bookingIds.join(",")}`)
+            }
           >
             Quay lại trang thanh toán
           </button>
@@ -115,16 +120,18 @@ export function PaymentFailed({
 
 // ============================================================
 
-export function PaymentExpired({ bookingId }: { bookingId?: number }) {
+export function PaymentExpired({ bookingIds }: { bookingIds: number[] }) {
   const router = useRouter();
 
   return (
-    <div className={styles.resultCard}>
-      <div className={`${styles.iconBadge} ${styles.expiredBadge}`}>⏰</div>
+    <div className={`${styles.iconBadge} ${styles.expiredBadge}`}>
+      <div>⏰</div>
+
       <h2 className={`${styles.title} ${styles.expiredTitle}`}>
         Giao dịch hết thời gian
       </h2>
-      <p className={styles.subText}>
+
+      <p>
         Thời gian giữ chỗ giới hạn 10 phút đã kết thúc trước khi quá trình
         chuyển khoản hoàn tất. Ghế đã tự động giải phóng.
       </p>
@@ -136,10 +143,13 @@ export function PaymentExpired({ bookingId }: { bookingId?: number }) {
         >
           Tìm và đặt chuyến khác
         </button>
-        {bookingId && (
+
+        {bookingIds.length > 0 && (
           <button
             className={`${styles.btn} ${styles.btnSecondary}`}
-            onClick={() => router.push(`/payment/${bookingId}`)}
+            onClick={() =>
+              router.push(`/payment?bookingIds=${bookingIds.join(",")}`)
+            }
           >
             Quay lại trang thanh toán
           </button>

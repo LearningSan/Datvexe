@@ -29,8 +29,205 @@
     width: 100%; /* Sidebar co giãn hết màn hình trên mobile */
     /* Hoặc nếu muốn ẩn hẳn bộ lọc trên mobile: display: none; */
   }
-  
+
   .main {
     width: 100%;
+  }
+}
+.container {
+  display: flex;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* =========================
+   TAB CHUYẾN ĐI / CHUYẾN VỀ
+========================= */
+
+.journeyTabs {
+  display: flex;
+  width: 100%;
+  gap: 8px;
+  padding: 6px;
+
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.journeyTab {
+  flex: 1;
+
+  border: none;
+  border-radius: 8px;
+
+  padding: 12px 16px;
+
+  background: transparent;
+  color: #64748b;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.journeyTab:hover {
+  background: rgba(255, 255, 255, 0.7);
+  color: #0f172a;
+}
+
+.journeyTabActive {
+  background: #ffffff;
+  color: #2563eb;
+
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+}
+
+.selectedMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 18px;
+  height: 18px;
+  margin-left: 8px;
+
+  border-radius: 50%;
+
+  background: #16a34a;
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* =========================
+   CHUYẾN ĐÃ CHỌN
+========================= */
+
+.selectedTrips {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  width: 100%;
+
+  padding: 14px 16px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color: #334155;
+  font-size: 14px;
+}
+
+.selectedTripItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.selectedTripItem strong {
+  color: #0f172a;
+}
+
+.continueButton {
+  margin-left: auto;
+
+  border: none;
+  border-radius: 8px;
+
+  padding: 10px 18px;
+
+  background: #2563eb;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.continueButton:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.continueButton:disabled {
+  background: #cbd5e1;
+  color: #64748b;
+
+  cursor: not-allowed;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px;
+  }
+
+  .sidebar {
+    width: 100%;
+  }
+
+  .main {
+    width: 100%;
+  }
+
+  .journeyTabs {
+    gap: 6px;
+    padding: 5px;
+  }
+
+  .journeyTab {
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  .selectedTrips {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+
+    padding: 12px;
+  }
+
+  .selectedTripItem {
+    width: 100%;
+  }
+
+  .continueButton {
+    width: 100%;
+    margin-left: 0;
   }
 }

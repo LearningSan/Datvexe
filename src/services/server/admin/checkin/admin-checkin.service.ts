@@ -17,18 +17,52 @@ import type {
   ConfirmCheckinResponse,
   LookupCheckinQrPayload,
 } from "@/types/admin/checkin/checkin.type";
-
+export interface CheckinQrBooking {
+  bookingId: number;
+  bookingCode: string;
+}
 const CHECKIN_OPEN_BEFORE_MINUTES = 120;
 const CHECKIN_LATE_AFTER_MINUTES = 30;
+async function findBookingInQrByTrip(
+  qrBookings: CheckinQrBooking[],
+  expectedTripId: number,
+): Promise<CheckinQrBooking> {
+  for (const qrBooking of qrBookings) {
+    const booking = await findCheckinBookingByIdentity({
+      bookingId: qrBooking.bookingId,
+      bookingCode: qrBooking.bookingCode,
+    });
 
+    if (booking && booking.tripId === expectedTripId) {
+      return qrBooking;
+    }
+  }
+
+  throw new Error("QR không chứa booking thuộc chuyến xe này");
+}
 export async function lookupAdminCheckinQr(
   payload: LookupCheckinQrPayload,
 ): Promise<AdminCheckinLookupResponse> {
   const qrPayload = parseAndVerifyCheckinQr(payload.qrData);
 
+  let qrBooking: CheckinQrBooking;
+
+  if (payload.expectedTripId != null) {
+    qrBooking = await findBookingInQrByTrip(
+      qrPayload.bookings,
+      payload.expectedTripId,
+    );
+  } else {
+    if (qrPayload.bookings.length === 0) {
+      throw new Error("QR không chứa booking");
+    }
+
+    qrBooking = qrPayload.bookings[0];
+  }
+
   const booking = await findCheckinBookingByIdentity({
-    bookingId: qrPayload.bookingId,
-    bookingCode: qrPayload.bookingCode,
+    bookingId: qrBooking.bookingId,
+    bookingCode: qrBooking.bookingCode,
   });
 
   if (!booking) {

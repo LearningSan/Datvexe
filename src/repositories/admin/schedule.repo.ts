@@ -438,14 +438,16 @@ export async function updateScheduleTemplateStatusRepo(
 }
 export async function findAdminScheduleOptions() {
   const routes = await query<any>(`
-  SELECT
+SELECT
     MIN(r.route_id) AS routeId,
-    CONCAT(oc.city_name, ' → ', dc.city_name) AS routeName
-  FROM routes r
-  INNER JOIN cities oc ON oc.city_id = r.origin_city_id
-  INNER JOIN cities dc ON dc.city_id = r.destination_city_id
-  WHERE r.status = 'ACTIVE'
-  GROUP BY
+    CONCAT(oc.city_name,' → ',dc.city_name) AS routeName,
+    MIN(r.base_price) AS basePrice,
+    MIN(r.estimated_duration) AS estimatedDuration
+FROM routes r
+INNER JOIN cities oc ON oc.city_id = r.origin_city_id
+INNER JOIN cities dc ON dc.city_id = r.destination_city_id
+WHERE r.status='ACTIVE'
+GROUP BY
     r.origin_city_id,
     r.destination_city_id,
     oc.city_name,

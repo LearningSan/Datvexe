@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { loginSchema } from "@/validators/client/auth.validator";
 import { loginLocal } from "@/services/server/client/auth.service";
-import { setRefreshCookie } from "@/lib/server/cookie";
+import { setClientRefreshCookie } from "@/lib/server/client-cookie";
 import { errorResponse } from "@/lib/server/response";
 
 export async function POST(req: NextRequest) {
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    setRefreshCookie(res, result.refreshToken);
+    setClientRefreshCookie(res, result.refreshToken);
 
     return res;
   } catch (error: any) {
@@ -38,6 +38,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return errorResponse(error.message || "Đăng nhập thất bại", null, 401);
+    switch (error.message) {
+      case "USER_BLOCKED":
+        return errorResponse(
+          "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ tổng đài để được hỗ trợ.",
+          null,
+          403,
+        );
+
+      case "INVALID_CREDENTIALS":
+        return errorResponse(
+          "Email/Số điện thoại hoặc mật khẩu không chính xác.",
+          null,
+          401,
+        );
+
+      default:
+        return errorResponse("Đăng nhập thất bại.", null, 401);
+    }
   }
 }

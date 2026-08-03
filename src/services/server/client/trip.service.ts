@@ -11,7 +11,7 @@ export const searchTripsService = async (query: SearchTripsInput) => {
   const {
     page,
     limit,
-
+    requiredSeats,
     timeSlots,
     vehicleTypes,
     seatPositions,
@@ -40,6 +40,7 @@ export const searchTripsService = async (query: SearchTripsInput) => {
     destination: destinationCityId,
 
     date,
+    requiredSeats,
 
     page,
     limit,
@@ -50,12 +51,10 @@ export const searchTripsService = async (query: SearchTripsInput) => {
     floors,
 
     sort,
-
     onlyAvailable,
   });
-
   const trips = result.trips.map((row: any) => ({
-    id: row.trip_id,
+    id: Number(row.trip_id),
 
     origin: row.origin_hub ?? row.origin_city,
     destination: row.destination_hub ?? row.destination_city,
@@ -63,45 +62,40 @@ export const searchTripsService = async (query: SearchTripsInput) => {
     originCity: row.origin_city,
     destinationCity: row.destination_city,
 
-    pickup: row.pickup_point,
+    pickup: row.pickup_point ?? null,
 
     departureTime: row.departure_time,
     arrivalTime: row.arrival_time,
 
     departureDateTime: row.departure_datetime,
-
     arrivalDateTime: row.arrival_datetime,
 
-    duration: row.duration_minutes ? Math.floor(row.duration_minutes / 60) : 0,
+    duration: Number(row.duration_minutes ?? 0),
+    durationMinutes: Number(row.duration_minutes ?? 0),
 
-    distance: row.distance_km ? Number(row.distance_km) : 0,
+    distance: Number(row.distance_km ?? 0),
 
     type: row.vehicle_type,
 
-    availableSeats: row.available_seats,
+    availableSeats: Number(row.available_seats ?? 0),
 
     price: Number(row.price ?? 0),
 
-    floorCount: row.floor_count,
-
-    totalSeats: row.total_seats,
+    floorCount: Number(row.floor_count ?? 0),
+    totalSeats: Number(row.total_seats ?? 0),
 
     vehicleName: row.vehicle_name,
-
     licensePlate: row.license_plate,
     imageUrl: row.image_url ?? null,
   }));
 
   return {
     trips,
-
     pagination: {
-      page,
-      limit,
-
+      page: result.page,
+      limit: result.limit,
       total: result.total,
-
-      totalPages: Math.ceil(result.total / limit),
+      totalPages: Math.ceil(result.total / result.limit),
     },
   };
 };
@@ -109,15 +103,17 @@ export async function getTripFilterOptionsService(input: {
   originCityId: number;
   destinationCityId: number;
   date: string;
+  requiredSeats?: number;
 }) {
   if (!input.originCityId || !input.destinationCityId || !input.date) {
     throw new Error("Thiếu điểm đi, điểm đến hoặc ngày đi");
   }
 
-  return await getTripFilterOptionsRepo({
+  return getTripFilterOptionsRepo({
     origin: input.originCityId,
     destination: input.destinationCityId,
     date: input.date,
+    requiredSeats: input.requiredSeats ?? 1,
   });
 }
 interface GetScheduleRoutesInput {

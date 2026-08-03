@@ -11,7 +11,29 @@ export type TripWarning =
   | "DEPARTING_SOON"
   | "FULL_SEAT"
   | "CANCELLED";
+export interface AdminRouteOption {
+  routeId: number;
+  routeName: string;
 
+  originCityId: number;
+  destinationCityId: number;
+
+  basePrice: number;
+  estimatedDuration: number;
+}
+export interface AdminScheduleTemplateOption {
+  scheduleTemplateId: number;
+
+  routeId: number;
+
+  originCityId: number;
+  destinationCityId: number;
+
+  scheduleName: string;
+  departureTime: string;
+  estimatedDuration: number;
+  basePrice: number;
+}
 export interface AdminTripItem {
   tripId: number;
 
@@ -46,8 +68,7 @@ export interface AdminTripItem {
   warnings: TripWarning[];
   ticketPrice: number | null;
   createdAt: string;
-    mainDriverId?: number | null;
-
+  mainDriverId?: number | null;
 }
 
 export interface AdminTripListParams {
@@ -106,7 +127,14 @@ export interface UpdateTripStatusPayload {
 
 export interface AdminTripOptionRoute {
   routeId: number;
+
+  originCityId: number;
+  destinationCityId: number;
+
   routeName: string;
+
+  basePrice: number;
+  estimatedDuration: number;
 }
 
 export interface AdminTripOptionVehicle {
@@ -132,8 +160,14 @@ export interface AdminTripOptionsResponse {
 }
 export interface AdminTripOptionScheduleTemplate {
   scheduleTemplateId: number;
+
   routeId: number;
+
+  originCityId: number;
+  destinationCityId: number;
+
   scheduleName: string;
+
   departureTime: string;
   estimatedDuration: number;
   basePrice: number;

@@ -6,10 +6,19 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
 
+    const originCityId = Number(searchParams.get("origin"));
+
+    const destinationCityId = Number(searchParams.get("destination"));
+
+    const date = searchParams.get("date") ?? "";
+
+    const requiredSeats = Number(searchParams.get("requiredSeats") ?? 1);
+
     const data = await getTripFilterOptionsService({
-      originCityId: Number(searchParams.get("origin")),
-      destinationCityId: Number(searchParams.get("destination")),
-      date: String(searchParams.get("date")),
+      originCityId,
+      destinationCityId,
+      date,
+      requiredSeats,
     });
 
     return successResponse(data, "Trip filter options fetched successfully");

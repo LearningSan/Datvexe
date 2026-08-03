@@ -93,30 +93,29 @@ export async function sendRegisterOtpEmail(to: string, otp: string) {
 }
 export async function sendPaymentSuccessEmail(data: {
   to: string;
-
   customerName: string;
   customerPhone: string | null;
-  amount: number;
-
-  bookingId: number;
-  bookingCode: string;
-
-  routeName: string;
-  departureDatetime: string;
-  arrivalDatetime: string;
-
-  pickupPointName: string | null;
-  pickupPointAddress: string | null;
-  dropoffPointName: string | null;
-  dropoffPointAddress: string | null;
-
-  vehicleName: string | null;
-  licensePlate: string | null;
-  seatNumbers: string | null;
+  bookings: {
+    bookingId: number;
+    bookingCode: string;
+    amount: number;
+    routeName: string;
+    departureDatetime: string;
+    arrivalDatetime: string;
+    pickupPointName: string | null;
+    pickupPointAddress: string | null;
+    dropoffPointName: string | null;
+    dropoffPointAddress: string | null;
+    vehicleName: string | null;
+    licensePlate: string | null;
+    seatNumbers: string | null;
+  }[];
 }) {
   const checkinQrData = encodeCheckinQrPayload({
-    bookingId: data.bookingId,
-    bookingCode: data.bookingCode,
+    bookings: data.bookings.map((booking) => ({
+      bookingId: booking.bookingId,
+      bookingCode: booking.bookingCode,
+    })),
   });
 
   const qrCodeUrl =
@@ -133,13 +132,18 @@ export async function sendPaymentSuccessEmail(data: {
     },
   });
 
-  const formattedAmount = Number(data.amount).toLocaleString("vi-VN") + " đ";
+  const totalAmount = data.bookings.reduce(
+    (sum, booking) => sum + Number(booking.amount),
+    0,
+  );
+
+  const formattedAmount = totalAmount.toLocaleString("vi-VN") + " đ";
 
   try {
     const info = await transporter.sendMail({
       from: `"XeKhachPT" <${process.env.MAIL_FROM!}>`,
       to: data.to,
-      subject: `[XeKhachPT] Xác nhận đặt vé thành công - Mã vé: ${data.bookingCode}`,
+      subject: `[XeKhachPT] Xác nhận thanh toán thành công - ${data.bookings.length} vé`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -177,25 +181,31 @@ export async function sendPaymentSuccessEmail(data: {
                       <!-- Ticket Summary Box -->
                       <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 25px;">
                         <tr>
-                          <td style="padding-bottom: 14px; border-bottom: 1px dashed #cbd5e1; font-size: 13px; color: #64748b; font-weight: 700; letter-spacing: 0.5px;">
+                          <td style="padding-bottom: 14px; border-bottom: 1px dashed #cbd5e1; font-size: 13px; color: #64748b; font-weight: 700; letter-spacing: 0.5px;" colspan="2">
                             THÔNG TIN THANH TOÁN
                           </td>
                         </tr>
                         <tr>
-                          <td style="padding-top: 14px;">
+                          <td colspan="2" style="padding-top: 14px;">
                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                              ${data.bookings
+                                .map(
+                                  (booking, index) => `
                               <tr>
-                                <td style="padding: 5px 0; font-size: 14px; color: #64748b;" width="35%">Mã đặt vé:</td>
-                                <td style="padding: 5px 0; font-size: 16px; color: #1d4ed8; font-weight: 700; letter-spacing: 0.5px;">${data.bookingCode}</td>
+                                <td style="padding: 5px 0; font-size: 14px; color: #64748b;" width="35%">Mã vé ${index + 1}:</td>
+                                <td style="padding: 5px 0; font-size: 16px; color: #1d4ed8; font-weight: 700;">${booking.bookingCode}</td>
                               </tr>
+                              `,
+                                )
+                                .join("")}
                               <tr>
-                                <td style="padding: 5px 0; font-size: 14px; color: #64748b;">Số tiền:</td>
+                                <td style="padding: 5px 0; font-size: 14px; color: #64748b;">Tổng tiền:</td>
                                 <td style="padding: 5px 0; font-size: 16px; color: #ef4444; font-weight: 700;">${formattedAmount}</td>
                               </tr>
                               <tr>
                                 <td style="padding: 5px 0; font-size: 14px; color: #64748b;">Trạng thái:</td>
-                                <td style="padding: 5px 0; font-size: 13px; color: #16a34a; font-weight: 600;">
-                                  <span style="background-color: #dcfce7; padding: 2px 8px; border-radius: 4px;">Thành công</span>
+                                <td style="padding: 5px 0;">
+                                  <span style="background-color: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 4px; font-size: 13px; font-weight: 600;">Thành công</span>
                                 </td>
                               </tr>
                             </table>
@@ -212,44 +222,35 @@ export async function sendPaymentSuccessEmail(data: {
                         </tr>
                         <tr>
                           <td style="padding-top: 14px;">
-                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                              <tr>
-                                <td style="padding: 7px 0; font-size: 14px; color: #64748b;" width="35%" valign="top">Tuyến xe:</td>
-                                <td style="padding: 7px 0; font-size: 15px; color: #0f172a; font-weight: 600;">${data.routeName}</td>
-                              </tr>
-                              <tr>
-                                <td style="padding: 7px 0; font-size: 14px; color: #64748b;" valign="top">Khởi hành:</td>
-                                <td style="padding: 7px 0; font-size: 14px; color: #0f172a; font-weight: 500;">${formatDateTimeVN(data.departureDatetime)}</td>
-                              </tr>
-                              <tr>
-                                <td style="padding: 7px 0; font-size: 14px; color: #64748b;" valign="top">Dự kiến đến:</td>
-                                <td style="padding: 7px 0; font-size: 14px; color: #475569;">${formatDateTimeVN(data.arrivalDatetime)}</td>
-                              </tr>
-                              <tr>
-                                <td style="padding: 7px 0; font-size: 14px; color: #64748b;" valign="top">Vị trí ghế:</td>
-                                <td style="padding: 7px 0; font-size: 14px; color: #0f172a; font-weight: 600;">${data.seatNumbers || "Hệ thống tự động xếp ghế"}</td>
-                              </tr>
-                              <tr>
-                                <td style="padding: 7px 0; font-size: 14px; color: #64748b;" valign="top">Thông tin xe:</td>
-                                <td style="padding: 7px 0; font-size: 14px; color: #0f172a;">
-                                  ${data.vehicleName || "Xe giường nằm"} ${data.licensePlate ? `(${data.licensePlate})` : ""}
-                                </td>
-                              </tr>
-                              <tr>
-                                <td style="padding: 10px 0 7px 0; font-size: 14px; color: #64748b; border-top: 1px dashed #f1f5f9;" valign="top">Điểm đón:</td>
-                                <td style="padding: 10px 0 7px 0; font-size: 14px; color: #0f172a; border-top: 1px dashed #f1f5f9;">
-                                  <strong style="color: #2563eb;">${data.pickupPointName || "Bến xe xuất phát"}</strong>
-                                  ${data.pickupPointAddress ? `<br><span style="font-size: 13px; color: #64748b; display: inline-block; margin-top: 2px;">Địa chỉ: ${data.pickupPointAddress}</span>` : ""}
-                                </td>
-                              </tr>
-                              <tr>
-                                <td style="padding: 10px 0 7px 0; font-size: 14px; color: #64748b; border-top: 1px dashed #f1f5f9;" valign="top">Điểm trả:</td>
-                                <td style="padding: 10px 0 7px 0; font-size: 14px; color: #0f172a; border-top: 1px dashed #f1f5f9;">
-                                  <strong>${data.dropoffPointName || "Bến xe đích"}</strong>
-                                  ${data.dropoffPointAddress ? `<br><span style="font-size: 13px; color: #64748b; display: inline-block; margin-top: 2px;">Địa chỉ: ${data.dropoffPointAddress}</span>` : ""}
-                                </td>
-                              </tr>
-                            </table>
+                            ${data.bookings
+                              .map((booking, index) => {
+                                const amount =
+                                  Number(booking.amount).toLocaleString(
+                                    "vi-VN",
+                                  ) + " đ";
+                                return `
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 16px; background-color: #ffffff;">
+                                  <tr>
+                                    <td style="font-size: 15px; font-weight: 700; color: #1d4ed8; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
+                                      VÉ ${index + 1}: ${booking.bookingCode}
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td style="padding-top: 10px; font-size: 14px; color: #334155; line-height: 1.6;">
+                                      <p style="margin: 0 0 6px 0;"><b>Tuyến xe:</b> ${booking.routeName}</p>
+                                      <p style="margin: 0 0 6px 0;"><b>Khởi hành:</b> ${formatDateTimeVN(booking.departureDatetime)}</p>
+                                      <p style="margin: 0 0 6px 0;"><b>Dự kiến đến:</b> ${formatDateTimeVN(booking.arrivalDatetime)}</p>
+                                      <p style="margin: 0 0 6px 0;"><b>Ghế:</b> ${booking.seatNumbers ?? "Hệ thống tự động xếp ghế"}</p>
+                                      <p style="margin: 0 0 6px 0;"><b>Xe:</b> ${booking.vehicleName ?? "Xe giường nằm"} ${booking.licensePlate ? `(${booking.licensePlate})` : ""}</p>
+                                      <p style="margin: 0 0 6px 0;"><b>Điểm đón:</b> ${booking.pickupPointName ?? ""} - ${booking.pickupPointAddress ?? ""}</p>
+                                      <p style="margin: 0 0 6px 0;"><b>Điểm trả:</b> ${booking.dropoffPointName ?? ""} - ${booking.dropoffPointAddress ?? ""}</p>
+                                      <p style="margin: 0;"><b>Giá vé:</b> <span style="color: #ef4444; font-weight: 600;">${amount}</span></p>
+                                    </td>
+                                  </tr>
+                                </table>
+                                `;
+                              })
+                              .join("")}
                           </td>
                         </tr>
                       </table>
@@ -262,9 +263,8 @@ export async function sendPaymentSuccessEmail(data: {
                               MÃ QR CHECK-IN LÊN XE
                             </p>
                             <div style="display: inline-block; background-color: #ffffff; padding: 12px; border-radius: 12px; border: 1px solid #fed7aa; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                              <img src="${qrCodeUrl}" width="200"
-                                  height="200"alt="QR Check-in ${data.bookingCode}"style="display: block;"/>                            
-                                  </div>
+                              <img src="${qrCodeUrl}" width="200" height="200" alt="QR Check-in" style="display: block;" />
+                            </div>
                             <p style="margin: 12px 0 0 0; font-size: 13px; color: #7c2d12; font-style: italic;">
                               * Vui lòng chuẩn bị sẵn mã QR này trên điện thoại hoặc đọc Mã đặt vé cho nhân viên/tài xế khi lên xe.
                             </p>

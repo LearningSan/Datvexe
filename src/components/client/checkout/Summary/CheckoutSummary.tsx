@@ -11,24 +11,65 @@ import { useCreateBooking } from "@/hooks/client/useBooking";
 import { clearActiveSeatHold } from "@/hooks/client/useCancelSeatHoldOnExit";
 
 export default function CheckoutSummary() {
-  const selectedTrip = useBookingStore((s) => s.selectedTrip);
-  const selectedSeats = useBookingStore((s) => s.selectedSeats);
-  const subtotal = useBookingStore((s) => s.subtotal);
-  const promotionDiscount = useBookingStore((s) => s.promotionDiscount);
-  const totalPrice = useBookingStore((s) => s.totalPrice);
-  const passenger = useBookingStore((s) => s.passenger);
-  const pickupMethod = useBookingStore((s) => s.pickupMethod);
-  const dropoffMethod = useBookingStore((s) => s.dropoffMethod);
-  const pickupPointId = useBookingStore((s) => s.pickupPointId);
-  const dropoffPointId = useBookingStore((s) => s.dropoffPointId);
-  const pickupAddress = useBookingStore((s) => s.pickupAddress);
-  const dropoffAddress = useBookingStore((s) => s.dropoffAddress);
-  const acceptedTerms = useBookingStore((s) => s.acceptedTerms);
-  const setPromotion = useBookingStore((s) => s.setPromotion);
-  const clearPromotion = useBookingStore((s) => s.clearPromotion);
-  const setSubmitted = useBookingStore((s) => s.setSubmitted);
-  const promotionCode = useBookingStore((s) => s.promotionCode);
+  const {
+    activeJourney,
+
+    outboundTrip,
+    returnTrip,
+
+    outboundSeats,
+    returnSeats,
+
+    outboundRoute,
+    returnRoute,
+
+    subtotal,
+    promotionDiscount,
+    totalPrice,
+
+    passenger,
+
+    acceptedTerms,
+    promotionCode,
+
+    setPromotion,
+    clearPromotion,
+    setSubmitted,
+  } = useBookingStore();
+  const selectedTrip =
+    activeJourney === "OUTBOUND" ? outboundTrip : (returnTrip ?? outboundTrip);
+
+  const currentRoute =
+    activeJourney === "OUTBOUND" ? outboundRoute : returnRoute;
+
+  const outboundSeatPrice = outboundSeats.reduce(
+    (sum, seat) => sum + seat.price,
+    0,
+  );
+
+  const returnSeatPrice = returnSeats.reduce(
+    (sum, seat) => sum + seat.price,
+    0,
+  );
+
+  const selectedSeats =
+    activeJourney === "OUTBOUND" ? outboundSeats : returnSeats;
+
   const createBooking = useCreateBooking();
+  const outboundWeekday = useMemo(() => {
+    if (!outboundTrip) return "";
+
+    return new Intl.DateTimeFormat("vi-VN", {
+      weekday: "long",
+    }).format(new Date(outboundTrip.departureDateTime));
+  }, [outboundTrip]);
+  const returnWeekday = useMemo(() => {
+    if (!returnTrip) return "";
+
+    return new Intl.DateTimeFormat("vi-VN", {
+      weekday: "long",
+    }).format(new Date(returnTrip.departureDateTime));
+  }, [returnTrip]);
   const validatePromotion = useValidatePromotion();
   const router = useRouter();
 
@@ -56,13 +97,6 @@ export default function CheckoutSummary() {
       setErrorMessage("Không thể hủy giữ ghế");
     }
   };
-
-  const weekday = useMemo(() => {
-    if (!selectedTrip) return "";
-    return new Intl.DateTimeFormat("vi-VN", { weekday: "long" }).format(
-      new Date(selectedTrip.departureDateTime),
-    );
-  }, [selectedTrip]);
 
   const handleApplyPromotion = async (code: string) => {
     if (!selectedTrip) return;
@@ -102,19 +136,28 @@ export default function CheckoutSummary() {
       setErrorMessage("Vui lòng chọn ghế");
       return;
     }
-    if (pickupMethod === "OFFICE" && !pickupPointId) {
+    if (currentRoute.pickupMethod === "OFFICE" && !currentRoute.pickupPointId) {
       setErrorMessage("Vui lòng chọn điểm đón tại bến");
       return;
     }
-    if (pickupMethod === "SHUTTLE" && !pickupAddress?.address?.trim()) {
+    if (
+      currentRoute.pickupMethod === "SHUTTLE" &&
+      !currentRoute.pickupAddress?.address?.trim()
+    ) {
       setErrorMessage("Vui lòng nhập địa chỉ trung chuyển đón");
       return;
     }
-    if (dropoffMethod === "OFFICE" && !dropoffPointId) {
+    if (
+      currentRoute.dropoffMethod === "OFFICE" &&
+      !currentRoute.dropoffPointId
+    ) {
       setErrorMessage("Vui lòng chọn điểm trả tại bến");
       return;
     }
-    if (dropoffMethod === "SHUTTLE" && !dropoffAddress?.address?.trim()) {
+    if (
+      currentRoute.dropoffMethod === "SHUTTLE" &&
+      !currentRoute.dropoffAddress?.address?.trim()
+    ) {
       setErrorMessage("Vui lòng nhập địa chỉ trung chuyển trả");
       return;
     }
@@ -126,47 +169,91 @@ export default function CheckoutSummary() {
 
     try {
       const sessionId = localStorage.getItem("session_id");
+
       if (!sessionId) {
         setErrorMessage("Không tìm thấy session");
         return;
       }
-
       const payload = {
-        tripId: selectedTrip.id,
         sessionId,
-        promoCode: promotionCode ?? null,
-        seats: selectedSeats.map((s) => ({
-          seatLayoutDetailId: s.seatId,
-          seatPrice: s.price,
-        })),
+
         contactName: passenger.fullName,
         contactPhone: passenger.phone,
         contactEmail: passenger.email,
-        pickup: {
-          pickupPointId: pickupPointId ?? undefined,
-          method: pickupMethod,
-          address: pickupAddress?.address ?? undefined,
-          latitude: pickupAddress?.latitude,
-          longitude: pickupAddress?.longitude,
+
+        promoCode: promotionCode ?? null,
+
+        outbound: {
+          tripId: outboundTrip!.id,
+
+          seats: outboundSeats.map((seat) => ({
+            seatLayoutDetailId: seat.seatId,
+            seatPrice: seat.price,
+          })),
+
+          pickup: {
+            pickupPointId: outboundRoute.pickupPointId ?? undefined,
+            method: outboundRoute.pickupMethod,
+            address: outboundRoute.pickupAddress?.address,
+            latitude: outboundRoute.pickupAddress?.latitude,
+            longitude: outboundRoute.pickupAddress?.longitude,
+          },
+
+          dropoff: {
+            pickupPointId: outboundRoute.dropoffPointId ?? undefined,
+            method: outboundRoute.dropoffMethod,
+            address: outboundRoute.dropoffAddress?.address,
+            latitude: outboundRoute.dropoffAddress?.latitude,
+            longitude: outboundRoute.dropoffAddress?.longitude,
+          },
         },
-        dropoff: {
-          pickupPointId: dropoffPointId ?? undefined,
-          method: dropoffMethod,
-          address: dropoffAddress?.address ?? undefined,
-          latitude: dropoffAddress?.latitude,
-          longitude: dropoffAddress?.longitude,
-        },
+
+        return: returnTrip
+          ? {
+              tripId: returnTrip.id,
+
+              seats: returnSeats.map((seat) => ({
+                seatLayoutDetailId: seat.seatId,
+                seatPrice: seat.price,
+              })),
+
+              pickup: {
+                pickupPointId: returnRoute.pickupPointId ?? undefined,
+                method: returnRoute.pickupMethod,
+                address: returnRoute.pickupAddress?.address,
+                latitude: returnRoute.pickupAddress?.latitude,
+                longitude: returnRoute.pickupAddress?.longitude,
+              },
+
+              dropoff: {
+                pickupPointId: returnRoute.dropoffPointId ?? undefined,
+                method: returnRoute.dropoffMethod,
+                address: returnRoute.dropoffAddress?.address,
+                latitude: returnRoute.dropoffAddress?.latitude,
+                longitude: returnRoute.dropoffAddress?.longitude,
+              },
+            }
+          : undefined,
       };
-      const res = await createBooking.mutateAsync(payload);
+      console.log(payload);
+      const result = await createBooking.mutateAsync(payload);
+      console.log(result);
+      const bookingIds = result.bookingIds;
+
       const raw = sessionStorage.getItem("active_seat_hold");
+
       if (raw) {
-        const oldHold = JSON.parse(raw);
+        const old = JSON.parse(raw);
+
         sessionStorage.setItem(
           "active_seat_hold",
-          JSON.stringify({ ...oldHold, bookingId: res.bookingId }),
+          JSON.stringify({
+            ...old,
+            bookingIds,
+          }),
         );
       }
-      router.push(`/payment/${res.bookingId}`);
+      router.push(`/payment?bookingIds=${bookingIds.join(",")}`);
     } catch (err: any) {
       const msg = err?.response?.data?.message || "Không thể tạo booking";
       setErrorMessage(msg);
@@ -183,64 +270,117 @@ export default function CheckoutSummary() {
       <div className={styles.route}>
         <div className={styles.routeItem}>
           <span className={styles.label}>Điểm đi</span>
-          <span className={styles.value}>{selectedTrip.originCity}</span>
+          <span className={styles.value}>{outboundTrip?.originCity}</span>
         </div>
         <div className={styles.routeDivider}>→</div>
         <div className={styles.routeItem} style={{ textAlign: "right" }}>
           <span className={styles.label}>Điểm đến</span>
-          <span className={styles.value}>{selectedTrip.destinationCity}</span>
+          <span className={styles.value}>{outboundTrip?.destinationCity}</span>
         </div>
       </div>
 
       {/* THÔNG TIN CHI TIẾT LỊCH TRÌNH */}
       <div className={styles.section}>
+        {/* ===== CHUYẾN ĐI ===== */}
+
         <div className={styles.row}>
           <span className={styles.lbl}>Khởi hành</span>
+
           <span className={`${styles.val} ${styles.green}`}>
-            {selectedTrip.departureTime}
+            {outboundTrip?.departureTime}
           </span>
         </div>
 
         <div className={styles.row}>
           <span className={styles.lbl}>Ngày đi</span>
+
           <span className={styles.val}>
-            {weekday},{" "}
-            {new Date(selectedTrip.departureDateTime).toLocaleDateString(
-              "vi-VN",
-            )}
+            {outboundWeekday},{" "}
+            {outboundTrip &&
+              new Date(outboundTrip.departureDateTime).toLocaleDateString(
+                "vi-VN",
+              )}
           </span>
         </div>
 
         <div className={styles.row}>
-          <span className={styles.lbl}>Loại xe</span>
-          <span className={styles.val}>{selectedTrip.type}</span>
-        </div>
+          <span className={styles.lbl}>Ghế chuyến đi</span>
 
-        <div className={styles.divider} />
-
-        <div className={styles.row}>
-          <span className={styles.lbl}>Ghế đã chọn</span>
           <span className={`${styles.val} ${styles.blueHighlight}`}>
-            {selectedSeats.length > 0
-              ? selectedSeats.map((s) => s.seatNumber).join(", ")
+            {outboundSeats.length
+              ? outboundSeats.map((s) => s.seatNumber).join(", ")
               : "Chưa chọn"}
           </span>
         </div>
 
         <div className={styles.row}>
-          <span className={styles.lbl}>Số lượng ghế</span>
-          <span className={styles.val}>{selectedSeats.length} / 5 ghế</span>
+          <span className={styles.lbl}>Giá chuyến đi</span>
+
+          <span className={styles.val}>
+            {outboundSeatPrice.toLocaleString("vi-VN")}đ
+            {outboundSeats.length > 0 && ` (x${outboundSeats.length})`}
+          </span>
         </div>
 
+        {/* ===== CHUYẾN VỀ ===== */}
+
+        {returnTrip && (
+          <>
+            <div className={styles.divider} />
+
+            <div className={styles.row}>
+              <span className={styles.lbl}>Khởi hành về</span>
+
+              <span className={`${styles.val} ${styles.green}`}>
+                {returnTrip.departureTime}
+              </span>
+            </div>
+
+            <div className={styles.row}>
+              <span className={styles.lbl}>Ngày về</span>
+
+              <span className={styles.val}>
+                {returnWeekday},{" "}
+                {new Date(returnTrip.departureDateTime).toLocaleDateString(
+                  "vi-VN",
+                )}
+              </span>
+            </div>
+
+            <div className={styles.row}>
+              <span className={styles.lbl}>Ghế chuyến về</span>
+
+              <span className={`${styles.val} ${styles.blueHighlight}`}>
+                {returnSeats.length
+                  ? returnSeats.map((s) => s.seatNumber).join(", ")
+                  : "Chưa chọn"}
+              </span>
+            </div>
+
+            <div className={styles.row}>
+              <span className={styles.lbl}>Giá chuyến về</span>
+
+              <span className={styles.val}>
+                {returnSeatPrice.toLocaleString("vi-VN")}đ
+                {returnSeats.length > 0 && ` (x${returnSeats.length})`}
+              </span>
+            </div>
+          </>
+        )}
+
+        <div className={styles.divider} />
+
         <div className={styles.row}>
-          <span className={styles.lbl}>Giá vé</span>
+          <span className={styles.lbl}>Tổng số ghế</span>
+
           <span className={styles.val}>
-            {selectedTrip.price.toLocaleString("vi-VN")}đ
+            {outboundSeats.length + returnSeats.length} / 10 ghế
           </span>
         </div>
 
         <div className={styles.row}>
           <span className={styles.lbl}>Tạm tính</span>
+
           <span className={styles.val}>
             {subtotal.toLocaleString("vi-VN")}đ
           </span>

@@ -691,14 +691,25 @@ export async function updateTripStatusRepo(tripId: number, status: TripStatus) {
 
 export async function findAdminTripOptions() {
   const routes = await query<any>(`
-    SELECT
-      r.route_id AS routeId,
-      CONCAT(oc.city_name, ' → ', dc.city_name) AS routeName
-    FROM routes r
-    INNER JOIN cities oc ON oc.city_id = r.origin_city_id
-    INNER JOIN cities dc ON dc.city_id = r.destination_city_id
-    WHERE r.status = 'ACTIVE'
-    ORDER BY oc.city_name ASC, dc.city_name ASC
+SELECT
+    MIN(r.route_id) AS routeId,
+    r.origin_city_id AS originCityId,
+    r.destination_city_id AS destinationCityId,
+    CONCAT(oc.city_name,' → ',dc.city_name) AS routeName,
+    MIN(r.base_price) AS basePrice,
+    MIN(r.estimated_duration) AS estimatedDuration
+FROM routes r
+INNER JOIN cities oc ON oc.city_id = r.origin_city_id
+INNER JOIN cities dc ON dc.city_id = r.destination_city_id
+WHERE r.status = 'ACTIVE'
+GROUP BY
+    r.origin_city_id,
+    r.destination_city_id,
+    oc.city_name,
+    dc.city_name
+ORDER BY
+    oc.city_name,
+    dc.city_name;
   `);
 
   const vehicles = await query<any>(`
@@ -727,19 +738,34 @@ export async function findAdminTripOptions() {
   `);
 
   const scheduleTemplates = await query<any>(`
-    SELECT
-      st.schedule_template_id AS scheduleTemplateId,
-      st.route_id AS routeId,
-      CONCAT(oc.city_name, ' → ', dc.city_name, ' - ', TIME_FORMAT(st.departure_time, '%H:%i')) AS scheduleName,
-      st.departure_time AS departureTime,
-      st.estimated_duration AS estimatedDuration,
-      st.base_price AS basePrice
-    FROM schedule_templates st
-    INNER JOIN routes r ON r.route_id = st.route_id
-    INNER JOIN cities oc ON oc.city_id = r.origin_city_id
-    INNER JOIN cities dc ON dc.city_id = r.destination_city_id
-    WHERE st.is_active = TRUE
-    ORDER BY oc.city_name ASC, dc.city_name ASC, st.departure_time ASC
+SELECT
+    st.schedule_template_id AS scheduleTemplateId,
+    st.route_id AS routeId,
+
+    r.origin_city_id AS originCityId,
+    r.destination_city_id AS destinationCityId,
+
+    CONCAT(
+        TIME_FORMAT(st.departure_time,'%H:%i'),
+        ' • ',
+        FORMAT(st.base_price,0),
+        'đ'
+    ) AS scheduleName,
+
+    st.departure_time AS departureTime,
+    st.estimated_duration AS estimatedDuration,
+    st.base_price AS basePrice
+
+FROM schedule_templates st
+INNER JOIN routes r
+    ON r.route_id = st.route_id
+
+WHERE st.is_active = TRUE
+
+ORDER BY
+    r.origin_city_id,
+    r.destination_city_id,
+    st.departure_time;
   `);
 
   return {

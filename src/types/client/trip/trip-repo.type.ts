@@ -2,7 +2,7 @@ export interface SearchTripsRepoInput {
   origin: number;
   destination: number;
   date: string;
-
+  requiredSeats?: number;
   page: number;
   limit: number;
 

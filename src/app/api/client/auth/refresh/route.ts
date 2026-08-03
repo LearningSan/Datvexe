@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { refreshAuth } from "@/services/server/client/auth.service";
 import {
-  getRefreshCookie,
-  setRefreshCookie,
-  clearRefreshCookie,
-} from "@/lib/server/cookie";
+  getClientRefreshCookie,
+  setClientRefreshCookie,
+  clearClientRefreshCookie,
+} from "@/lib/server/client-cookie";
 
 export async function POST() {
   try {
-    const refreshToken = await getRefreshCookie();
+    const refreshToken = await getClientRefreshCookie();
 
     if (!refreshToken) {
       return NextResponse.json(
@@ -31,7 +31,7 @@ export async function POST() {
       },
     });
 
-    setRefreshCookie(res, result.refreshToken);
+    setClientRefreshCookie(res, result.refreshToken);
 
     return res;
   } catch (error) {
@@ -45,7 +45,7 @@ export async function POST() {
       { status: 401 },
     );
 
-    clearRefreshCookie(res);
+    clearClientRefreshCookie(res);
 
     return res;
   }

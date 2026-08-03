@@ -281,15 +281,17 @@ export async function findCheckinDashboardTrips(
       LEFT JOIN users du
         ON du.user_id = d.user_id
 
-      LEFT JOIN bookings b
-        ON b.trip_id = t.trip_id
-        AND b.status = 'CONFIRMED'
-        AND EXISTS (
-          SELECT 1
-          FROM payments paid_payment
-          WHERE paid_payment.booking_id = b.booking_id
-            AND paid_payment.status = 'PAID'
-        )
+    LEFT JOIN bookings b
+  ON b.trip_id = t.trip_id
+  AND b.status = 'CONFIRMED'
+  AND EXISTS (
+    SELECT 1
+    FROM payment_bookings pb
+    INNER JOIN payments paid_payment
+      ON paid_payment.payment_id = pb.payment_id
+    WHERE pb.booking_id = b.booking_id
+      AND paid_payment.status = 'PAID'
+  )
 
       LEFT JOIN booking_seats bs
         ON bs.booking_id = b.booking_id

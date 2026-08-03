@@ -6,10 +6,10 @@ import type {
   SortField,
   TripSearchFilters,
 } from "@/types/client/trip/trip-filter.type";
-
 interface FilterOptionItem {
   label: string;
   value: string;
+  count?: number;
 }
 
 interface FilterOptions {
@@ -78,14 +78,23 @@ export default function FilterSidebar({
             <p className={styles.emptyText}>Không có khung giờ phù hợp</p>
           ) : (
             timeSlotOptions.map((item) => (
-              <label key={item.value}>
+              <label key={item.value} className={styles.timeSlotItem}>
                 <input
                   type="checkbox"
                   className={styles.input}
                   checked={filters.timeSlots.includes(item.value)}
                   onChange={() => toggleArray("timeSlots", item.value)}
                 />
-                {item.label}
+
+                <span className={styles.timeSlotContent}>
+                  <span className={styles.timeSlotLabel}>{item.label}</span>
+
+                  {typeof item.count === "number" && (
+                    <span className={styles.optionCount}>
+                      {item.count} chuyến
+                    </span>
+                  )}
+                </span>
               </label>
             ))
           )}

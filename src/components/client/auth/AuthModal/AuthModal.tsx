@@ -1,5 +1,5 @@
 "use client";
-
+import toast from "react-hot-toast";
 import { useRef, useState, useEffect } from "react";
 import styles from "./AuthModal.module.css";
 import {
@@ -69,11 +69,15 @@ export default function AuthModal({ onClose }: Props) {
 
   const handleLogin = async () => {
     setLocalError("");
+
     try {
       await loginMutation.mutateAsync({
         identifier: identifier.trim(),
         password,
       });
+
+      toast.success("Đăng nhập thành công");
+
       onClose();
     } catch (error: any) {
       setLocalError(error?.response?.data?.message || "Đăng nhập thất bại");

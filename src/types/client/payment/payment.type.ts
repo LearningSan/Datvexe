@@ -126,35 +126,40 @@ export interface BookingPaymentSummaryRow extends Omit<
   paidAt: string | null;
   seatNumbersRaw: string | null;
 }
-
 export interface CreatePaymentPayload {
-  bookingId: number;
+  bookingIds: number[];
   paymentMethod: PaymentMethodType;
   sessionId: string;
 }
 export interface CreatePaymentResponse {
   paymentId: number;
-  bookingId: number;
-  bookingCode: string;
+
+  bookingIds: number[];
+  bookingCodes: string[];
   transactionCode: string;
   paymentMethod: PaymentMethodType;
+
   amount: number;
   status: PaymentStatus;
+
   flowType: PaymentFlowType;
   uiMode: PaymentUiMode;
   actionText: string | null;
+
   qrCodeUrl: string | null;
   paymentUrl: string | null;
   deeplink: string | null;
+
   returnUrl: string | null;
   cancelUrl: string | null;
+
   manualInfo: ManualPaymentInfo | null;
+
   expiredAt: string;
 }
 
 export interface PaymentStatusResponse {
   paymentId: number;
-  bookingId: number;
   status: PaymentStatus;
 }
 
@@ -162,7 +167,7 @@ export interface CancelHoldPayload extends ActiveSeatHold {}
 
 export interface UpdatePaymentMethodPayload {
   paymentId: number;
-  bookingId: number;
+  bookingIds: number[];
   paymentMethod: PaymentMethodType;
   sessionId: string;
 }
@@ -184,4 +189,18 @@ export interface BuiltPaymentData {
   uiMode: PaymentUiMode;
   actionText: string | null;
   manualInfo: ManualPaymentInfo | null;
+}
+export interface BookingGroupBookingItem {
+  bookingId: number;
+  bookingCode: string;
+  tripType: "OUTBOUND" | "RETURN";
+}
+
+export interface BookingGroupResponse {
+  bookingGroupId: number;
+  bookings: BookingGroupBookingItem[];
+}
+
+export interface BookingGroupPaymentSummary {
+  bookings: BookingPaymentSummary[];
 }

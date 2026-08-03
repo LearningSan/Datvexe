@@ -4,7 +4,29 @@ import {
   query,
   type PoolConnection,
 } from "@/lib/server/mysql";
+export interface CreateBookingRepoInput {
+  bookingGroupId: number;
 
+  bookingCode: string;
+  userId: number | null;
+
+  tripId: number;
+
+  pickupPointId: number | null;
+  dropoffPointId: number | null;
+
+  pickupMethod: "OFFICE" | "SHUTTLE";
+  dropoffMethod: "OFFICE" | "SHUTTLE";
+
+  totalAmount: number;
+  seatPrice: number;
+
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+
+  holdExpiredAt: Date;
+}
 export async function insertBookingShuttleBulk(data: any) {
   const bookingId = data.bookingId;
 
@@ -454,27 +476,13 @@ export async function findExistingSeatHolds(
 }
 export async function createBooking(
   conn: PoolConnection,
-  payload: {
-    bookingCode: string;
-    userId: number | null;
-    tripId: number;
-    pickupPointId: number | null;
-    dropoffPointId: number | null;
-    pickupMethod: "OFFICE" | "SHUTTLE";
-    dropoffMethod: "OFFICE" | "SHUTTLE";
-    totalAmount: number;
-    seatPrice: number;
-    contactName: string;
-    contactPhone: string;
-    contactEmail: string;
-    holdExpiredAt: Date;
-  },
+  payload: CreateBookingRepoInput,
 ) {
   const result = await connExecute(
     conn,
     `
       INSERT INTO bookings
-      (
+      (booking_group_id,
        booking_code,
   user_id,
   trip_id,
@@ -492,11 +500,12 @@ export async function createBooking(
       )
       VALUES
   (
-  ?, ?, ?, ?, ?, ?, ?, 'PENDING',
+  ?,?, ?, ?, ?, ?, ?, ?, 'PENDING',
   ?, ?, ?, ?, ?, ?
 )
     `,
     [
+      payload.bookingGroupId,
       payload.bookingCode,
       payload.userId,
       payload.tripId,
@@ -578,4 +587,100 @@ export async function insertBookingPromotion(
     `,
     [data.bookingId, data.promotionId, data.discountAmount],
   );
+}
+export async function createBookingGroup(
+  conn: PoolConnection,
+  data: {
+    userId: number | null;
+    tripType: "ONE_WAY" | "ROUND_TRIP";
+    contactName: string;
+    contactPhone: string;
+    contactEmail: string;
+  },
+) {
+  const bookingGroupCode = "BG" + Date.now().toString().slice(-10);
+
+  const result = await connExecute(
+    conn,
+    `
+    INSERT INTO booking_groups
+    (
+      booking_group_code,
+      user_id,
+      trip_type,
+      contact_name,
+      contact_phone,
+      contact_email
+    )
+    VALUES (?, ?, ?, ?, ?, ?)
+    `,
+    [
+      bookingGroupCode,
+      data.userId,
+      data.tripType,
+      data.contactName,
+      data.contactPhone,
+      data.contactEmail,
+    ],
+  );
+
+  return {
+    bookingGroupId: result.insertId,
+    bookingGroupCode,
+  };
+}
+export async function updateBookingGroupAmount(
+  conn: PoolConnection,
+  bookingGroupId: number,
+) {
+  await connQuery(
+    conn,
+    `
+    UPDATE booking_groups bg
+    JOIN (
+        SELECT
+            booking_group_id,
+            SUM(total_amount) subtotal
+        FROM bookings
+        WHERE booking_group_id = ?
+        GROUP BY booking_group_id
+    ) x
+      ON x.booking_group_id = bg.booking_group_id
+    SET
+        bg.subtotal_amount = x.subtotal,
+        bg.total_amount = x.subtotal
+    WHERE bg.booking_group_id = ?
+    `,
+    [bookingGroupId, bookingGroupId],
+  );
+}
+export async function findBookingsByGroupId(bookingGroupId: number) {
+  const rows = await query(
+    `
+ SELECT
+
+   booking_id AS bookingId,
+
+   booking_code AS bookingCode,
+
+   trip_id AS tripId,
+
+   booking_type AS bookingType,
+
+   status,
+
+   total_amount AS totalAmount
+
+
+ FROM bookings
+
+ WHERE booking_group_id = ?
+
+ ORDER BY booking_id ASC
+
+ `,
+    [bookingGroupId],
+  );
+
+  return rows;
 }

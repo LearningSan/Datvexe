@@ -97,13 +97,14 @@ export async function findCheckinDashboardSeatSummary(input: {
 
         AND t.status <> 'CANCELLED'
 
-        AND (
-          SELECT p.status
-          FROM payments p
-          WHERE p.booking_id = b.booking_id
-          ORDER BY p.payment_id DESC
-          LIMIT 1
-        ) = 'PAID'
+        AND EXISTS (
+  SELECT 1
+  FROM payment_bookings pb
+  INNER JOIN payments p
+    ON p.payment_id = pb.payment_id
+  WHERE pb.booking_id = b.booking_id
+    AND p.status = 'PAID'
+)
     `,
     [input.from, input.to],
   );
@@ -192,13 +193,14 @@ export async function findCheckinDashboardContactSummary(input: {
           WHERE bs.booking_id = b.booking_id
         )
 
-        AND (
-          SELECT p.status
-          FROM payments p
-          WHERE p.booking_id = b.booking_id
-          ORDER BY p.payment_id DESC
-          LIMIT 1
-        ) = 'PAID'
+     AND EXISTS (
+  SELECT 1
+  FROM payment_bookings pb
+  INNER JOIN payments p
+    ON p.payment_id = pb.payment_id
+  WHERE pb.booking_id = b.booking_id
+    AND p.status = 'PAID'
+)
     `,
     [input.from, input.to],
   );
@@ -290,16 +292,16 @@ export async function findCheckinDashboardTrips(input: {
         ON destination_city.city_id = r.destination_city_id
 
       LEFT JOIN bookings b
-        ON b.trip_id = t.trip_id
-        AND b.status = 'CONFIRMED'
-
-        AND (
-          SELECT p.status
-          FROM payments p
-          WHERE p.booking_id = b.booking_id
-          ORDER BY p.payment_id DESC
-          LIMIT 1
-        ) = 'PAID'
+  ON b.trip_id = t.trip_id
+  AND b.status = 'CONFIRMED'
+  AND EXISTS (
+    SELECT 1
+    FROM payment_bookings pb
+    INNER JOIN payments p
+      ON p.payment_id = pb.payment_id
+    WHERE pb.booking_id = b.booking_id
+      AND p.status = 'PAID'
+  )
 
       LEFT JOIN booking_seats bs
         ON bs.booking_id = b.booking_id

@@ -1,17 +1,21 @@
 import api from "@/lib/client/api";
 import type { TripSearchFilters } from "@/types/client/trip/trip-filter.type";
-
+import type { ApiResponse } from "@/types/common/api.type";
+import type { SearchTripsResponse } from "@/types/client/trip/trip-response.type";
 export async function fetchTrips(filters: TripSearchFilters) {
+  if (!filters.originCityId || !filters.destinationCityId || !filters.date) {
+    throw new Error("Thiếu thông tin tìm kiếm chuyến");
+  }
+
   const params = new URLSearchParams();
 
+  params.set("origin", String(filters.originCityId));
+  params.set("destination", String(filters.destinationCityId));
+  params.set("date", filters.date);
 
-  params.append("origin", String(filters.originCityId));
-  params.append("destination", String(filters.destinationCityId));
-  params.append("date", filters.date);
-
-  params.append("page", String(filters.page));
-  params.append("limit", String(filters.limit));
-
+  params.set("requiredSeats", String(filters.requiredSeats));
+  params.set("page", String(filters.page));
+  params.set("limit", String(filters.limit));
 
   filters.timeSlots.forEach((item) => {
     params.append("timeSlots", item);
@@ -29,11 +33,13 @@ export async function fetchTrips(filters: TripSearchFilters) {
     params.append("floors", item);
   });
 
-  params.append("sort", `${filters.sort.field}_${filters.sort.order}`);
+  params.set("sort", `${filters.sort.field}_${filters.sort.order}`);
 
-  params.append("onlyAvailable", String(filters.onlyAvailable));
+  params.set("onlyAvailable", String(filters.onlyAvailable));
 
-  const response = await api.get(`/client/trips/search?${params.toString()}`);
+  const response = await api.get<ApiResponse<SearchTripsResponse>>(
+    `/client/trips/search?${params.toString()}`,
+  );
 
   return response.data.data;
 }
@@ -41,10 +47,11 @@ export async function fetchTripFilterOptions(params: {
   origin: number;
   destination: number;
   date: string;
+  requiredSeats: number;
 }) {
-  const res = await api.get("/client/trips/filter-options", {
+  const response = await api.get("/client/trips/filter-options", {
     params,
   });
 
-  return res.data.data;
+  return response.data.data;
 }

@@ -21,127 +21,186 @@ export default function PickupDropoffSection({}: Props) {
   const currentSearch = useSearchStore((state) => state.currentSearch);
 
   const {
-    pickupMethod,
-    dropoffMethod,
+    activeJourney,
 
-    pickupPointId,
-    dropoffPointId,
+    outboundRoute,
+    returnRoute,
 
-    pickupAddress,
-    dropoffAddress,
-
-    setPickupMethod,
-    setDropoffMethod,
-
-    setPickupPoint,
-    setDropoffPoint,
-
-    setPickupAddress,
-    setDropoffAddress,
+    setOutboundRoute,
+    setReturnRoute,
   } = useBookingStore();
+  const isRoundTrip = useBookingStore((s) => s.isRoundTrip);
+  const setActiveJourney = useBookingStore((s) => s.setActiveJourney);
+  const route = activeJourney === "OUTBOUND" ? outboundRoute : returnRoute;
+
+  const updateRoute =
+    activeJourney === "OUTBOUND" ? setOutboundRoute : setReturnRoute;
 
   const [openPickup, setOpenPickup] = useState(false);
 
   const [openDropoff, setOpenDropoff] = useState(false);
+  const outboundOriginCityId = currentSearch?.origin?.id;
+  const outboundDestinationCityId = currentSearch?.destination?.id;
 
-  // =========================
-  // CITY
-  // =========================
-  const originCityId = currentSearch?.origin?.id;
-
-  const destinationCityId = currentSearch?.destination?.id;
-
-  // =========================
-  // ZONES
-  // =========================
-  const { data: originZones = [] } = useZones(originCityId);
-
-  const { data: destinationZones = [] } = useZones(destinationCityId);
-
-  const originZoneIds = useMemo(
-    () => originZones.map((z) => z.zone_id),
-    [originZones],
+  const returnOriginCityId = currentSearch?.destination?.id;
+  const returnDestinationCityId = currentSearch?.origin?.id;
+  const { data: outboundOriginZones = [] } = useZones(outboundOriginCityId);
+  const { data: outboundDestinationZones = [] } = useZones(
+    outboundDestinationCityId,
   );
 
-  const destinationZoneIds = useMemo(
-    () => destinationZones.map((z) => z.zone_id),
-    [destinationZones],
+  const outboundOriginZoneIds = useMemo(
+    () => outboundOriginZones.map((z) => z.zone_id),
+    [outboundOriginZones],
   );
 
-  // =========================
-  // OFFICE POINTS
-  // =========================
-  const { data: pickupPoints = [] } = useOfficePickupPoints(
-    originCityId,
-    originZoneIds,
+  const outboundDestinationZoneIds = useMemo(
+    () => outboundDestinationZones.map((z) => z.zone_id),
+    [outboundDestinationZones],
   );
 
-  const { data: dropoffPoints = [] } = useOfficePickupPoints(
-    destinationCityId,
-    destinationZoneIds,
+  const { data: outboundPickupPoints = [] } = useOfficePickupPoints(
+    outboundOriginCityId,
+    outboundOriginZoneIds,
   );
 
-  // =========================
-  // MATCH EXACT OFFICE
-  // =========================
-  const { data: pickupMatch } = usePickupPointMatch(
+  const { data: outboundDropoffPoints = [] } = useOfficePickupPoints(
+    outboundDestinationCityId,
+    outboundDestinationZoneIds,
+  );
+
+  const { data: outboundPickupMatch } = usePickupPointMatch(
     currentSearch?.origin?.label,
-    originCityId,
-  );
-  const { data: dropoffMatch } = usePickupPointMatch(
-    currentSearch?.destination?.label,
-    destinationCityId,
+    outboundOriginCityId,
   );
 
+  const { data: outboundDropoffMatch } = usePickupPointMatch(
+    currentSearch?.destination?.label,
+    outboundDestinationCityId,
+  );
+  const { data: returnOriginZones = [] } = useZones(returnOriginCityId);
+  const { data: returnDestinationZones = [] } = useZones(
+    returnDestinationCityId,
+  );
+
+  const returnOriginZoneIds = useMemo(
+    () => returnOriginZones.map((z) => z.zone_id),
+    [returnOriginZones],
+  );
+
+  const returnDestinationZoneIds = useMemo(
+    () => returnDestinationZones.map((z) => z.zone_id),
+    [returnDestinationZones],
+  );
+
+  const { data: returnPickupPoints = [] } = useOfficePickupPoints(
+    returnOriginCityId,
+    returnOriginZoneIds,
+  );
+
+  const { data: returnDropoffPoints = [] } = useOfficePickupPoints(
+    returnDestinationCityId,
+    returnDestinationZoneIds,
+  );
+
+  const { data: returnPickupMatch } = usePickupPointMatch(
+    currentSearch?.destination?.label,
+    returnOriginCityId,
+  );
+
+  const { data: returnDropoffMatch } = usePickupPointMatch(
+    currentSearch?.origin?.label,
+    returnDestinationCityId,
+  );
+  useEffect(() => {
+    if (!outboundPickupPoints.length) return;
+
+    setOutboundRoute({
+      pickupMethod: "OFFICE",
+      pickupPointId:
+        outboundPickupMatch?.pickupPointId ??
+        outboundPickupPoints[0]?.pickup_point_id ??
+        null,
+    });
+  }, [outboundPickupPoints, outboundPickupMatch, setOutboundRoute]);
+
+  useEffect(() => {
+    if (!outboundDropoffPoints.length) return;
+
+    setOutboundRoute({
+      dropoffMethod: "OFFICE",
+      dropoffPointId:
+        outboundDropoffMatch?.pickupPointId ??
+        outboundDropoffPoints[0]?.pickup_point_id ??
+        null,
+    });
+  }, [outboundDropoffPoints, outboundDropoffMatch, setOutboundRoute]);
+  useEffect(() => {
+    if (!isRoundTrip) return;
+    if (!returnPickupPoints.length) return;
+
+    setReturnRoute({
+      pickupMethod: "OFFICE",
+      pickupPointId:
+        returnPickupMatch?.pickupPointId ??
+        returnPickupPoints[0]?.pickup_point_id ??
+        null,
+    });
+  }, [isRoundTrip, returnPickupPoints, returnPickupMatch, setReturnRoute]);
+
+  useEffect(() => {
+    if (!isRoundTrip) return;
+    if (!returnDropoffPoints.length) return;
+
+    setReturnRoute({
+      dropoffMethod: "OFFICE",
+      dropoffPointId:
+        returnDropoffMatch?.pickupPointId ??
+        returnDropoffPoints[0]?.pickup_point_id ??
+        null,
+    });
+  }, [isRoundTrip, returnDropoffPoints, returnDropoffMatch, setReturnRoute]);
+  const pickupPoints =
+    activeJourney === "OUTBOUND" ? outboundPickupPoints : returnPickupPoints;
+
+  const dropoffPoints =
+    activeJourney === "OUTBOUND" ? outboundDropoffPoints : returnDropoffPoints;
   const selectedPickup = pickupPoints.find(
-    (p: PickupPoint) => p.pickup_point_id === pickupPointId,
+    (p: PickupPoint) => p.pickup_point_id === route.pickupPointId,
   );
 
   const selectedDropoff = dropoffPoints.find(
-    (p: PickupPoint) => p.pickup_point_id === dropoffPointId,
+    (p: PickupPoint) => p.pickup_point_id === route.dropoffPointId,
   );
-
-  useEffect(() => {
-    if (!pickupPoints.length) return;
-
-    setPickupMethod("OFFICE");
-
-    if (pickupMatch?.pickupPointId) {
-      setPickupPoint(pickupMatch.pickupPointId);
-      return;
-    }
-
-    setPickupPoint(pickupPoints[0]?.pickup_point_id ?? null);
-  }, [
-    currentSearch?.origin?.label,
-    currentSearch?.origin?.id,
-    pickupPoints,
-    pickupMatch,
-    setPickupMethod,
-    setPickupPoint,
-  ]);
-  useEffect(() => {
-    if (!dropoffPoints.length) return;
-
-    setDropoffMethod("OFFICE");
-
-    if (dropoffMatch?.pickupPointId) {
-      setDropoffPoint(dropoffMatch.pickupPointId);
-      return;
-    }
-
-    setDropoffPoint(dropoffPoints[0]?.pickup_point_id ?? null);
-  }, [
-    currentSearch?.destination?.label,
-    currentSearch?.destination?.id,
-    dropoffPoints,
-    dropoffMatch,
-    setDropoffMethod,
-    setDropoffPoint,
-  ]);
-
   return (
     <div className={styles.wrapper}>
+      {isRoundTrip && (
+        <div className={styles.journeyTabs}>
+          <button
+            type="button"
+            className={
+              activeJourney === "OUTBOUND"
+                ? styles.activeJourneyTab
+                : styles.journeyTab
+            }
+            onClick={() => setActiveJourney("OUTBOUND")}
+          >
+            Chuyến đi
+          </button>
+
+          <button
+            type="button"
+            className={
+              activeJourney === "RETURN"
+                ? styles.activeJourneyTab
+                : styles.journeyTab
+            }
+            onClick={() => setActiveJourney("RETURN")}
+          >
+            Chuyến về
+          </button>
+        </div>
+      )}
       <div className={styles.cardSection}>
         <div className={styles.cardTitle}>Điểm đón</div>
 
@@ -149,9 +208,13 @@ export default function PickupDropoffSection({}: Props) {
           <button
             type="button"
             className={
-              pickupMethod === "OFFICE" ? styles.activeTab : styles.tab
+              route.pickupMethod === "OFFICE" ? styles.activeTab : styles.tab
             }
-            onClick={() => setPickupMethod("OFFICE")}
+            onClick={() =>
+              updateRoute({
+                pickupMethod: "OFFICE",
+              })
+            }
           >
             Văn phòng
           </button>
@@ -159,15 +222,19 @@ export default function PickupDropoffSection({}: Props) {
           <button
             type="button"
             className={
-              pickupMethod === "SHUTTLE" ? styles.activeTab : styles.tab
+              route.pickupMethod === "SHUTTLE" ? styles.activeTab : styles.tab
             }
-            onClick={() => setPickupMethod("SHUTTLE")}
+            onClick={() =>
+              updateRoute({
+                pickupMethod: "SHUTTLE",
+              })
+            }
           >
             Trung chuyển
           </button>
         </div>
 
-        {pickupMethod === "OFFICE" ? (
+        {route.pickupMethod === "OFFICE" ? (
           <div className={styles.dropdown}>
             <div
               className={styles.selected}
@@ -185,8 +252,9 @@ export default function PickupDropoffSection({}: Props) {
                     key={item.pickup_point_id}
                     className={styles.option}
                     onClick={() => {
-                      setPickupPoint(item.pickup_point_id);
-
+                      updateRoute({
+                        pickupPointId: item.pickup_point_id,
+                      });
                       setOpenPickup(false);
                     }}
                   >
@@ -202,17 +270,17 @@ export default function PickupDropoffSection({}: Props) {
           <input
             className={styles.input}
             placeholder="Nhập địa chỉ trung chuyển"
-            value={pickupAddress?.address || ""}
+            value={route.pickupAddress?.address || ""}
             onChange={(e) =>
-              setPickupAddress({
-                address: e.target.value,
+              updateRoute({
+                pickupAddress: {
+                  address: e.target.value,
+                },
               })
             }
           />
         )}
       </div>
-
-      <div className={styles.spacing} />
 
       <div className={styles.cardSection}>
         <div className={styles.cardTitle}>Điểm trả</div>
@@ -221,9 +289,13 @@ export default function PickupDropoffSection({}: Props) {
           <button
             type="button"
             className={
-              dropoffMethod === "OFFICE" ? styles.activeTab : styles.tab
+              route.dropoffMethod === "OFFICE" ? styles.activeTab : styles.tab
             }
-            onClick={() => setDropoffMethod("OFFICE")}
+            onClick={() =>
+              updateRoute({
+                dropoffMethod: "OFFICE",
+              })
+            }
           >
             Văn phòng
           </button>
@@ -231,15 +303,19 @@ export default function PickupDropoffSection({}: Props) {
           <button
             type="button"
             className={
-              dropoffMethod === "SHUTTLE" ? styles.activeTab : styles.tab
+              route.dropoffMethod === "SHUTTLE" ? styles.activeTab : styles.tab
             }
-            onClick={() => setDropoffMethod("SHUTTLE")}
+            onClick={() =>
+              updateRoute({
+                dropoffMethod: "SHUTTLE",
+              })
+            }
           >
             Trung chuyển
           </button>
         </div>
 
-        {dropoffMethod === "OFFICE" ? (
+        {route.dropoffMethod === "OFFICE" ? (
           <div className={styles.dropdown}>
             <div
               className={styles.selected}
@@ -257,8 +333,9 @@ export default function PickupDropoffSection({}: Props) {
                     key={item.pickup_point_id}
                     className={styles.option}
                     onClick={() => {
-                      setDropoffPoint(item.pickup_point_id);
-
+                      updateRoute({
+                        dropoffPointId: item.pickup_point_id,
+                      });
                       setOpenDropoff(false);
                     }}
                   >
@@ -274,10 +351,12 @@ export default function PickupDropoffSection({}: Props) {
           <input
             className={styles.input}
             placeholder="Nhập địa chỉ trung chuyển"
-            value={dropoffAddress?.address || ""}
+            value={route.dropoffAddress?.address || ""}
             onChange={(e) =>
-              setDropoffAddress({
-                address: e.target.value,
+              updateRoute({
+                dropoffAddress: {
+                  address: e.target.value,
+                },
               })
             }
           />

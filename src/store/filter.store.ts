@@ -16,7 +16,7 @@ const defaultFilters: TripSearchFilters = {
   originCityId: null,
   destinationCityId: null,
   date: "",
-
+  requiredSeats: 1,
   page: 1,
   limit: 10,
 

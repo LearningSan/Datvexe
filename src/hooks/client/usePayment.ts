@@ -7,6 +7,7 @@ import {
   cancelPaymentHold,
   updatePaymentMethodApi,
   confirmManualPayment,
+  findBookingIds,
 } from "@/services/client/payment.service";
 
 import { usePaymentStore } from "@/store/payment.store";
@@ -16,6 +17,7 @@ import type {
   CreatePaymentPayload,
   PaymentStatus,
   UpdatePaymentMethodPayload,
+  BookingGroupResponse,
 } from "@/types/client/payment/payment.type";
 
 const FINAL_PAYMENT_STATUSES: PaymentStatus[] = [
@@ -26,31 +28,25 @@ const FINAL_PAYMENT_STATUSES: PaymentStatus[] = [
   "REFUNDED",
 ];
 
-export function useBookingSummary(bookingId: number) {
+export function useBookingSummary(bookingIds: number[]) {
   return useQuery({
-    queryKey: ["booking-payment-summary", bookingId],
+    queryKey: ["booking-payment-summary", bookingIds],
 
-    queryFn: () => fetchBookingPaymentSummary(bookingId),
+    queryFn: () => fetchBookingPaymentSummary(bookingIds),
 
-    enabled: Number.isFinite(bookingId) && bookingId > 0,
+    enabled: Array.isArray(bookingIds) && bookingIds.length > 0,
 
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
 
-    /*
-     * Khi quay lại trang thanh toán, nên đọc lại booking
-     * để tránh dùng trạng thái hoặc thời hạn giữ ghế cũ.
-     */
     refetchOnMount: true,
 
-    /*
-     * Không dùng Infinity vì booking và holdExpiredAt
-     * vẫn có thể thay đổi.
-     */
     staleTime: 30_000,
+
     gcTime: 1000 * 60 * 5,
 
     retry: 1,
+
     throwOnError: false,
   });
 }
@@ -197,6 +193,23 @@ export function usePaymentStatus(paymentId: number | null, enabled: boolean) {
 
     staleTime: 0,
     gcTime: 1000 * 60 * 5,
+
+    throwOnError: false,
+  });
+}
+export function useBookingGroup(bookingGroupId: number) {
+  return useQuery({
+    queryKey: ["booking-group", bookingGroupId],
+
+    queryFn: () => findBookingIds(bookingGroupId),
+
+    enabled: Number.isInteger(bookingGroupId) && bookingGroupId > 0,
+
+    staleTime: 30_000,
+
+    gcTime: 1000 * 60 * 5,
+
+    retry: 1,
 
     throwOnError: false,
   });

@@ -63,6 +63,11 @@ export default function TripFormModal({
   const vehicleOptions = options?.vehicles ?? [];
   const scheduleOptions = options?.scheduleTemplates ?? [];
 
+  const selectedRoute = useMemo(() => {
+    return routeOptions.find(
+      (item: any) => Number(item.routeId) === Number(routeId),
+    );
+  }, [routeOptions, routeId]);
   const selectedVehicle = useMemo(() => {
     return vehicleOptions.find(
       (vehicle: any) => Number(vehicle.vehicleId) === Number(vehicleId),
@@ -70,11 +75,15 @@ export default function TripFormModal({
   }, [vehicleOptions, vehicleId]);
 
   const filteredScheduleOptions = useMemo(() => {
-    if (!routeId) return [];
+    if (!selectedRoute) return [];
+
     return scheduleOptions.filter(
-      (item: any) => Number(item.routeId) === Number(routeId),
+      (item: any) =>
+        Number(item.originCityId) === Number(selectedRoute.originCityId) &&
+        Number(item.destinationCityId) ===
+          Number(selectedRoute.destinationCityId),
     );
-  }, [scheduleOptions, routeId]);
+  }, [scheduleOptions, selectedRoute]);
 
   const selectedSchedule = useMemo(() => {
     return scheduleOptions.find(
@@ -175,7 +184,7 @@ export default function TripFormModal({
 
     if (mode === "CREATE") {
       const createPayload: CreateAdminTripPayload = {
-        routeId: Number(routeId),
+        routeId: Number(selectedSchedule!.routeId),
         scheduleTemplateId: Number(scheduleTemplateId),
         vehicleId: vehicleId ? Number(vehicleId) : null,
         driverId: driverId ? Number(driverId) : null,

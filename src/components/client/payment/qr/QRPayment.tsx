@@ -13,8 +13,13 @@ import { formatCurrency } from "@/lib/client/helpers";
 interface QRPaymentProps {
   method: PaymentMethodType;
   totalAmount: number;
+
+  bookingIds: number[];
+
   paymentData: CreatePaymentResponse | null;
+
   isSubmitting: boolean;
+
   onCreatePayment: () => void;
   onConfirmManualPayment: () => void;
 }
@@ -94,6 +99,7 @@ function buildQrImageUrl(value: string | null | undefined) {
 const QRPayment = memo(function QRPayment({
   method,
   totalAmount,
+  bookingIds,
   paymentData,
   isSubmitting,
   onCreatePayment,
@@ -391,8 +397,7 @@ const QRPayment = memo(function QRPayment({
             <div className={styles.cashDetails}>
               <div className={styles.cashDetailRow}>
                 <span>Mã đặt vé</span>
-
-                <strong>{paymentData.bookingCode}</strong>
+                <strong>{paymentData.bookingCodes.join(", ")}</strong>{" "}
               </div>
 
               <div className={styles.cashDetailRow}>

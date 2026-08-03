@@ -2,22 +2,32 @@ import api from "@/lib/client/api";
 
 import type { ApiResponse } from "@/types/common/api.type";
 import type {
-  BookingPaymentSummary,
+  BookingGroupPaymentSummary,
   CancelHoldPayload,
   CreatePaymentPayload,
   CreatePaymentResponse,
   PaymentStatusResponse,
   UpdatePaymentMethodPayload,
+  BookingGroupResponse,
 } from "@/types/client/payment/payment.type";
 
-export async function fetchBookingPaymentSummary(bookingId: number) {
-  const res = await api.get<ApiResponse<BookingPaymentSummary>>(
-    `/client/bookings/${bookingId}/payment-summary`,
+export async function fetchBookingPaymentSummary(bookingIds: number[]) {
+  const res = await api.post<ApiResponse<BookingGroupPaymentSummary>>(
+    `/client/bookings/payment-summary`,
+    {
+      bookingIds,
+    },
   );
 
   return res.data.data;
 }
+export async function findBookingIds(bookingGroupId: number) {
+  const res = await api.get<ApiResponse<BookingGroupResponse>>(
+    `/client/bookings/group?bookingGroupId=${bookingGroupId}`,
+  );
 
+  return res.data.data;
+}
 export async function createPayment(payload: CreatePaymentPayload) {
   const res = await api.post<ApiResponse<CreatePaymentResponse>>(
     "/client/payments/create",
@@ -41,7 +51,7 @@ export async function updatePaymentMethodApi(
   const res = await api.patch<ApiResponse<CreatePaymentResponse>>(
     `/client/payments/${payload.paymentId}/method`,
     {
-      bookingId: payload.bookingId,
+      bookingIds: payload.bookingIds,
       paymentMethod: payload.paymentMethod,
       sessionId: payload.sessionId,
     },
