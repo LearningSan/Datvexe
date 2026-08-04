@@ -124,36 +124,32 @@ export function PaymentExpired({ bookingIds }: { bookingIds: number[] }) {
   const router = useRouter();
 
   return (
-    <div className={`${styles.iconBadge} ${styles.expiredBadge}`}>
-      <div>⏰</div>
+    <div className={styles.resultCard}>
+      <div className={`${styles.iconBadge} ${styles.expiredBadge}`}>⏰</div>
 
       <h2 className={`${styles.title} ${styles.expiredTitle}`}>
         Giao dịch hết thời gian
       </h2>
 
-      <p>
+      <p className={styles.subText}>
         Thời gian giữ chỗ giới hạn 10 phút đã kết thúc trước khi quá trình
         chuyển khoản hoàn tất. Ghế đã tự động giải phóng.
       </p>
 
       <div className={styles.btnGroup}>
         <button
+          className={`${styles.btn} ${styles.btnSecondary}`}
+          onClick={() => router.push("/home")}
+        >
+          Quay về trang chủ
+        </button>
+
+        <button
           className={`${styles.btn} ${styles.btnPrimary}`}
           onClick={() => router.push("/trips")}
         >
           Tìm và đặt chuyến khác
         </button>
-
-        {bookingIds.length > 0 && (
-          <button
-            className={`${styles.btn} ${styles.btnSecondary}`}
-            onClick={() =>
-              router.push(`/payment?bookingIds=${bookingIds.join(",")}`)
-            }
-          >
-            Quay lại trang thanh toán
-          </button>
-        )}
       </div>
     </div>
   );

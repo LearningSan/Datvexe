@@ -412,20 +412,22 @@ export async function findCashPaymentForUpdate(
   }>(
     conn,
     `
-      SELECT
-        payment_id AS paymentId,
-        booking_id AS bookingId,
-        status,
-        amount,
-        transaction_code AS transactionCode
+       SELECT
+      p.payment_id AS paymentId,
+      pb.booking_id AS bookingId,
+      p.status,
+      p.amount,
+      p.transaction_code AS transactionCode
 
-      FROM payments
+    FROM payments p
 
-      WHERE payment_method = 'CASH'
-        AND transaction_code = ?
+    INNER JOIN payment_bookings pb
+      ON pb.payment_id = p.payment_id
 
-      LIMIT 1
-      FOR UPDATE
+    WHERE p.payment_method = 'CASH'
+      AND p.transaction_code = ?
+
+    FOR UPDATE
     `,
     [transactionCode],
   );

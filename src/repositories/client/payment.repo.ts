@@ -569,16 +569,21 @@ export async function findPaymentForInternalWalletConfirm(
   }>(
     conn,
     `
-    SELECT
-      payment_id AS paymentId,
-      booking_id AS bookingId,
-      payment_method AS paymentMethod,
-      amount,
-      transaction_code AS transactionCode,
-      status
-    FROM payments
-    WHERE payment_id = ?
-      AND status = 'PENDING'
+     SELECT
+      p.payment_id AS paymentId,
+      pb.booking_id AS bookingId,
+      p.payment_method AS paymentMethod,
+      p.amount,
+      p.transaction_code AS transactionCode,
+      p.status
+
+    FROM payments p
+
+    INNER JOIN payment_bookings pb
+      ON pb.payment_id = p.payment_id
+
+    WHERE p.payment_id = ?
+      AND p.status = 'PENDING'
     LIMIT 1
     `,
     [paymentId],

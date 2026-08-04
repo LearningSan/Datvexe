@@ -350,13 +350,16 @@
     background: rgba(255, 255, 255, 0.1);
   }
 
-  /* ĐƯA NÚT LOGOUT LÊN GÓC TRÊN BÊN PHẢI TRÊN MOBILE */
+  /* CHỈNH SỬA NÚT LOGOUT TRÊN MOBILE */
   .logoutBtn {
+    display: flex !important; /* Đảm bảo không bị ẩn bởi thuộc tính khác */
+    position: fixed;
     top: 16px;
     right: 16px;
-    bottom: auto; /* Xóa bỏ vị trí dưới cùng */
+    bottom: auto;
+    z-index: 95; /* Tăng từ 89 lên 95 để luôn nổi lên trên cùng màn hình */
     padding: 10px 14px;
-    z-index: 89; /* Đảm bảo không đè lên menu khi drawer mở rộng */
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    background: #ffffff;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.15);
   }
 }

@@ -1,7 +1,8 @@
+/* Container chính dạng Card */
 .resultCard {
   background: #ffffff;
   border-radius: 24px;
-  padding: 64px 48px;
+  padding: 56px 40px;
   text-align: center;
   box-shadow:
     0 20px 25px -5px rgba(15, 23, 42, 0.04),
@@ -13,6 +14,8 @@
   justify-content: center;
   min-height: 480px;
   width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
   box-sizing: border-box;
   animation: fadeIn 0.4s ease-out;
 }
@@ -28,6 +31,7 @@
   }
 }
 
+/* Badge Icon tròn phía trên */
 .iconBadge {
   display: inline-flex;
   align-items: center;
@@ -35,9 +39,10 @@
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  font-size: 44px;
+  font-size: 40px;
   margin-bottom: 24px;
   font-weight: bold;
+  line-height: 1;
 }
 
 .successBadge {
@@ -58,8 +63,9 @@
   box-shadow: 0 0 0 12px #fffbeb;
 }
 
+/* Tiêu đề */
 .title {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 850;
   letter-spacing: -0.02em;
   margin: 0 0 14px 0;
@@ -68,29 +74,32 @@
 .successTitle {
   color: #047857;
 }
+
 .failedTitle {
   color: #b91c1c;
 }
+
 .expiredTitle {
   color: #b45309;
 }
 
-/* Tăng bề rộng tối đa lên 680px để chữ trải dài thoải mái, không bị gãy dòng gây ức chế */
+/* Đoạn mô tả */
 .subText {
   color: #475569;
   font-size: 16px;
   line-height: 1.6;
-  margin: 0 0 36px 0;
-  max-width: 680px;
+  margin: 0 0 32px 0;
+  max-width: 520px;
 }
 
+/* Hộp thông tin mã đặt vé (cho Success) */
 .quickInfo {
   width: 100%;
   max-width: 520px;
   background: #f8fafc;
   border-radius: 16px;
   padding: 16px 24px;
-  margin-bottom: 36px;
+  margin-bottom: 32px;
   border: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
@@ -107,30 +116,31 @@
 }
 
 .quickInfo .bookingCodeHighlight {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   color: #0f172a;
   font-family: monospace;
   background: #e2e8f0;
-  padding: 6px 14px;
+  padding: 6px 12px;
   border-radius: 8px;
 }
 
+/* Cụm nút bấm */
 .btnGroup {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
   max-width: 520px;
 }
 
 .btn {
-  flex: 1 1 auto;
-  min-width: 140px;
-  padding: 16px 24px;
-  border-radius: 14px;
-  font-size: 16px;
+  flex: 1 1 200px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   border: none;
@@ -159,4 +169,32 @@
   background: #f8fafc;
   border-color: #94a3b8;
   transform: translateY(-1px);
+}
+
+/* Responsive cho màn hình di động */
+@media (max-width: 640px) {
+  .resultCard {
+    padding: 36px 20px;
+    min-height: auto;
+    border-radius: 16px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .quickInfo {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .btnGroup {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+    flex: 1 1 auto;
+  }
 }
