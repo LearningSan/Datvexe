@@ -111,17 +111,28 @@ export async function sendPaymentSuccessEmail(data: {
     seatNumbers: string | null;
   }[];
 }) {
-  const checkinQrData = encodeCheckinQrPayload({
-    bookings: data.bookings.map((booking) => ({
-      bookingId: booking.bookingId,
-      bookingCode: booking.bookingCode,
-    })),
+  // 1. Tạo danh sách booking đính kèm mã QR riêng cho từng vé
+  const bookingsWithQr = data.bookings.map((booking) => {
+    const qrData = encodeCheckinQrPayload({
+      bookings: [
+        {
+          bookingId: booking.bookingId,
+          bookingCode: booking.bookingCode,
+        },
+      ],
+    });
+
+    return {
+      ...booking,
+      qrCodeUrl:
+        "https://api.qrserver.com/v1/create-qr-code/" +
+        `?size=260x260&margin=10&data=${encodeURIComponent(qrData)}`,
+    };
   });
 
-  const qrCodeUrl =
-    "https://api.qrserver.com/v1/create-qr-code/" +
-    `?size=260x260&margin=10&data=${encodeURIComponent(checkinQrData)}`;
+  const hasMultipleTickets = bookingsWithQr.length > 1;
 
+  // 2. Khởi tạo Email Transporter
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST!,
     port: Number(process.env.SMTP_PORT || 465),
@@ -132,18 +143,18 @@ export async function sendPaymentSuccessEmail(data: {
     },
   });
 
-  const totalAmount = data.bookings.reduce(
+  // 3. Tính tổng tiền
+  const totalAmount = bookingsWithQr.reduce(
     (sum, booking) => sum + Number(booking.amount),
     0,
   );
-
   const formattedAmount = totalAmount.toLocaleString("vi-VN") + " đ";
 
   try {
     const info = await transporter.sendMail({
       from: `"XeKhachPT" <${process.env.MAIL_FROM!}>`,
       to: data.to,
-      subject: `[XeKhachPT] Xác nhận thanh toán thành công - ${data.bookings.length} vé`,
+      subject: `[XeKhachPT] Xác nhận thanh toán thành công`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -163,7 +174,7 @@ export async function sendPaymentSuccessEmail(data: {
                     <td align="center" style="background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%); padding: 35px 20px; color: #ffffff;">
                       <h1 style="margin: 0; font-size: 26px; font-weight: 800; letter-spacing: 0.5px;">XeKhachPT</h1>
                       <div style="margin-top: 12px; display: inline-block; background-color: rgba(255, 255, 255, 0.15); padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: 500;">
-                        Vé Điện Tử Đã Thanh Toán
+                        Vé Điện Tử Đã Thanh Toán (${bookingsWithQr.length} vé)
                       </div>
                     </td>
                   </tr>
@@ -188,15 +199,19 @@ export async function sendPaymentSuccessEmail(data: {
                         <tr>
                           <td colspan="2" style="padding-top: 14px;">
                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                              ${data.bookings
-                                .map(
-                                  (booking, index) => `
-                              <tr>
-                                <td style="padding: 5px 0; font-size: 14px; color: #64748b;" width="35%">Mã vé ${index + 1}:</td>
-                                <td style="padding: 5px 0; font-size: 16px; color: #1d4ed8; font-weight: 700;">${booking.bookingCode}</td>
-                              </tr>
-                              `,
-                                )
+                              ${bookingsWithQr
+                                .map((booking, index) => {
+                                  const label = hasMultipleTickets
+                                    ? `Mã vé ${index + 1}`
+                                    : "Mã vé";
+
+                                  return `
+                                  <tr>
+                                    <td style="padding: 5px 0; font-size: 14px; color: #64748b;" width="45%">${label}:</td>
+                                    <td style="padding: 5px 0; font-size: 16px; color: #1d4ed8; font-weight: 700;">${booking.bookingCode}</td>
+                                  </tr>
+                                  `;
+                                })
                                 .join("")}
                               <tr>
                                 <td style="padding: 5px 0; font-size: 14px; color: #64748b;">Tổng tiền:</td>
@@ -217,22 +232,31 @@ export async function sendPaymentSuccessEmail(data: {
                       <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 25px;">
                         <tr>
                           <td style="padding-bottom: 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; color: #64748b; font-weight: 700; letter-spacing: 0.5px;">
-                            CHI TIẾT CHUYẾN ĐI
+                            CHI TIẾT HÀNH TRÌNH
                           </td>
                         </tr>
                         <tr>
                           <td style="padding-top: 14px;">
-                            ${data.bookings
+                            ${bookingsWithQr
                               .map((booking, index) => {
                                 const amount =
                                   Number(booking.amount).toLocaleString(
                                     "vi-VN",
                                   ) + " đ";
+
+                                const tripTitle =
+                                  bookingsWithQr.length === 1
+                                    ? "VÉ ĐIỆN TỬ"
+                                    : `VÉ ${index + 1}`;
+
+                                const badgeColor =
+                                  index === 0 ? "#1d4ed8" : "#0284c7";
+
                                 return `
                                 <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 16px; background-color: #ffffff;">
                                   <tr>
-                                    <td style="font-size: 15px; font-weight: 700; color: #1d4ed8; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
-                                      VÉ ${index + 1}: ${booking.bookingCode}
+                                    <td style="font-size: 15px; font-weight: 700; color: ${badgeColor}; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
+                                      ${tripTitle}: ${booking.bookingCode}
                                     </td>
                                   </tr>
                                   <tr>
@@ -242,32 +266,28 @@ export async function sendPaymentSuccessEmail(data: {
                                       <p style="margin: 0 0 6px 0;"><b>Dự kiến đến:</b> ${formatDateTimeVN(booking.arrivalDatetime)}</p>
                                       <p style="margin: 0 0 6px 0;"><b>Ghế:</b> ${booking.seatNumbers ?? "Hệ thống tự động xếp ghế"}</p>
                                       <p style="margin: 0 0 6px 0;"><b>Xe:</b> ${booking.vehicleName ?? "Xe giường nằm"} ${booking.licensePlate ? `(${booking.licensePlate})` : ""}</p>
-                                      <p style="margin: 0 0 6px 0;"><b>Điểm đón:</b> ${booking.pickupPointName ?? ""} - ${booking.pickupPointAddress ?? ""}</p>
-                                      <p style="margin: 0 0 6px 0;"><b>Điểm trả:</b> ${booking.dropoffPointName ?? ""} - ${booking.dropoffPointAddress ?? ""}</p>
-                                      <p style="margin: 0;"><b>Giá vé:</b> <span style="color: #ef4444; font-weight: 600;">${amount}</span></p>
+                                      <p style="margin: 0 0 6px 0;"><b>Điểm đón:</b> ${booking.pickupPointName ?? ""} ${booking.pickupPointAddress ? `- ${booking.pickupPointAddress}` : ""}</p>
+                                      <p style="margin: 0 0 6px 0;"><b>Điểm trả:</b> ${booking.dropoffPointName ?? ""} ${booking.dropoffPointAddress ? `- ${booking.dropoffPointAddress}` : ""}</p>
+                                      <p style="margin: 0 0 14px 0;"><b>Giá vé:</b> <span style="color: #ef4444; font-weight: 600;">${amount}</span></p>
+
+                                      <!-- QR Code Check-in riêng cho từng vé -->
+                                      <div style="background-color: #fdf2e9; border: 1px dashed #f97316; border-radius: 8px; padding: 14px; text-align: center; margin-top: 10px;">
+                                        <p style="margin: 0 0 8px 0; font-size: 13px; color: #c2410c; font-weight: 700;">
+                                          MÃ QR CHECK-IN (${tripTitle})
+                                        </p>
+                                        <div style="display: inline-block; background-color: #ffffff; padding: 8px; border-radius: 8px; border: 1px solid #fed7aa;">
+                                          <img src="${booking.qrCodeUrl}" width="160" height="160" alt="QR Check-in" style="display: block;" />
+                                        </div>
+                                        <p style="margin: 8px 0 0 0; font-size: 12px; color: #7c2d12; font-style: italic;">
+                                          Vui lòng xuất trình mã QR này khi làm thủ tục lên xe.
+                                        </p>
+                                      </div>
                                     </td>
                                   </tr>
                                 </table>
                                 `;
                               })
                               .join("")}
-                          </td>
-                        </tr>
-                      </table>
-
-                      <!-- QR Code Section -->
-                      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #fdf2e9; border: 1px dashed #f97316; border-radius: 12px; padding: 20px; text-align: center;">
-                        <tr>
-                          <td>
-                            <p style="margin: 0 0 10px 0; font-size: 14px; color: #c2410c; font-weight: 600;">
-                              MÃ QR CHECK-IN LÊN XE
-                            </p>
-                            <div style="display: inline-block; background-color: #ffffff; padding: 12px; border-radius: 12px; border: 1px solid #fed7aa; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                              <img src="${qrCodeUrl}" width="200" height="200" alt="QR Check-in" style="display: block;" />
-                            </div>
-                            <p style="margin: 12px 0 0 0; font-size: 13px; color: #7c2d12; font-style: italic;">
-                              * Vui lòng chuẩn bị sẵn mã QR này trên điện thoại hoặc đọc Mã đặt vé cho nhân viên/tài xế khi lên xe.
-                            </p>
                           </td>
                         </tr>
                       </table>
@@ -292,6 +312,7 @@ export async function sendPaymentSuccessEmail(data: {
         </html>
       `,
     });
+
     return {
       success: true,
       messageId: info.messageId,

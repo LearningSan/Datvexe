@@ -29,16 +29,6 @@ export async function GET(request: NextRequest) {
 
     const verified = vnpay.verifyIpnCall(query);
 
-    console.log("[VNPAY IPN VERIFIED]", {
-      isVerified: verified.isVerified,
-      isSuccess: verified.isSuccess,
-      message: verified.message,
-      transactionCode: verified.vnp_TxnRef,
-      amount: verified.vnp_Amount,
-      transactionNo: verified.vnp_TransactionNo,
-      responseCode: verified.vnp_ResponseCode,
-      transactionStatus: verified.vnp_TransactionStatus,
-    });
 
     if (!verified.isVerified) {
       return vnpayResponse("97", "Invalid Checksum");

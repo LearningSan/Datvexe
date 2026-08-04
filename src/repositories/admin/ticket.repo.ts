@@ -205,17 +205,17 @@ export async function confirmAdminTicketRepo(
    */
   if (options.markPaymentPaid) {
     await query(
-      `
-      UPDATE payments
-      SET
-        status = 'PAID',
-        paid_at = COALESCE(paid_at, NOW())
-      WHERE booking_id = ?
-      ORDER BY payment_id DESC
-      LIMIT 1
-      `,
-      [bookingId],
-    );
+  `
+  UPDATE payments p
+  INNER JOIN payment_bookings pb
+    ON pb.payment_id = p.payment_id
+  SET
+    p.status = 'PAID',
+    p.paid_at = COALESCE(p.paid_at, NOW())
+  WHERE pb.booking_id = ?
+  `,
+  [bookingId],
+);
   }
 
   /*
@@ -247,21 +247,6 @@ export async function confirmAdminTicketRepo(
     seatCount: confirmedSeatCount,
     alreadyConfirmed: false,
   };
-}
-export async function ensureBookingHistoryTable() {
-  await query(`
-    CREATE TABLE IF NOT EXISTS booking_histories (
-      history_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-      booking_id BIGINT NOT NULL,
-      action_type VARCHAR(50) NOT NULL,
-      old_value TEXT NULL,
-      new_value TEXT NULL,
-      reason VARCHAR(255) NULL,
-      performed_by_user_id BIGINT NULL,
-      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      INDEX idx_booking_history_booking (booking_id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-  `);
 }
 
 function buildWarningSql(warning?: TicketWarning) {
@@ -417,27 +402,27 @@ export async function findAdminTickets(params: AdminTicketListParams) {
     values.push(params.paymentStatus);
   }
   if (params.holdStatus === "HOLDING" || params.onlyHolding) {
-  where += `
+    where += `
     AND b.status = 'PENDING'
     AND b.hold_expired_at IS NOT NULL
     AND b.hold_expired_at > NOW()
   `;
-}
- if (params.holdStatus === "EXPIRED") {
-  where += `
+  }
+  if (params.holdStatus === "EXPIRED") {
+    where += `
     AND b.status = 'PENDING'
     AND b.hold_expired_at IS NOT NULL
     AND b.hold_expired_at <= NOW()
   `;
-}
+  }
   if (params.holdStatus === "NONE") {
-  where += `
+    where += `
     AND (
       b.status <> 'PENDING'
       OR b.hold_expired_at IS NULL
     )
   `;
-}
+  }
 
   where += buildWarningSql(params.warning);
 
@@ -667,7 +652,6 @@ export async function findTicketBase(bookingId: number) {
 export async function findAdminTicketDetail(
   bookingId: number,
 ): Promise<AdminTicketDetail | null> {
-  await ensureBookingHistoryTable();
 
   const rows = await query<any>(
     `
@@ -719,11 +703,29 @@ export async function findAdminTicketDetail(
     LEFT JOIN pickup_points pp ON pp.pickup_point_id = b.pickup_point_id
     LEFT JOIN pickup_points dp ON dp.pickup_point_id = b.dropoff_point_id
     LEFT JOIN (
-      SELECT p1.*
-      FROM payments p1
-      INNER JOIN (SELECT booking_id, MAX(payment_id) payment_id FROM payments GROUP BY booking_id) x
-        ON x.payment_id = p1.payment_id
-    ) lp ON lp.booking_id = b.booking_id
+  SELECT
+    pb.booking_id,
+    p.payment_id,
+    p.status,
+    p.payment_method,
+    p.paid_at,
+    p.transaction_code
+  FROM payments p
+  INNER JOIN payment_bookings pb
+    ON pb.payment_id = p.payment_id
+  INNER JOIN (
+    SELECT
+      pb.booking_id,
+      MAX(p.payment_id) AS payment_id
+    FROM payments p
+    INNER JOIN payment_bookings pb
+      ON pb.payment_id = p.payment_id
+    GROUP BY pb.booking_id
+  ) latest
+    ON latest.booking_id = pb.booking_id
+   AND latest.payment_id = p.payment_id
+) lp
+  ON lp.booking_id = b.booking_id
     WHERE b.booking_id = ?
     GROUP BY b.booking_id, lp.payment_id
   `,
@@ -812,8 +814,10 @@ export async function findTicketPayments(
       transaction_code AS transactionCode,
       paid_at AS paidAt,
       created_at AS createdAt
-    FROM payments
-    WHERE booking_id = ?
+    FROM payment_bookings pb
+INNER JOIN payments p
+  ON p.payment_id = pb.payment_id
+WHERE pb.booking_id = ?
     ORDER BY payment_id DESC
   `,
     [bookingId],
@@ -824,7 +828,6 @@ export async function findTicketPayments(
 export async function findTicketHistories(
   bookingId: number,
 ): Promise<AdminTicketHistory[]> {
-  await ensureBookingHistoryTable();
   return await query<any>(
     `
     SELECT
@@ -854,7 +857,6 @@ export async function createTicketHistory(data: {
   reason?: string | null;
   performedByUserId?: number | null;
 }) {
-  await ensureBookingHistoryTable();
   await query(
     `
     INSERT INTO booking_histories (booking_id, action_type, old_value, new_value, reason, performed_by_user_id)
@@ -887,19 +889,22 @@ export async function updateTicketStatusRepo(
   return { bookingId, status };
 }
 
-export async function markLatestPaymentPaidRepo(bookingId: number) {
+export async function markLatestPaymentPaidRepo(
+  bookingId: number,
+) {
   await query(
     `
-    UPDATE payments
-    SET status = 'PAID', paid_at = COALESCE(paid_at, NOW())
-    WHERE booking_id = ?
-    ORDER BY payment_id DESC
-    LIMIT 1
-  `,
+    UPDATE payments p
+    INNER JOIN payment_bookings pb
+      ON pb.payment_id = p.payment_id
+    SET
+      p.status = 'PAID',
+      p.paid_at = COALESCE(p.paid_at, NOW())
+    WHERE pb.booking_id = ?
+    `,
     [bookingId],
   );
 }
-
 export async function releaseTicketSeatsRepo(bookingId: number) {
   const booking = await findTicketBase(bookingId);
   if (!booking) return;
@@ -1242,19 +1247,43 @@ export async function createOfflineTicketRepo(
     );
   }
 
-  await query(
-    `
-    INSERT INTO payments (booking_id, payment_method, amount, status, transaction_code, paid_at)
-    VALUES (?, 'CASH', ?, ?, ?, CASE WHEN ? = 'PAID' THEN NOW() ELSE NULL END)
+  const paymentResult: any = await query(
+  `
+  INSERT INTO payments (
+    payment_method,
+    amount,
+    status,
+    transaction_code,
+    paid_at
+  )
+  VALUES (
+    'CASH',
+    ?,
+    ?,
+    ?,
+    CASE WHEN ? = 'PAID' THEN NOW() ELSE NULL END
+  )
   `,
-    [
-      bookingId,
-      totalAmount,
-      payload.paid ? "PAID" : "PENDING",
-      `CASH-${bookingCode}`,
-      payload.paid ? "PAID" : "PENDING",
-    ],
-  );
+  [
+    totalAmount,
+    payload.paid ? "PAID" : "PENDING",
+    `CASH-${bookingCode}`,
+    payload.paid ? "PAID" : "PENDING",
+  ],
+);
+
+const paymentId = Number(paymentResult.insertId);
+
+await query(
+  `
+  INSERT INTO payment_bookings (
+    payment_id,
+    booking_id
+  )
+  VALUES (?, ?)
+  `,
+  [paymentId, bookingId],
+);
 
   await syncTripAvailableSeatsRepo(payload.tripId);
   await createTicketHistory({

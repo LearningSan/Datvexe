@@ -235,9 +235,7 @@ export default function CheckoutSummary() {
             }
           : undefined,
       };
-      console.log(payload);
       const result = await createBooking.mutateAsync(payload);
-      console.log(result);
       const bookingIds = result.bookingIds;
 
       const raw = sessionStorage.getItem("active_seat_hold");

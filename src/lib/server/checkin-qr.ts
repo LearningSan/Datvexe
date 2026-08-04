@@ -40,44 +40,44 @@ function createSignature(payload: UnsignedCheckinQrPayload): string {
     .digest("hex");
 }
 
-export function createCheckinQrPayload(input: {
-  bookings: CheckinQrBooking[];
-}): CheckinQrPayload {
-  if (!Array.isArray(input.bookings) || input.bookings.length === 0) {
-    throw new Error("Danh sách booking tạo QR check-in không hợp lệ");
-  }
-
-  const bookings = input.bookings.map((booking) => {
-    if (!Number.isInteger(booking.bookingId) || booking.bookingId <= 0) {
-      throw new Error("bookingId tạo QR check-in không hợp lệ");
+  export function createCheckinQrPayload(input: {
+    bookings: CheckinQrBooking[];
+  }): CheckinQrPayload {
+    if (!Array.isArray(input.bookings) || input.bookings.length === 0) {
+      throw new Error("Danh sách booking tạo QR check-in không hợp lệ");
     }
 
-    const bookingCode = booking.bookingCode.trim();
+    const bookings = input.bookings.map((booking) => {
+      if (!Number.isInteger(booking.bookingId) || booking.bookingId <= 0) {
+        throw new Error("bookingId tạo QR check-in không hợp lệ");
+      }
 
-    if (!bookingCode) {
-      throw new Error("bookingCode tạo QR check-in không hợp lệ");
-    }
+      const bookingCode = booking.bookingCode.trim();
+
+      if (!bookingCode) {
+        throw new Error("bookingCode tạo QR check-in không hợp lệ");
+      }
+
+      return {
+        bookingId: booking.bookingId,
+        bookingCode,
+      };
+    });
+
+    const unsignedPayload = {
+      type: "CHECKIN" as const,
+      version: 1 as const,
+
+      bookings,
+
+      issuedAt: Date.now(),
+    };
 
     return {
-      bookingId: booking.bookingId,
-      bookingCode,
+      ...unsignedPayload,
+      signature: createSignature(unsignedPayload),
     };
-  });
-
-  const unsignedPayload = {
-    type: "CHECKIN" as const,
-    version: 1 as const,
-
-    bookings,
-
-    issuedAt: Date.now(),
-  };
-
-  return {
-    ...unsignedPayload,
-    signature: createSignature(unsignedPayload),
-  };
-}
+  }
 
 export function encodeCheckinQrPayload(input: {
   bookings: CheckinQrBooking[];

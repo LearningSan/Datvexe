@@ -272,17 +272,53 @@
 /* RESPONSIVE CHO MOBILE (Dưới 640px) */
 /* ======================================================= */
 @media (max-width: 640px) {
+  /* Ép layout phủ kín 100% màn hình điện thoại */
+  .layout {
+    min-height: 100dvh; /* Dùng dvh chuẩn mobile */
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Nút Menu Hamburger góc trên bên trái */
   .mobileMenuBtn {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: fixed;
     top: 12px;
     left: 12px;
+    z-index: 90;
+    margin: 0;
   }
 
+  /* NÚT ĐĂNG XUẤT - BẮT BUỘC DÍNH GÓC TRÊN BÊN PHẢI MÀN HÌNH */
+  .logoutBtn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    position: fixed !important;
+    top: 12px !important;
+    right: 12px !important;
+    left: auto !important;
+    bottom: auto !important;
+    z-index: 95 !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+  }
+
+  /* Ẩn chữ trên Mobile, chỉ chừa Icon cho đẹp chuẩn header mobile */
+  .logoutText {
+    display: none !important;
+  }
+
+  /* Khung nội dung chính */
   .main {
     margin-left: 0;
-    padding: 72px 16px 16px 16px;
+    width: 100%;
+    padding: 68px 16px 24px 16px; /* Đẩy nội dung xuống bên dưới 2 nút Header */
   }
 
   /* SIDEBAR DRAWER MOBILE */
@@ -348,23 +384,5 @@
     cursor: pointer;
     padding: 6px;
     border-radius: 8px;
-    transition: 0.2s;
-  }
-
-  .closeMenuBtn:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  /* TỐI ƯU Cấu hình riêng cho nút Logout trên Mobile */
-  .logoutBtn {
-    top: 12px;
-    right: 12px;
-    padding: 10px;
-  }
-
-  /* Ẩn chữ "Đăng xuất" trên Mobile để thành nút vuông gọn gàng ở góc trên bên phải */
-  .logoutText {
-    display: none;
   }
 }

@@ -43,7 +43,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  console.log("[PAYOS WEBHOOK RECEIVED]", JSON.stringify(body));
 
   try {
     /*
@@ -90,7 +89,6 @@ export async function POST(request: NextRequest) {
           gatewayResponse: body,
         });
 
-        console.log("[PAYOS WALLET TOPUP SUCCESS]", topupResult);
 
         return NextResponse.json(
           {
@@ -101,11 +99,6 @@ export async function POST(request: NextRequest) {
           { status: 200 },
         );
       }
-
-      console.log("[PAYOS WEBHOOK UNKNOWN ORDER]", {
-        orderCode,
-        amount,
-      });
 
       return NextResponse.json(
         {

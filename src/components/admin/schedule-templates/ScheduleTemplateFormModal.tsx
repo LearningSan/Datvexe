@@ -103,11 +103,6 @@
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      console.log("departureDatetime string:", departureTime);
-
-      const arrivalDate = new Date(departureTime);
-
-      console.log("arrivalDate object:", arrivalDate);
       if (mode === "EDIT") {
         onSubmit({
           departureTime,
