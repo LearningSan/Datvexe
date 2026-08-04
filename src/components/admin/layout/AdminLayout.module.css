@@ -42,7 +42,7 @@
   background: #f1f5f9;
 }
 
-/* NÚT ĐÓNG MENU TRONG SIDEBAR (Ẩn mặc định trên PC) */
+/* NÚT ĐÓNG MENU TRONG SIDEBAR */
 .closeMenuBtn {
   display: none;
 }
@@ -73,7 +73,7 @@
   gap: 12px;
 }
 
-/* SIDEBAR FIXED & KHÔNG CHO PHÉP TRÀN */
+/* SIDEBAR FIXED */
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;
@@ -103,7 +103,6 @@
   box-sizing: border-box;
 }
 
-/* LOGO SECTION CỐ ĐỊNH PHẦN ĐẦU */
 .logoSection {
   display: flex;
   align-items: center;
@@ -125,7 +124,7 @@
   font-weight: 800;
 }
 
-/* NAV MENU: KHU VỰC TỰ CUỘN ĐỘC LẬP */
+/* NAV MENU */
 .navMenu {
   display: flex;
   flex-direction: column;
@@ -193,13 +192,13 @@
   background: #fff;
 }
 
-/* NÚT ĐĂNG XUẤT TRÊN PC */
+/* NÚT ĐĂNG XUẤT TRÊN PC (GIỮ NGUYÊN HOÀN TOÀN) */
 .logoutBtn {
   position: fixed;
-  top: 6px;
+  top: 16px;
   right: 24px;
   bottom: auto;
-  z-index: 100;
+  z-index: 95;
 
   display: flex;
   align-items: center;
@@ -216,10 +215,15 @@
   cursor: pointer;
 
   box-shadow: 0 8px 24px rgb(15 23 42 / 12%);
+  transition: all 0.2s ease;
 }
 
 .logoutBtn:hover {
   background: #fef2f2;
+}
+
+.logoutText {
+  display: inline;
 }
 
 .authLoading {
@@ -272,14 +276,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    top: 12px;
+    left: 12px;
   }
 
   .main {
     margin-left: 0;
-    padding: 80px 16px 16px 16px;
+    padding: 72px 16px 16px 16px;
   }
 
-  /* SIDEBAR DI ĐỘNG DRAWER */
+  /* SIDEBAR DRAWER MOBILE */
   .sidebar {
     position: fixed;
     top: 0;
@@ -350,16 +356,15 @@
     background: rgba(255, 255, 255, 0.1);
   }
 
-  /* CHỈNH SỬA NÚT LOGOUT TRÊN MOBILE */
+  /* TỐI ƯU Cấu hình riêng cho nút Logout trên Mobile */
   .logoutBtn {
-    display: flex !important; /* Đảm bảo không bị ẩn bởi thuộc tính khác */
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    bottom: auto;
-    z-index: 95; /* Tăng từ 89 lên 95 để luôn nổi lên trên cùng màn hình */
-    padding: 10px 14px;
-    background: #ffffff;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.15);
+    top: 12px;
+    right: 12px;
+    padding: 10px;
+  }
+
+  /* Ẩn chữ "Đăng xuất" trên Mobile để thành nút vuông gọn gàng ở góc trên bên phải */
+  .logoutText {
+    display: none;
   }
 }

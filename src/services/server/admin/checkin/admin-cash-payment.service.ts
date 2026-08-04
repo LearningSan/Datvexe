@@ -48,7 +48,7 @@ export async function confirmAdminCashPayment(
     if (payment.status === "PAID") {
       return {
         success: true as const,
-        bookingId: Number(payment.bookingId),
+        bookingIds: payment.bookingIds,
         paymentId: Number(payment.paymentId),
         alreadyProcessed: true,
       };
@@ -60,45 +60,39 @@ export async function confirmAdminCashPayment(
 
     const confirmResult = await confirmPaymentByTransactionCode({
       conn,
-
       transactionCode: payment.transactionCode,
-
       status: "SUCCESS",
-
       amount: Number(payment.amount),
-
       gatewayTransactionId: `CASH-COUNTER-${Date.now()}`,
-
       gatewayResponse: {
         provider: "CASH",
         source: "ADMIN_COUNTER",
-
         cashierUserId: payload.cashierUserId ?? null,
-
         note: payload.note ?? null,
-
         confirmedAt: new Date().toISOString(),
       },
     });
 
-    if (!result.alreadyProcessed) {
-      try {
-        await sendPaymentResultSideEffects({
-          bookingIds: confirmResult.bookingIds,
-          isPaid: true,
-        });
-      } catch (error) {
-        console.error("[CASH PAYMENT SIDE EFFECT ERROR]", {
-          bookingIds: confirmResult.bookingIds,
-          error,
-        });
-      }
-    }
     return {
       ...confirmResult,
       paymentId: Number(payment.paymentId),
     };
   });
+
+  // Side effect sau khi transaction commit
+  if (!result.alreadyProcessed) {
+    try {
+      await sendPaymentResultSideEffects({
+        bookingIds: result.bookingIds,
+        isPaid: true,
+      });
+    } catch (error) {
+      console.error("[CASH PAYMENT SIDE EFFECT ERROR]", {
+        bookingIds: result.bookingIds,
+        error,
+      });
+    }
+  }
 
   return result;
 }

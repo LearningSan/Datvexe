@@ -412,7 +412,7 @@ export async function findCashPaymentForUpdate(
   }>(
     conn,
     `
-       SELECT
+    SELECT
       p.payment_id AS paymentId,
       pb.booking_id AS bookingId,
       p.status,
@@ -432,5 +432,21 @@ export async function findCashPaymentForUpdate(
     [transactionCode],
   );
 
-  return rows[0] ?? null;
+  if (!rows.length) {
+    return null;
+  }
+
+  const first = rows[0];
+
+  return {
+    paymentId: Number(first.paymentId),
+
+    bookingIds: rows.map((row) => Number(row.bookingId)),
+
+    status: first.status,
+
+    amount: Number(first.amount),
+
+    transactionCode: first.transactionCode,
+  };
 }
