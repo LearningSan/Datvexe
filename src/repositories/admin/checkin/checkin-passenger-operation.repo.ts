@@ -61,13 +61,7 @@ export async function findPassengerCheckinForUpdate(
 
         b.status AS bookingStatus,
 
-        (
-          SELECT p.status
-          FROM payments p
-          WHERE p.booking_id = b.booking_id
-          ORDER BY p.payment_id DESC
-          LIMIT 1
-        ) AS paymentStatus,
+        p.status AS paymentStatus,
 
         t.status AS tripStatus,
         t.departure_datetime AS departureDatetime
@@ -76,7 +70,13 @@ export async function findPassengerCheckinForUpdate(
 
       INNER JOIN bookings b
         ON b.booking_id = bs.booking_id
-        AND b.trip_id = bs.trip_id
+       AND b.trip_id = bs.trip_id
+
+      INNER JOIN payment_bookings pb
+        ON pb.booking_id = b.booking_id
+
+      INNER JOIN payments p
+        ON p.payment_id = pb.payment_id
 
       INNER JOIN trips t
         ON t.trip_id = bs.trip_id

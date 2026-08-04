@@ -142,8 +142,10 @@ export async function findCheckinReminderCandidates(
 
         AND (
           SELECT p.status
-          FROM payments p
-          WHERE p.booking_id = b.booking_id
+          FROM payment_bookings pb
+INNER JOIN payments p
+  ON p.payment_id = pb.payment_id
+WHERE pb.booking_id = b.booking_id
           ORDER BY p.payment_id DESC
           LIMIT 1
         ) = 'PAID'

@@ -79,8 +79,11 @@ function mapCashPaymentRow(row: CashPaymentRow): AdminCashPaymentItem {
 const BASE_FROM_SQL = `
   FROM payments p
 
-  INNER JOIN bookings b
-    ON b.booking_id = p.booking_id
+  INNER JOIN payment_bookings pb
+  ON pb.payment_id = p.payment_id
+
+INNER JOIN bookings b
+  ON b.booking_id = pb.booking_id
 
   INNER JOIN trips t
     ON t.trip_id = b.trip_id
@@ -151,7 +154,7 @@ export async function findAdminCashPayments(
   const itemsSql = `
     SELECT
       p.payment_id AS paymentId,
-      p.booking_id AS bookingId,
+      b.booking_id AS bookingId,
 
       b.booking_code AS bookingCode,
       p.transaction_code AS transactionCode,
@@ -186,7 +189,7 @@ export async function findAdminCashPayments(
 
     GROUP BY
       p.payment_id,
-      p.booking_id,
+      b.booking_id,
       b.booking_code,
       p.transaction_code,
       b.contact_name,
@@ -304,8 +307,11 @@ export async function findAdminCashPaymentSummary(): Promise<AdminCashPaymentSum
 
       FROM payments p
 
-      INNER JOIN bookings b
-        ON b.booking_id = p.booking_id
+      INNER JOIN payment_bookings pb
+  ON pb.payment_id = p.payment_id
+
+INNER JOIN bookings b
+  ON b.booking_id = pb.booking_id
 
       WHERE p.payment_method = 'CASH'
     `,
@@ -333,7 +339,7 @@ export async function findCashPaymentByTransactionCode(
     `
       SELECT
         p.payment_id AS paymentId,
-        p.booking_id AS bookingId,
+        b.booking_id AS bookingId,
 
         b.booking_code AS bookingCode,
         p.transaction_code AS transactionCode,
@@ -369,7 +375,7 @@ export async function findCashPaymentByTransactionCode(
 
       GROUP BY
         p.payment_id,
-        p.booking_id,
+        b.booking_id,
         b.booking_code,
         p.transaction_code,
         b.contact_name,

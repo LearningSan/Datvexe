@@ -296,12 +296,15 @@ function buildWarningSql(warning?: TicketWarning) {
       AND EXISTS (SELECT 1 FROM booking_seats bs WHERE bs.booking_id = b.booking_id)
     `,
     REFUNDED_STATUS_NOT_UPDATED: `
-      AND EXISTS (
-        SELECT 1 FROM payments p
-        WHERE p.booking_id = b.booking_id
-          AND p.status = 'REFUNDED'
-      )
-      AND b.status <> 'REFUNDED'
+    AND EXISTS (
+  SELECT 1
+  FROM payment_bookings pb
+  INNER JOIN payments p
+    ON p.payment_id = pb.payment_id
+  WHERE pb.booking_id = b.booking_id
+    AND p.status = 'REFUNDED'
+)
+AND b.status <> 'REFUNDED'
     `,
     DEPARTING_SOON_NOT_CHECKED_IN: `
       AND b.status = 'CONFIRMED'

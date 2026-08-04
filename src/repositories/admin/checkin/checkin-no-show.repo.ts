@@ -34,7 +34,7 @@ export async function findNoShowCandidateTrips(
   limit: number,
   graceMinutes: number,
 ): Promise<NoShowCandidateTripRow[]> {
-  return query<NoShowCandidateTripRow>(
+  return query(
     `
       SELECT DISTINCT
         t.trip_id AS tripId,
@@ -44,11 +44,18 @@ export async function findNoShowCandidateTrips(
 
       INNER JOIN bookings b
         ON b.trip_id = t.trip_id
-        AND b.status = 'CONFIRMED'
+       AND b.status = 'CONFIRMED'
+
+      INNER JOIN payment_bookings pb
+        ON pb.booking_id = b.booking_id
+
+      INNER JOIN payments p
+        ON p.payment_id = pb.payment_id
+       AND p.status = 'PAID'
 
       INNER JOIN booking_seats bs
         ON bs.booking_id = b.booking_id
-        AND bs.checkin_status = 'NOT_CHECKED_IN'
+       AND bs.checkin_status = 'NOT_CHECKED_IN'
 
       WHERE
         t.status <> 'CANCELLED'
@@ -57,14 +64,6 @@ export async function findNoShowCandidateTrips(
           t.departure_datetime,
           INTERVAL ? MINUTE
         ) <= NOW()
-
-        AND (
-          SELECT p.status
-          FROM payments p
-          WHERE p.booking_id = b.booking_id
-          ORDER BY p.payment_id DESC
-          LIMIT 1
-        ) = 'PAID'
 
       ORDER BY
         t.departure_datetime ASC
@@ -111,7 +110,7 @@ export async function findNoShowSeatsForUpdate(
   conn: PoolConnection,
   tripId: number,
 ): Promise<NoShowSeatForUpdateRow[]> {
-  return connQuery<NoShowSeatForUpdateRow>(
+  return connQuery(
     conn,
     `
       SELECT
@@ -132,6 +131,13 @@ export async function findNoShowSeatsForUpdate(
       INNER JOIN bookings b
         ON b.booking_id = bs.booking_id
 
+      INNER JOIN payment_bookings pb
+        ON pb.booking_id = b.booking_id
+
+      INNER JOIN payments p
+        ON p.payment_id = pb.payment_id
+       AND p.status = 'PAID'
+
       INNER JOIN seat_layout_details sld
         ON sld.seat_layout_detail_id =
            bs.seat_layout_detail_id
@@ -142,14 +148,6 @@ export async function findNoShowSeatsForUpdate(
         AND b.status = 'CONFIRMED'
 
         AND bs.checkin_status = 'NOT_CHECKED_IN'
-
-        AND (
-          SELECT p.status
-          FROM payments p
-          WHERE p.booking_id = b.booking_id
-          ORDER BY p.payment_id DESC
-          LIMIT 1
-        ) = 'PAID'
 
       ORDER BY
         b.booking_id ASC,

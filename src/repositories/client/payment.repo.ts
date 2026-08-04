@@ -628,8 +628,11 @@ export async function findPaymentForConfirm(
 
     FROM payments p
 
-    INNER JOIN bookings b
-      ON b.booking_id = p.booking_id
+INNER JOIN payment_bookings pb
+  ON pb.payment_id = p.payment_id
+
+INNER JOIN bookings b
+  ON b.booking_id = pb.booking_id
 
     WHERE p.payment_id = ?
 
@@ -678,21 +681,19 @@ export async function findPaymentByProviderOrderCode(
 ) {
   const rows = await query<{
     paymentId: number;
-    bookingId: number;
     amount: string | number;
     status: PaymentStatus;
     transactionCode: string;
   }>(
     `
-    SELECT
-      payment_id AS paymentId,
-      booking_id AS bookingId,
-      amount,
-      status,
-      transaction_code AS transactionCode
-    FROM payments
-    WHERE provider_order_code = ?
-    LIMIT 1
+      SELECT
+        payment_id AS paymentId,
+        amount,
+        status,
+        transaction_code AS transactionCode
+      FROM payments
+      WHERE provider_order_code = ?
+      LIMIT 1
     `,
     [providerOrderCode],
   );

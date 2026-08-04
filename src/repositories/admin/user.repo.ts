@@ -341,8 +341,12 @@ export async function findAdminUserDetail(userId: number) {
     INNER JOIN routes ro ON ro.route_id = t.route_id
     INNER JOIN cities oc ON oc.city_id = ro.origin_city_id
     INNER JOIN cities dc ON dc.city_id = ro.destination_city_id
-    LEFT JOIN payments p ON p.booking_id = b.booking_id
-    LEFT JOIN booking_seats bs ON bs.booking_id = b.booking_id
+LEFT JOIN payment_bookings pb
+  ON pb.booking_id = b.booking_id
+
+LEFT JOIN payments p
+  ON p.payment_id = pb.payment_id
+      LEFT JOIN booking_seats bs ON bs.booking_id = b.booking_id
     WHERE b.user_id = ?
     GROUP BY
       b.booking_id,
@@ -424,7 +428,11 @@ export async function findAdminGuestDetail(data: {
     INNER JOIN routes ro ON ro.route_id = t.route_id
     INNER JOIN cities oc ON oc.city_id = ro.origin_city_id
     INNER JOIN cities dc ON dc.city_id = ro.destination_city_id
-    LEFT JOIN payments p ON p.booking_id = b.booking_id
+    LEFT JOIN payment_bookings pb
+  ON pb.booking_id = b.booking_id
+
+LEFT JOIN payments p
+  ON p.payment_id = pb.payment_id
     LEFT JOIN booking_seats bs ON bs.booking_id = b.booking_id
     WHERE b.user_id IS NULL
       AND (

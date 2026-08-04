@@ -171,8 +171,11 @@ LEFT JOIN vehicles v
 
 LEFT JOIN vehicle_types vt
   ON vt.vehicle_type_id = v.vehicle_type_id
+LEFT JOIN payment_bookings pb
+  ON pb.booking_id = b.booking_id
+
 LEFT JOIN payments p
-  ON p.booking_id = b.booking_id
+  ON p.payment_id = pb.payment_id
 WHERE b.booking_id = ?
 
 GROUP BY
