@@ -542,14 +542,7 @@ export default function TicketsContainer() {
                         {item.bookingCode}
                       </span>
                       <span className={styles.secondaryCellText}>
-                        {new Date(item.createdAt).toLocaleString("vi-VN", {
-                          timeZone: "Asia/Ho_Chi_Minh",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        })}{" "}
+                        {formatDateTimeVN(item.createdAt)}
                       </span>
                     </td>
                     <td>
