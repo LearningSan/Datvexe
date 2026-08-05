@@ -99,38 +99,37 @@ export async function updateUserPasswordHash(
 
 export async function findTicketHistoryByUserId(userId: number) {
   const sql = `
-    SELECT
-      b.booking_id AS bookingId,
-      b.booking_code AS bookingCode,
-      b.status,
-      b.total_amount AS totalAmount,
-      b.contact_name AS contactName,
-      b.contact_phone AS contactPhone,
-      t.departure_datetime AS departureDateTime,
-      p.status AS paymentStatus,
-      p.payment_method AS paymentMethod,
-      p.transaction_code AS transactionCode,
-      p.paid_at AS paidAt,
-      b.created_at AS createdAt
-    FROM bookings b
-
-    INNER JOIN trips t
-      ON t.trip_id = b.trip_id
-
-    LEFT JOIN payments p
-      ON p.payment_id = (
+SELECT
+    b.booking_id AS bookingId,
+    b.booking_code AS bookingCode,
+    b.status,
+    b.total_amount AS totalAmount,
+    b.contact_name AS contactName,
+    b.contact_phone AS contactPhone,
+    DATE_FORMAT(
+        t.departure_datetime,
+        '%Y-%m-%d %H:%i:%s'
+    ) AS departureDateTime,
+    p.status AS paymentStatus,
+    p.payment_method AS paymentMethod,
+    p.transaction_code AS transactionCode,
+    p.paid_at AS paidAt,
+    b.created_at AS createdAt
+FROM bookings b
+INNER JOIN trips t
+    ON t.trip_id = b.trip_id
+LEFT JOIN payments p
+    ON p.payment_id = (
         SELECT pb.payment_id
         FROM payment_bookings pb
         INNER JOIN payments p2
-          ON p2.payment_id = pb.payment_id
+            ON p2.payment_id = pb.payment_id
         WHERE pb.booking_id = b.booking_id
         ORDER BY p2.created_at DESC
         LIMIT 1
-      )
-
-    WHERE b.user_id = ?
-
-    ORDER BY b.created_at DESC
+    )
+WHERE b.user_id = ?
+ORDER BY b.created_at DESC;
   `;
 
   return await query(sql, [userId]);
