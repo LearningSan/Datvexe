@@ -806,19 +806,19 @@ export async function findTicketPayments(
 ): Promise<AdminTicketPayment[]> {
   const rows = await query<any>(
     `
-    SELECT
-      payment_id AS paymentId,
-      payment_method AS paymentMethod,
-      amount,
-      status,
-      transaction_code AS transactionCode,
-      paid_at AS paidAt,
-      created_at AS createdAt
+   SELECT
+      p.payment_id AS paymentId,
+      p.payment_method AS paymentMethod,
+      p.amount,
+      p.status,
+      p.transaction_code AS transactionCode,
+      p.paid_at AS paidAt,
+      p.created_at AS createdAt
     FROM payment_bookings pb
-INNER JOIN payments p
-  ON p.payment_id = pb.payment_id
-WHERE pb.booking_id = ?
-    ORDER BY payment_id DESC
+    INNER JOIN payments p
+      ON p.payment_id = pb.payment_id
+    WHERE pb.booking_id = ?
+    ORDER BY p.payment_id DESC
   `,
     [bookingId],
   );

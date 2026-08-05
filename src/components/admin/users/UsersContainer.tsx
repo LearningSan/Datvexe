@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   useCreateUser,
   useUpdateUser,
@@ -17,7 +17,6 @@ import BlockErrorBoundary from "@/components/common/BlockErrorBoundary";
 import BlockSkeleton from "@/components/common/BlockSkeleton";
 
 import styles from "./UsersContainer.module.css";
-import { formatDateTimeVN } from "@/lib/client/helpers";
 
 export default function UsersContainer() {
   const [keyword, setKeyword] = useState("");
@@ -158,20 +157,6 @@ export default function UsersContainer() {
   ).length;
   return (
     <BlockErrorBoundary fallback={<BlockSkeleton height={500} />}>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3500,
-          style: {
-            fontFamily: "system-ui, sans-serif",
-            fontSize: "14.5px",
-            fontWeight: 500,
-            borderRadius: "8px",
-            padding: "12px 18px",
-          },
-        }}
-      />
-
       <div className={styles.container}>
         {/* Header Section */}
         <div className={styles.header}>

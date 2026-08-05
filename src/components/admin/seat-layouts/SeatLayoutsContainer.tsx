@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   useDuplicateSeatLayout,
   useSeatLayouts,
@@ -78,8 +78,6 @@ export default function SeatLayoutsContainer() {
 
   return (
     <div className={styles.page}>
-      <Toaster position="top-right" />
-
       <div className={styles.header}>
         <div>
           <h1>Quản lý sơ đồ ghế</h1>

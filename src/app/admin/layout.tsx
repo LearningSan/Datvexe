@@ -4,6 +4,7 @@ import AdminAuthBootstrap from "@/providers/AdminAuthBootstrap";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Menu } from "lucide-react";
+
 import AdminSidebar from "@/components/admin/layout/AdminSidebar";
 import { useAdminAuth } from "@/hooks/admin/useAuth";
 import styles from "@/components/admin/layout/AdminLayout.module.css";
@@ -50,7 +51,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
   if (isLoginPage) {
     if (isAuthenticated) return null;
-    return children;
+    return <>{children}</>;
   }
 
   if (!isAuthenticated) return null;
@@ -62,7 +63,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className={styles.layout}>
-      {/* Nút Hamburger Menu Mobile (Góc trái) */}
+      {/* Mobile menu */}
       <button
         type="button"
         className={styles.mobileMenuBtn}
@@ -70,10 +71,10 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         aria-label="Mở menu quản trị"
         aria-expanded={isSidebarOpen}
       >
-        <Menu size={24} />
+        <Menu size={22} />
       </button>
 
-      {/* Nút Đăng xuất (Góc phải) - Đưa ra ngoài <main> để không bị trôi/ẩn trên Mobile */}
+      {/* Logout */}
       <button type="button" className={styles.logoutBtn} onClick={handleLogout}>
         <LogOut size={18} />
         <span className={styles.logoutText}>Đăng xuất</span>

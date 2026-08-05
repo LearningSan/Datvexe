@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   useCreateVehicle,
   useUpdateVehicle,
@@ -124,7 +124,6 @@ export default function VehiclesContainer() {
 
   return (
     <div className={styles.page}>
-      <Toaster position="top-right" />
 
       <div className={styles.header}>
         <div>

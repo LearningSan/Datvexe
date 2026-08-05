@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
 import {
@@ -176,8 +176,6 @@ export default function PickupPointsContainer() {
 
   return (
     <BlockErrorBoundary fallback={<BlockSkeleton height={500} />}>
-      <Toaster position="top-right" />
-
       <div className={styles.container}>
         <div className={styles.header}>
           <div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 import {
   useCreateDriver,
@@ -146,19 +146,7 @@ export default function DriversContainer() {
 
   return (
     <BlockErrorBoundary fallback={<BlockSkeleton height={500} />}>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3500,
-          style: {
-            fontSize: "14px",
-            fontWeight: 600,
-            borderRadius: "6px",
-            background: "#1e293b",
-            color: "#fff",
-          },
-        }}
-      />
+      
 
       <div className={styles.container}>
         <div className={styles.header}>

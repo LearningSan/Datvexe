@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   Bus,
   Check,
@@ -190,7 +190,6 @@ export default function CheckinContainer() {
 
   return (
     <div className={styles.dashboard}>
-      <Toaster position="top-right" />
 
       <header className={styles.header}>
         <div>

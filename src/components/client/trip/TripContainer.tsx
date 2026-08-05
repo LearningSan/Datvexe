@@ -197,23 +197,22 @@ export default function TripContainer() {
 
     setOpenSort(null);
   };
-
-  const resetFilters = () => {
+  const resetTripFilters = () => {
     setFilters({
       timeSlots: [],
       vehicleTypes: [],
       seatPositions: [],
       floors: [],
-
       onlyAvailable: false,
-
       sort: {
         field: "price",
         order: "asc",
       },
-
       page: 1,
     });
+  };
+  const resetFilters = () => {
+    resetTripFilters();
   };
 
   /* =========================
@@ -230,10 +229,7 @@ export default function TripContainer() {
 
     if (activeJourney === "OUTBOUND") {
       setActiveJourney("RETURN");
-      setFilters({
-        page: 1,
-      });
-
+      resetTripFilters();
       return;
     }
   };
@@ -324,10 +320,7 @@ export default function TripContainer() {
               }`}
               onClick={() => {
                 setActiveJourney("OUTBOUND");
-
-                setFilters({
-                  page: 1,
-                });
+                resetTripFilters();
               }}
             >
               Danh sách chuyến đi
@@ -341,10 +334,7 @@ export default function TripContainer() {
               }`}
               onClick={() => {
                 setActiveJourney("RETURN");
-
-                setFilters({
-                  page: 1,
-                });
+                resetTripFilters();
               }}
             >
               Danh sách chuyến về

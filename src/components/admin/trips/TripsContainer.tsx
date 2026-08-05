@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 import {
   useCreateTrip,
@@ -203,7 +203,6 @@ export default function TripsContainer() {
 
   return (
     <BlockErrorBoundary fallback={<BlockSkeleton height={500} />}>
-      <Toaster position="top-right" />
 
       <div className={styles.dispatchDashboard}>
         {/* TOP BAR */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { Lock, Search, Unlock, Wallet, Loader2 } from "lucide-react";
 
 import {
@@ -181,7 +181,6 @@ export default function WalletsContainer() {
 
   return (
     <BlockErrorBoundary fallback={<BlockSkeleton height={500} />}>
-      <Toaster position="top-right" />
 
       <div className={styles.dashboard}>
         {/* HEADER */}

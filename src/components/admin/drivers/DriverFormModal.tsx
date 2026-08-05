@@ -102,6 +102,7 @@ export default function DriverFormModal({
       email: email.trim() || null,
       phone: phone.trim() || null,
       driverType,
+      roleId:3,
       licenseNumber: licenseNumber.trim(),
       hiredDate: hiredDate || null,
     };

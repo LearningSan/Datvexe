@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 import BlockErrorBoundary from "@/components/common/BlockErrorBoundary";
 import BlockSkeleton from "@/components/common/BlockSkeleton";
@@ -168,7 +168,6 @@ export default function RoutesContainer() {
 
   return (
     <BlockErrorBoundary fallback={<BlockSkeleton height={500} />}>
-      <Toaster position="top-right" />
 
       <div className={styles.container}>
         {/* TIÊU ĐỀ TRANG */}

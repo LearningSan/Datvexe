@@ -12,8 +12,7 @@ export const createAdminDriverSchema = z.object({
   email: z.string().email().optional().nullable(),
   phone: z.string().min(9).optional().nullable(),
   password: z.string().min(6),
-  roleId: z.coerce.number().min(1),
-
+  roleId:z.coerce.number().min(1).default(3),
   driverType: z.enum(["BUS", "SHUTTLE", "BOTH"]),
   licenseNumber: z.string().min(3),
   hiredDate: z.string().optional().nullable(),
