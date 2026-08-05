@@ -21,7 +21,8 @@ export default function TicketHistoryContainer() {
   const [selectedBookingId, setSelectedBookingId] = useState<number | null>(
     null,
   );
-
+console.log(new Date());
+console.log(Intl.DateTimeFormat().resolvedOptions().timeZone);
   const getStatusClass = (status: string) => {
     const key = status?.toLowerCase() || "";
     return styles[`status_${key}`] || styles.status_pending;
