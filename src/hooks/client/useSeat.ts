@@ -16,15 +16,16 @@ export function useTripSeats(tripId?: number, sessionId?: string) {
       globalLoading: false,
     },
 
-    staleTime: 0,
+    staleTime: 1000 * 10,
+
     gcTime: 1000 * 60 * 10,
 
-    refetchInterval: 1000 * 60,
-    refetchIntervalInBackground: false,
+    refetchInterval: false,
 
     refetchOnWindowFocus: false,
-    refetchOnReconnect: true,
-    refetchOnMount: true,
+    refetchOnReconnect: false,
+
+    refetchOnMount: false,
 
     retry: 1,
     throwOnError: false,

@@ -142,7 +142,6 @@ export default function SeatContainer() {
           });
         }
 
-        await query.refetch();
       } catch (error: any) {
         toast.error(error?.response?.data?.message || "Không thể bỏ chọn ghế");
       }
@@ -176,7 +175,6 @@ export default function SeatContainer() {
         price: currentTrip.price,
       });
 
-      await query.refetch();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Không thể giữ ghế");
     }
