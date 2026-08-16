@@ -6,21 +6,21 @@ export async function query<T = unknown>(
   sql: string,
   params?: Record<string, any> | any[],
 ): Promise<T[]> {
-  // const conn = await pool.getConnection();
+  const conn = await pool.getConnection();
 
-  // try {
-  //   await conn.query("SET SESSION time_zone = '+07:00'");
+  try {
+    await conn.query("SET SESSION time_zone = '+07:00'");
 
-  //   const [rows] = await conn.query(sql, params);
+    const [rows] = await conn.query(sql, params);
 
-  //   return rows as T[];
-  // } finally {
-  //   conn.release();
-  // }
+    return rows as T[];
+  } finally {
+  
+  }
 
-  const [rows] = await pool.query(sql, params);
+  // const [rows] = await pool.query(sql, params);
 
-  return rows as T[];
+  // return rows as T[];
 }
 
 export async function withTransaction<T>(
@@ -30,7 +30,7 @@ export async function withTransaction<T>(
 
   try {
     await conn.beginTransaction();
-    // await conn.query("SET SESSION time_zone = '+07:00'");
+    await conn.query("SET SESSION time_zone = '+07:00'");
 
     const result = await callback(conn);
 
@@ -57,7 +57,7 @@ export async function connQuery<T = unknown>(
   sql: string,
   params?: Record<string, any> | any[],
 ): Promise<T[]> {
-  // await conn.query("SET SESSION time_zone = '+07:00'");
+  await conn.query("SET SESSION time_zone = '+07:00'");
 
   const [rows] = await conn.query(sql, params);
 
@@ -68,7 +68,7 @@ export async function connExecute(
   sql: string,
   params?: Record<string, any> | any[],
 ): Promise<ResultSetHeader> {
-  // await conn.query("SET SESSION time_zone = '+07:00'");
+  await conn.query("SET SESSION time_zone = '+07:00'");
 
   const [result] = await conn.execute(sql, params);
 
@@ -79,9 +79,9 @@ export async function execute(
   sql: string,
   params?: Record<string, any> | any[],
 ): Promise<ResultSetHeader> {
-  // const conn = await pool.getConnection();
+  const conn = await pool.getConnection();
 
-  // await conn.query("SET SESSION time_zone = '+07:00'");
+  await conn.query("SET SESSION time_zone = '+07:00'");
 
   const [result] = await pool.execute(sql, params);
 
