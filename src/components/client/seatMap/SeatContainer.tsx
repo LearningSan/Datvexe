@@ -167,6 +167,7 @@ export default function SeatContainer() {
         seatLayoutDetailIds: [seat.seatId],
         sessionId,
       });
+      console.log("Time luu trong db:",result.expiredAt)
       setHoldExpiredAt(result.expiredAt);
 
       toggleSeat({
