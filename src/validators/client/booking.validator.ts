@@ -96,6 +96,9 @@ export type HoldSeatsInput = z.infer<typeof holdSeatsSchema>;
 export function validateHoldSeatsPayload(body: unknown): HoldSeatsInput {
   return holdSeatsSchema.parse(body);
 }
+export function validateReleaseSeatsPayload(body: unknown): HoldSeatsInput {
+  return holdSeatsSchema.parse(body);
+}
 
 
 export const getBookingsByGroupSchema = z.object({

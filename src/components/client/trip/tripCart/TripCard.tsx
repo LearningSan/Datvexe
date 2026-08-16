@@ -12,7 +12,16 @@ interface Props {
   trip: Trip;
   onChooseTrip: (trip: Trip) => void;
 }
+function formatDuration(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
 
+  if (remainingMinutes === 0) {
+    return `${hours}h`;
+  }
+
+  return `${hours}h ${remainingMinutes}p`;
+}
 export default function TripCard({ trip, onChooseTrip }: Props) {
   const router = useRouter();
 
@@ -39,7 +48,8 @@ export default function TripCard({ trip, onChooseTrip }: Props) {
             <div className={styles.middle}>
               <div className={styles.durationBox}>
                 <div className={styles.durationText}>
-                  {trip.duration}h{" - "}
+                  {formatDuration(trip.duration)}
+                  {" - "}
                   {trip.distance}km
                 </div>
 

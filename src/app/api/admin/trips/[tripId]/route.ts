@@ -18,19 +18,17 @@ interface Context {
 
 export async function PATCH(req: NextRequest, context: Context) {
   try {
-   await getAdminAuthUserId(req);
+    await getAdminAuthUserId(req);
 
     const params = await context.params;
+
     const body = await req.json();
 
     const parsedParams = tripIdParamsSchema.parse(params);
+
     const parsedBody = updateAdminTripSchema.parse(body);
 
-    const data = await updateAdminTrip(
-      parsedParams.tripId,
-      parsedBody,
-    
-    );
+    const data = await updateAdminTrip(Number(parsedParams.tripId), parsedBody);
 
     return successResponse(data, "Cập nhật chuyến xe thành công");
   } catch (error: unknown) {

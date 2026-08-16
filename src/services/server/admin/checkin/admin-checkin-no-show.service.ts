@@ -383,21 +383,6 @@ async function dispatchGroupedNoShowNotifications(
       departureDatetime: item.departureDatetime,
     });
   }
-
-  console.log("[NO SHOW NOTIFICATION GROUPS]", {
-    rawItemCount: items.length,
-    groupCount: groups.size,
-
-    groups: [...groups.values()].map((group) => ({
-      userId: group.userId,
-      tripId: group.tripId,
-
-      bookingCodes: [...group.bookingCodes],
-
-      seatNumbers: [...group.seatNumbers],
-    })),
-  });
-
   for (const group of groups.values()) {
     try {
       await withTransaction(async (conn) => {
@@ -412,13 +397,6 @@ async function dispatchGroupedNoShowNotifications(
           seatNumbers,
         });
 
-        console.log("[CREATE NO SHOW NOTIFICATION]", {
-          userId: group.userId,
-          tripId: group.tripId,
-
-          bookingCodes,
-          seatNumbers,
-        });
 
         /*
          * createNotification chỉ được gọi đúng một lần

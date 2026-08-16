@@ -20,6 +20,7 @@ import { useBookingStore } from "@/store/booking.store";
 import { useSearchStore } from "@/store/search.store";
 
 import { useTripSearch, useTripFilterOptions } from "@/hooks/client/useTrip";
+import { useReleaseSeats } from "@/hooks/client/useBooking";
 
 import type { Trip } from "@/types/client/trip/trip.type";
 
@@ -30,7 +31,6 @@ import type {
 
 export default function TripContainer() {
   const router = useRouter();
-
   const { filters, setFilters } = useTripFilterStore();
 
   const currentSearch = useSearchStore((state) => state.currentSearch);
@@ -41,22 +41,66 @@ export default function TripContainer() {
 
     outboundTrip,
     returnTrip,
+    returnSeats,
+    outboundSeats,
 
     setIsRoundTrip,
     setActiveJourney,
-
     setSelectedTrip,
 
-    clearAllTrips,
-    clearSeats,
+    resetBooking,
   } = useBookingStore();
 
   const [openSort, setOpenSort] = useState<"price" | "departure" | null>(null);
+  const { mutateAsync: releaseSeats } = useReleaseSeats();
 
   /* =========================
      ĐỒNG BỘ KHỨ HỒI
   ========================= */
+  useEffect(() => {
+    const initializeTripsPage = async () => {
+      const sessionId = localStorage.getItem("session_id");
+      const bookingState = useBookingStore.getState();
+      const requests: Promise<unknown>[] = [];
+      if (
+        sessionId &&
+        bookingState.outboundTrip &&
+        bookingState.outboundSeats.length > 0
+      ) {
+        requests.push(
+          releaseSeats({
+            tripId: bookingState.outboundTrip.id,
+            seatLayoutDetailIds: bookingState.outboundSeats.map(
+              (seat) => seat.seatId,
+            ),
+            sessionId,
+          }),
+        );
+      }
+      if (
+        sessionId &&
+        bookingState.returnTrip &&
+        bookingState.returnSeats.length > 0
+      ) {
+        requests.push(
+          releaseSeats({
+            tripId: bookingState.returnTrip.id,
+            seatLayoutDetailIds: bookingState.returnSeats.map(
+              (seat) => seat.seatId,
+            ),
+            sessionId,
+          }),
+        );
+      }
 
+      if (requests.length > 0) {
+        await Promise.allSettled(requests);
+      }
+      useBookingStore.getState().resetBooking();
+    };
+
+    void initializeTripsPage();
+  }, [releaseSeats]);
   useEffect(() => {
     const roundTrip = currentSearch?.isRoundTrip === true;
 
@@ -66,19 +110,6 @@ export default function TripContainer() {
       setActiveJourney("OUTBOUND");
     }
   }, [currentSearch?.isRoundTrip, setIsRoundTrip, setActiveJourney]);
-
-  /*
-   * Khi vừa vào trang danh sách từ một tìm kiếm mới,
-   * xóa chuyến cũ đã chọn.
-   */
-  useEffect(() => {
-    clearAllTrips();
-    clearSeats();
-  }, [clearAllTrips, clearSeats]);
-
-  /* =========================
-     FILTER CHIỀU ĐI
-  ========================= */
 
   const outboundFilters = useMemo<TripSearchFilters>(
     () => ({

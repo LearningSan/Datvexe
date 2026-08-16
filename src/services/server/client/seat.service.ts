@@ -5,26 +5,21 @@ import {
 
 import { TripSeatResponse } from "@/types/client/seat/seat-response.type";
 
-export async function getTripSeats(tripId: number): Promise<TripSeatResponse> {
+export async function getTripSeats(tripId: number, sessionId: string) {
   const meta = await findTripSeatMeta(tripId);
 
   if (!meta) {
     throw new Error("Trip not found");
   }
 
-  const seats = await findTripSeats(tripId);
+  const seats = await findTripSeats(tripId, sessionId);
 
   return {
     tripId: meta.tripId,
-
     vehicleName: meta.vehicleName,
-
     licensePlate: meta.licensePlate,
-
     floorCount: meta.floorCount,
-
     totalSeats: meta.totalSeats,
-
     seats,
   };
 }

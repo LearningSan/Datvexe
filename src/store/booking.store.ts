@@ -29,12 +29,8 @@ export interface JourneyRouteInfo {
   pickupAddress: ShuttleAddress | null;
   dropoffAddress: ShuttleAddress | null;
 }
-/* =========================
-   STORE TYPE
-========================= */
 
 interface BookingStore {
-  // ================= HYDRATION =================
   hydrated: boolean;
   setHydrated: (value: boolean) => void;
 
@@ -51,11 +47,6 @@ interface BookingStore {
   clearReturnTrip: () => void;
   clearAllTrips: () => void;
 
-  // ================= CURRENT TRIP =================
-  /*
-   * Giữ lại để trang chi tiết chuyến hiện tại
-   * không cần sửa ngay.
-   */
   selectedTrip: Trip | null;
 
   setSelectedTrip: (trip: Trip) => void;
@@ -102,6 +93,10 @@ interface BookingStore {
 
   // ================= RESET =================
   resetBooking: () => void;
+
+  holdExpiredAt: string | null;
+  setHoldExpiredAt: (expiredAt: string | null) => void;
+  clearHoldExpiredAt: () => void;
 }
 interface BookingState {
   hydrated: boolean;
@@ -132,6 +127,7 @@ interface BookingState {
 
   shuttleLoading: boolean;
   shuttleError: string | null;
+  holdExpiredAt: string | null;
 }
 /* =========================
    INITIAL STATE
@@ -189,11 +185,8 @@ const initialState: BookingState = {
 
   shuttleLoading: false,
   shuttleError: null,
+  holdExpiredAt: null,
 };
-
-/* =========================
-   STORE
-========================= */
 
 export const useBookingStore = create<BookingStore>()(
   persist(
@@ -419,6 +412,15 @@ export const useBookingStore = create<BookingStore>()(
           ...initialState,
           hydrated: true,
         }),
+      setHoldExpiredAt: (holdExpiredAt) =>
+        set({
+          holdExpiredAt,
+        }),
+
+      clearHoldExpiredAt: () =>
+        set({
+          holdExpiredAt: null,
+        }),
     }),
     {
       name: "booking-storage",
@@ -445,6 +447,7 @@ export const useBookingStore = create<BookingStore>()(
         passenger: state.passenger,
         outboundRoute: state.outboundRoute,
         returnRoute: state.returnRoute,
+        holdExpiredAt: state.holdExpiredAt,
       }),
     },
   ),

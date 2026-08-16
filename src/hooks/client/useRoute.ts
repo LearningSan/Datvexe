@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData } from "@tanstack/react-query";
 
 import {
   fetchCities,
@@ -34,6 +35,7 @@ export function useLocationSearch(keyword: string, enabled = true) {
   return useQuery({
     queryKey: ["location-search", debouncedKeyword],
     queryFn: () => searchLocations(debouncedKeyword),
+    placeholderData: keepPreviousData,
 
     enabled: enabled && debouncedKeyword.length >= 2,
 
@@ -45,6 +47,9 @@ export function useLocationSearch(keyword: string, enabled = true) {
     refetchOnReconnect: false,
 
     retry: false,
+    meta: {
+      globalLoading: false,
+    },
   });
 }
 export function useOfficePickupPoints(cityId?: number, zoneIds: number[] = []) {

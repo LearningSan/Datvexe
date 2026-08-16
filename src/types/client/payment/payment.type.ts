@@ -56,12 +56,10 @@ export interface ManualPaymentInfo {
   missingAmount?: number;
 }
 
-export type ActiveSeatHold = {
-  bookingId: number | null;
-  tripId: number;
+export interface ActiveSeatHold {
   sessionId: string;
-};
-
+  tripIds: number[];
+}
 export interface BookingPaymentSummary {
   bookingId: number;
   bookingCode: string;
@@ -163,7 +161,11 @@ export interface PaymentStatusResponse {
   status: PaymentStatus;
 }
 
-export interface CancelHoldPayload extends ActiveSeatHold {}
+export interface CancelHoldPayload {
+  bookingId: number | null;
+  tripId: number;
+  sessionId: string;
+}
 
 export interface UpdatePaymentMethodPayload {
   paymentId: number;

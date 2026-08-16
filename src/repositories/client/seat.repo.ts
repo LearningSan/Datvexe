@@ -4,55 +4,75 @@ import { Seat } from "@/types/client/seat/seat.type";
 
 import { TripSeatMeta } from "@/types/client/seat/seat-meta.type";
 
-export async function findTripSeats(tripId: number): Promise<Seat[]> {
+export async function findTripSeats(
+  tripId: number,
+  sessionId: string,
+): Promise<Seat[]> {
   const sql = `
-        SELECT
-            sld.seat_layout_detail_id AS seatId,
-            sld.seat_number AS seatNumber,
-            sld.seat_type AS seatType,
-            sld.floor_no AS floorNo,
-            sld.row_no AS rowNo,
-            sld.column_no AS columnNo,
-            CASE
-                WHEN b.booking_id IS NOT NULL
-                    THEN 'BOOKED'
+    SELECT
+      sld.seat_layout_detail_id AS seatId,
+      sld.seat_number AS seatNumber,
+      sld.seat_type AS seatType,
+      sld.floor_no AS floorNo,
+      sld.row_no AS rowNo,
+      sld.column_no AS columnNo,
 
-                WHEN sh.seat_hold_id IS NOT NULL
-                    THEN 'HELD'
+      CASE
+        WHEN b.booking_id IS NOT NULL
+          THEN 'BOOKED'
 
-                ELSE 'AVAILABLE'
-            END AS status
-        FROM trips t
-        JOIN vehicles v
-            ON v.vehicle_id = t.vehicle_id
-        JOIN seat_layouts sl
-            ON sl.seat_layout_id = v.seat_layout_id
-        JOIN seat_layout_details sld
-            ON sld.seat_layout_id = sl.seat_layout_id
-        LEFT JOIN booking_seats bs
-            ON bs.trip_id = t.trip_id
-            AND bs.seat_layout_detail_id =
-                sld.seat_layout_detail_id
-        LEFT JOIN bookings b
-            ON b.booking_id = bs.booking_id
-            AND b.status IN (
-                'PENDING',
-                'CONFIRMED'
-            )
-        LEFT JOIN seat_holds sh
-            ON sh.trip_id = t.trip_id
-            AND sh.seat_layout_detail_id =
-                sld.seat_layout_detail_id
-            AND sh.expired_at > NOW()
-        WHERE t.trip_id = ?
+        WHEN sh.seat_hold_id IS NOT NULL
+          THEN 'HOLDING'
 
-        ORDER BY
-            sld.floor_no ASC,
-            sld.row_no ASC,
-            sld.column_no ASC
-    `;
+        ELSE 'AVAILABLE'
+      END AS status,
 
-  return await query<Seat>(sql, [tripId]);
+      CASE
+        WHEN sh.seat_hold_id IS NOT NULL
+          AND sh.session_id = ?
+          THEN true
+
+        ELSE false
+      END AS isHeldByMe
+
+    FROM trips t
+
+    JOIN vehicles v
+      ON v.vehicle_id = t.vehicle_id
+
+    JOIN seat_layouts sl
+      ON sl.seat_layout_id = v.seat_layout_id
+
+    JOIN seat_layout_details sld
+      ON sld.seat_layout_id = sl.seat_layout_id
+
+    LEFT JOIN booking_seats bs
+      ON bs.trip_id = t.trip_id
+      AND bs.seat_layout_detail_id =
+          sld.seat_layout_detail_id
+
+    LEFT JOIN bookings b
+      ON b.booking_id = bs.booking_id
+      AND b.status IN (
+        'PENDING',
+        'CONFIRMED'
+      )
+
+    LEFT JOIN seat_holds sh
+      ON sh.trip_id = t.trip_id
+      AND sh.seat_layout_detail_id =
+          sld.seat_layout_detail_id
+      AND sh.expired_at > NOW()
+
+    WHERE t.trip_id = ?
+
+    ORDER BY
+      sld.floor_no ASC,
+      sld.row_no ASC,
+      sld.column_no ASC
+  `;
+
+  return await query(sql, [sessionId, tripId]);
 }
 
 export async function findTripSeatMeta(

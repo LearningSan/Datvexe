@@ -5,7 +5,6 @@ import { verifyAdminAccessToken } from "@/lib/server/admin-jwt";
 export async function getAdminAuthUserId(req: NextRequest): Promise<number> {
   const authHeader = req.headers.get("authorization");
 
- 
 
   if (!authHeader?.startsWith("Bearer ")) {
     console.error("[ADMIN AUTH ERROR] Missing Bearer token");

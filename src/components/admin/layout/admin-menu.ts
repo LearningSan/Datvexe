@@ -15,6 +15,8 @@ import {
   Armchair,
   Users,
   Star,
+  Percent,
+  Bell,
 } from "lucide-react";
 
 export const ADMIN_MENU = [
@@ -54,11 +56,11 @@ export const ADMIN_MENU = [
     label: "Quản lý Vé xe",
     icon: Ticket,
   },
-  {
-    href: "/admin/payments",
-    label: "Lịch sử Thanh toán",
-    icon: CreditCard,
-  },
+  // {
+  //   href: "/admin/payments",
+  //   label: "Lịch sử Thanh toán",
+  //   icon: CreditCard,
+  // },
   {
     href: "/admin/wallets",
     label: "Quản lý Ví nội bộ",
@@ -116,9 +118,19 @@ export const ADMIN_MENU = [
     label: "Quản lý Người dùng",
     icon: Users,
   },
+  // {
+  //   href: "/admin/reviews",
+  //   label: "Đánh giá khách hàng",
+  //   icon: Star,
+  // },
   {
-    href: "/admin/reviews",
-    label: "Đánh giá khách hàng",
-    icon: Star,
+    href: "/admin/promotions",
+    label: "Quản lý khuyến mãi",
+    icon: Percent,
   },
+  {
+    href:"/admin/notifications",
+    label:"Quản lý thông báo",
+    icon:Bell,
+  }
 ];

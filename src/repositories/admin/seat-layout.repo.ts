@@ -1,4 +1,4 @@
-import { query } from "@/lib/server/mysql";
+import { query, execute } from "@/lib/server/mysql";
 
 function buildWarnings(row: any) {
   const warnings: string[] = [];
@@ -123,7 +123,7 @@ export async function updateSeatLayoutStatusRepo(
   seatLayoutId: number,
   isActive: boolean,
 ) {
-  await query(
+  await execute(
     `
     UPDATE seat_layouts
     SET is_active = ?
@@ -202,4 +202,121 @@ export async function duplicateSeatLayoutRepo(
   );
 
   return { seatLayoutId: newSeatLayoutId };
+}
+export async function updateSeatLayoutDetailRepo(
+  seatLayoutId: number,
+  seatLayoutDetailId: number,
+  payload: {
+    seatNumber: string;
+    seatType: "NORMAL" | "VIP";
+  },
+) {
+  const layoutRows = await query(
+    `
+    SELECT
+      seat_layout_id,
+      is_active
+    FROM seat_layouts
+    WHERE seat_layout_id = ?
+    LIMIT 1
+    `,
+    [seatLayoutId],
+  );
+
+  if (!layoutRows[0]) {
+    throw new Error("Không tìm thấy sơ đồ ghế");
+  }
+
+  const seatRows = await query(
+    `
+    SELECT
+      seat_layout_detail_id,
+      seat_layout_id,
+      seat_number,
+      seat_type,
+      floor_no,
+      row_no,
+      column_no
+    FROM seat_layout_details
+    WHERE seat_layout_detail_id = ?
+      AND seat_layout_id = ?
+    LIMIT 1
+    `,
+    [seatLayoutDetailId, seatLayoutId],
+  );
+
+  if (!seatRows[0]) {
+    throw new Error("Không tìm thấy ghế trong sơ đồ");
+  }
+
+  const usageRows = await query<{
+    vehicleCount: number;
+    bookingSeatCount: number;
+  }>(
+    `
+  SELECT
+    (
+      SELECT COUNT(*)
+      FROM vehicles
+      WHERE seat_layout_id = ?
+    ) AS vehicleCount,
+
+    (
+      SELECT COUNT(*)
+      FROM booking_seats bs
+      INNER JOIN seat_layout_details sld
+        ON sld.seat_layout_detail_id = bs.seat_layout_detail_id
+      WHERE sld.seat_layout_id = ?
+    ) AS bookingSeatCount
+  `,
+    [seatLayoutId, seatLayoutId],
+  );
+
+  const vehicleCount = Number(usageRows[0]?.vehicleCount ?? 0);
+  const bookingSeatCount = Number(usageRows[0]?.bookingSeatCount ?? 0);
+
+  if (vehicleCount > 0 || bookingSeatCount > 0) {
+    throw new Error(
+      "Sơ đồ ghế đang được sử dụng, không thể chỉnh sửa. Hãy nhân bản sơ đồ trước.",
+    );
+  }
+
+  /*
+   * Kiểm tra trùng tên/mã ghế trong cùng layout.
+   */
+  const duplicateRows = await query(
+    `
+    SELECT seat_layout_detail_id
+    FROM seat_layout_details
+    WHERE seat_layout_id = ?
+      AND seat_number = ?
+      AND seat_layout_detail_id <> ?
+    LIMIT 1
+    `,
+    [seatLayoutId, payload.seatNumber, seatLayoutDetailId],
+  );
+
+  if (duplicateRows.length > 0) {
+    throw new Error(
+      `Tên ghế "${payload.seatNumber}" đã tồn tại trong sơ đồ này`,
+    );
+  }
+
+  await execute(
+    `
+    UPDATE seat_layout_details
+    SET
+      seat_number = ?,
+      seat_type = ?
+    WHERE seat_layout_detail_id = ?
+      AND seat_layout_id = ?
+    `,
+    [payload.seatNumber, payload.seatType, seatLayoutDetailId, seatLayoutId],
+  );
+
+  return {
+    seatLayoutDetailId,
+    seatNumber: payload.seatNumber,
+    seatType: payload.seatType,
+  };
 }

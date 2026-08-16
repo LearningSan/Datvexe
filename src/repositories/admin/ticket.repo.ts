@@ -1,4 +1,4 @@
-import { query } from "@/lib/server/mysql";
+import { query, execute } from "@/lib/server/mysql";
 import type {
   AdminTicketListParams,
   AdminTicketItem,
@@ -13,19 +13,12 @@ import type {
   ChangeTicketSeatsPayload,
   CreateOfflineTicketPayload,
   TicketWarning,
+  AdminOfflineTripSearchParams,
 } from "@/types/admin/tickets/ticket-management.type";
 type ConfirmAdminTicketOptions = {
   markPaymentPaid: boolean;
 };
 
-/**
- * Xác nhận booking:
- * - Chuyển ghế đang giữ thành ghế đã đặt.
- * - Xóa dữ liệu giữ chỗ.
- * - Cập nhật booking thành CONFIRMED.
- * - Có thể đánh dấu thanh toán PAID.
- * - Đồng bộ lại số ghế trống của chuyến.
- */
 export async function confirmAdminTicketRepo(
   bookingId: number,
   options: ConfirmAdminTicketOptions,
@@ -44,16 +37,18 @@ export async function confirmAdminTicketRepo(
     throw new Error("Không thể duyệt booking đã hoàn tiền");
   }
 
-  if (booking.status === "CONFIRMED") {
-    // Dọn dữ liệu hold cũ nếu trước đây booking đã xác nhận
-    // nhưng hold_expired_at hoặc seat_holds chưa được xóa.
-    await query(`DELETE FROM seat_holds WHERE booking_id = ?`, [bookingId]);
+  // ============================================================
+  // BOOKING ĐÃ CONFIRMED
+  // ============================================================
 
-    await query(
+  if (booking.status === "CONFIRMED") {
+    await execute(`DELETE FROM seat_holds WHERE booking_id = ?`, [bookingId]);
+
+    await execute(
       `
-      UPDATE bookings
-      SET hold_expired_at = NULL
-      WHERE booking_id = ?
+        UPDATE bookings
+        SET hold_expired_at = NULL
+        WHERE booking_id = ?
       `,
       [bookingId],
     );
@@ -68,43 +63,45 @@ export async function confirmAdminTicketRepo(
     };
   }
 
-  /*
-   * Kiểm tra booking đã có ghế chính thức hay chưa.
-   *
-   * Có hai trường hợp:
-   * 1. Ghế đã được tạo trong booking_seats từ trước.
-   * 2. Ghế mới chỉ đang nằm trong seat_holds.
-   */
+  // ============================================================
+  // KIỂM TRA BOOKING ĐÃ CÓ GHẾ CHƯA
+  // ============================================================
+
   const existingSeats = await query<{ seatCount: number }>(
     `
-    SELECT COUNT(*) AS seatCount
-    FROM booking_seats
-    WHERE booking_id = ?
+      SELECT COUNT(*) AS seatCount
+      FROM booking_seats
+      WHERE booking_id = ?
     `,
     [bookingId],
   );
 
   const existingSeatCount = Number(existingSeats[0]?.seatCount ?? 0);
 
+  // ============================================================
+  // LẤY GHẾ ĐANG HOLD
+  // ============================================================
+
   const holdRows = await query<{
     tripId: number;
     seatLayoutDetailId: number;
   }>(
     `
-    SELECT
-      trip_id AS tripId,
-      seat_layout_detail_id AS seatLayoutDetailId
-    FROM seat_holds
-    WHERE booking_id = ?
-    ORDER BY seat_hold_id ASC
+      SELECT
+        trip_id AS tripId,
+        seat_layout_detail_id AS seatLayoutDetailId
+      FROM seat_holds
+      WHERE booking_id = ?
+      ORDER BY seat_hold_id ASC
     `,
     [bookingId],
   );
 
-  /*
-   * Nếu booking chưa có booking_seats thì chuyển seat_holds
-   * thành ghế chính thức.
-   */
+  // ============================================================
+  // BOOKING CHƯA CÓ BOOKING_SEATS
+  // → CHUYỂN SEAT_HOLDS THÀNH BOOKING_SEATS
+  // ============================================================
+
   if (existingSeatCount === 0) {
     if (holdRows.length === 0) {
       throw new Error(
@@ -120,22 +117,23 @@ export async function confirmAdminTicketRepo(
       throw new Error("Dữ liệu giữ ghế không thuộc chuyến của booking");
     }
 
-    /*
-     * Kiểm tra ghế đã bị booking khác đặt hay chưa.
-     */
+    // ------------------------------------------------------------
+    // Kiểm tra ghế có bị booking khác đặt không
+    // ------------------------------------------------------------
+
     const conflictingSeats = await query<{
       seatLayoutDetailId: number;
     }>(
       `
-      SELECT
-        sh.seat_layout_detail_id AS seatLayoutDetailId
-      FROM seat_holds sh
-      INNER JOIN booking_seats bs
-        ON bs.trip_id = sh.trip_id
-       AND bs.seat_layout_detail_id = sh.seat_layout_detail_id
-       AND bs.booking_id <> sh.booking_id
-      WHERE sh.booking_id = ?
-      LIMIT 1
+        SELECT
+          sh.seat_layout_detail_id AS seatLayoutDetailId
+        FROM seat_holds sh
+        INNER JOIN booking_seats bs
+          ON bs.trip_id = sh.trip_id
+         AND bs.seat_layout_detail_id = sh.seat_layout_detail_id
+         AND bs.booking_id <> sh.booking_id
+        WHERE sh.booking_id = ?
+        LIMIT 1
       `,
       [bookingId],
     );
@@ -146,50 +144,50 @@ export async function confirmAdminTicketRepo(
       );
     }
 
-    /*
-     * Chuyển toàn bộ seat_holds của booking sang booking_seats.
-     *
-     * NOT EXISTS giúp tránh insert trùng nếu thao tác được gọi lại.
-     */
-    await query(
+    // ------------------------------------------------------------
+    // Chuyển seat_holds → booking_seats
+    // ------------------------------------------------------------
+
+    await execute(
       `
-      INSERT INTO booking_seats (
-        booking_id,
-        trip_id,
-        seat_layout_detail_id,
-        seat_price,
-        checkin_status
-      )
-      SELECT
-        sh.booking_id,
-        sh.trip_id,
-        sh.seat_layout_detail_id,
-        b.seat_price,
-        'NOT_CHECKED_IN'
-      FROM seat_holds sh
-      INNER JOIN bookings b
-        ON b.booking_id = sh.booking_id
-      WHERE sh.booking_id = ?
-        AND NOT EXISTS (
-          SELECT 1
-          FROM booking_seats bs
-          WHERE bs.booking_id = sh.booking_id
-            AND bs.trip_id = sh.trip_id
-            AND bs.seat_layout_detail_id = sh.seat_layout_detail_id
+        INSERT INTO booking_seats (
+          booking_id,
+          trip_id,
+          seat_layout_detail_id,
+          seat_price,
+          checkin_status
         )
+        SELECT
+          sh.booking_id,
+          sh.trip_id,
+          sh.seat_layout_detail_id,
+          b.seat_price,
+          'NOT_CHECKED_IN'
+        FROM seat_holds sh
+        INNER JOIN bookings b
+          ON b.booking_id = sh.booking_id
+        WHERE sh.booking_id = ?
+          AND NOT EXISTS (
+            SELECT 1
+            FROM booking_seats bs
+            WHERE bs.booking_id = sh.booking_id
+              AND bs.trip_id = sh.trip_id
+              AND bs.seat_layout_detail_id = sh.seat_layout_detail_id
+          )
       `,
       [bookingId],
     );
   }
 
-  /*
-   * Kiểm tra lại sau khi chuyển hold.
-   */
+  // ============================================================
+  // KIỂM TRA GHẾ SAU KHI CHUYỂN
+  // ============================================================
+
   const confirmedSeats = await query<{ seatCount: number }>(
     `
-    SELECT COUNT(*) AS seatCount
-    FROM booking_seats
-    WHERE booking_id = ?
+      SELECT COUNT(*) AS seatCount
+      FROM booking_seats
+      WHERE booking_id = ?
     `,
     [bookingId],
   );
@@ -200,44 +198,37 @@ export async function confirmAdminTicketRepo(
     throw new Error("Không thể tạo ghế chính thức cho booking");
   }
 
-  /*
-   * Admin có thể đánh dấu giao dịch gần nhất là PAID.
-   */
+  // ============================================================
+  // ĐÁNH DẤU PAYMENT = PAID NẾU ADMIN YÊU CẦU
+  // ============================================================
+
   if (options.markPaymentPaid) {
-    await query(
-  `
-  UPDATE payments p
-  INNER JOIN payment_bookings pb
-    ON pb.payment_id = p.payment_id
-  SET
-    p.status = 'PAID',
-    p.paid_at = COALESCE(p.paid_at, NOW())
-  WHERE pb.booking_id = ?
-  `,
-  [bookingId],
-);
+    await execute(
+      `
+        UPDATE payments p
+        INNER JOIN payment_bookings pb
+          ON pb.payment_id = p.payment_id
+        SET
+          p.status = 'PAID',
+          p.paid_at = COALESCE(p.paid_at, NOW())
+        WHERE pb.booking_id = ?
+      `,
+      [bookingId],
+    );
   }
 
-  /*
-   * Cập nhật booking thành CONFIRMED và xóa thời hạn giữ.
-   */
-  await query(
+  await execute(
     `
-    UPDATE bookings
-    SET
-      status = 'CONFIRMED',
-      hold_expired_at = NULL,
-      cancel_reason = NULL
-    WHERE booking_id = ?
+      UPDATE bookings
+      SET
+        status = 'CONFIRMED',
+        hold_expired_at = NULL,
+        cancel_reason = NULL
+      WHERE booking_id = ?
     `,
     [bookingId],
   );
-
-  /*
-   * Ghế đã trở thành booking_seats nên không cần giữ nữa.
-   */
-  await query(`DELETE FROM seat_holds WHERE booking_id = ?`, [bookingId]);
-
+  await execute(`DELETE FROM seat_holds WHERE booking_id = ?`, [bookingId]);
   await syncTripAvailableSeatsRepo(booking.trip_id);
 
   return {
@@ -652,7 +643,6 @@ export async function findTicketBase(bookingId: number) {
 export async function findAdminTicketDetail(
   bookingId: number,
 ): Promise<AdminTicketDetail | null> {
-
   const rows = await query<any>(
     `
     SELECT
@@ -675,6 +665,8 @@ export async function findAdminTicketDetail(
       t.arrival_datetime AS arrivalDatetime,
       v.vehicle_name AS vehicleName,
       v.license_plate AS licensePlate,
+      v.seat_layout_id AS seatLayoutId,
+      sl.layout_name AS seatLayoutName,
       GROUP_CONCAT(DISTINCT du.full_name SEPARATOR ', ') AS driverNames,
       t.status AS tripStatus,
       b.pickup_point_id AS pickupPointId,
@@ -697,6 +689,7 @@ export async function findAdminTicketDetail(
     INNER JOIN cities oc ON oc.city_id = r.origin_city_id
     INNER JOIN cities dc ON dc.city_id = r.destination_city_id
     LEFT JOIN vehicles v ON v.vehicle_id = t.vehicle_id
+    LEFT JOIN seat_layouts sl ON sl.seat_layout_id = v.seat_layout_id
     LEFT JOIN trip_drivers td ON td.trip_id = t.trip_id
     LEFT JOIN drivers d ON d.driver_id = td.driver_id
     LEFT JOIN users du ON du.user_id = d.user_id
@@ -857,7 +850,7 @@ export async function createTicketHistory(data: {
   reason?: string | null;
   performedByUserId?: number | null;
 }) {
-  await query(
+  await execute(
     `
     INSERT INTO booking_histories (booking_id, action_type, old_value, new_value, reason, performed_by_user_id)
     VALUES (?, ?, ?, ?, ?, ?)
@@ -878,7 +871,7 @@ export async function updateTicketStatusRepo(
   status: BookingStatus,
   reason?: string,
 ) {
-  await query(
+  await execute(
     `
     UPDATE bookings
     SET status = ?, cancel_reason = CASE WHEN ? = 'CANCELLED' THEN ? ELSE cancel_reason END
@@ -889,10 +882,8 @@ export async function updateTicketStatusRepo(
   return { bookingId, status };
 }
 
-export async function markLatestPaymentPaidRepo(
-  bookingId: number,
-) {
-  await query(
+export async function markLatestPaymentPaidRepo(bookingId: number) {
+  await execute(
     `
     UPDATE payments p
     INNER JOIN payment_bookings pb
@@ -910,22 +901,22 @@ export async function releaseTicketSeatsRepo(bookingId: number) {
   if (!booking) return;
 
   const seats = await findTicketSeats(bookingId);
-  await query(`DELETE FROM booking_seats WHERE booking_id = ?`, [bookingId]);
+  await execute(`DELETE FROM booking_seats WHERE booking_id = ?`, [bookingId]);
   await syncTripAvailableSeatsRepo(booking.trip_id);
 
   return seats;
 }
 
 export async function cancelTicketHoldsRepo(bookingId: number) {
-  await query(`DELETE FROM seat_holds WHERE booking_id = ?`, [bookingId]);
-  await query(
+  await execute(`DELETE FROM seat_holds WHERE booking_id = ?`, [bookingId]);
+  await execute(
     `UPDATE bookings SET hold_expired_at = NULL WHERE booking_id = ?`,
     [bookingId],
   );
 }
 
 export async function extendTicketHoldRepo(bookingId: number, minutes: number) {
-  await query(
+  await execute(
     `
     UPDATE seat_holds
     SET expired_at = DATE_ADD(NOW(), INTERVAL ? MINUTE)
@@ -934,7 +925,7 @@ export async function extendTicketHoldRepo(bookingId: number, minutes: number) {
     [minutes, bookingId],
   );
 
-  await query(
+  await execute(
     `
     UPDATE bookings
     SET hold_expired_at = DATE_ADD(NOW(), INTERVAL ? MINUTE)
@@ -953,8 +944,8 @@ export async function releaseExpiredHoldsRepo() {
     WHERE expired_at < NOW()
   `);
 
-  await query(`DELETE FROM seat_holds WHERE expired_at < NOW()`);
-  await query(`
+  await execute(`DELETE FROM seat_holds WHERE expired_at < NOW()`);
+  await execute(`
     UPDATE bookings
     SET status = 'CANCELLED',
         cancel_reason = COALESCE(cancel_reason, 'Tự động hủy do hết hạn giữ chỗ')
@@ -1028,7 +1019,7 @@ export async function addTicketSeatsRepo(
   );
 
   for (const seatId of payload.seatLayoutDetailIds) {
-    await query(
+    await execute(
       `
       INSERT INTO booking_seats (booking_id, trip_id, seat_layout_detail_id, seat_price)
       VALUES (?, ?, ?, ?)
@@ -1062,7 +1053,7 @@ export async function changeTicketSeatsRepo(
   );
 
   for (let i = 0; i < payload.oldBookingSeatIds.length; i++) {
-    await query(
+    await execute(
       `
       UPDATE booking_seats
       SET seat_layout_detail_id = ?
@@ -1086,7 +1077,7 @@ export async function removeTicketSeatRepo(
   bookingSeatId: number,
 ) {
   const booking = await findTicketBase(bookingId);
-  await query(
+  await execute(
     `DELETE FROM booking_seats WHERE booking_id = ? AND booking_seat_id = ?`,
     [bookingId, bookingSeatId],
   );
@@ -1095,7 +1086,7 @@ export async function removeTicketSeatRepo(
 }
 
 export async function syncTripAvailableSeatsRepo(tripId: number) {
-  await query(
+  await execute(
     `
     UPDATE trips t
     LEFT JOIN vehicles v ON v.vehicle_id = t.vehicle_id
@@ -1122,7 +1113,7 @@ export async function updatePickupDropoffRepo(
   pickupPointId?: number | null,
   dropoffPointId?: number | null,
 ) {
-  await query(
+  await execute(
     `
     UPDATE bookings
     SET pickup_point_id = ?, dropoff_point_id = ?
@@ -1134,7 +1125,7 @@ export async function updatePickupDropoffRepo(
 }
 
 export async function checkinBookingRepo(bookingId: number) {
-  await query(
+  await execute(
     `
     UPDATE booking_seats
     SET checkin_status = 'CHECKED_IN'
@@ -1149,15 +1140,21 @@ export async function checkinSeatRepo(
   bookingId: number,
   bookingSeatId: number,
 ) {
-  await query(
+  const result = await execute(
     `
-    UPDATE booking_seats
-    SET checkin_status = 'CHECKED_IN'
-    WHERE booking_id = ?
-      AND booking_seat_id = ?
-  `,
+      UPDATE booking_seats
+      SET checkin_status = 'CHECKED_IN'
+      WHERE booking_id = ?
+        AND booking_seat_id = ?
+        AND checkin_status = 'NOT_CHECKED_IN'
+    `,
     [bookingId, bookingSeatId],
   );
+
+  if (result.affectedRows === 0) {
+    throw new Error("Ghế không thuộc booking hoặc đã check-in");
+  }
+
   return { bookingId, bookingSeatId };
 }
 
@@ -1166,7 +1163,7 @@ export async function createNotificationForBookingUser(
   title: string,
   content: string,
 ) {
-  await query(
+  await execute(
     `
     INSERT INTO notifications (user_id, title, content, notification_type)
     SELECT user_id, ?, ?, 'BOOKING'
@@ -1212,7 +1209,7 @@ export async function createOfflineTicketRepo(
     payload.seatLayoutDetailIds,
   );
 
-  const result: any = await query(
+  const result: any = await execute(
     `
     INSERT INTO bookings (
       booking_code, user_id, trip_id, pickup_point_id, dropoff_point_id,
@@ -1238,7 +1235,7 @@ export async function createOfflineTicketRepo(
   const bookingId = Number(result.insertId);
 
   for (const seatId of payload.seatLayoutDetailIds) {
-    await query(
+    await execute(
       `
       INSERT INTO booking_seats (booking_id, trip_id, seat_layout_detail_id, seat_price)
       VALUES (?, ?, ?, ?)
@@ -1247,8 +1244,8 @@ export async function createOfflineTicketRepo(
     );
   }
 
-  const paymentResult: any = await query(
-  `
+  const paymentResult: any = await execute(
+    `
   INSERT INTO payments (
     payment_method,
     amount,
@@ -1264,26 +1261,26 @@ export async function createOfflineTicketRepo(
     CASE WHEN ? = 'PAID' THEN NOW() ELSE NULL END
   )
   `,
-  [
-    totalAmount,
-    payload.paid ? "PAID" : "PENDING",
-    `CASH-${bookingCode}`,
-    payload.paid ? "PAID" : "PENDING",
-  ],
-);
+    [
+      totalAmount,
+      payload.paid ? "PAID" : "PENDING",
+      `CASH-${bookingCode}`,
+      payload.paid ? "PAID" : "PENDING",
+    ],
+  );
 
-const paymentId = Number(paymentResult.insertId);
+  const paymentId = Number(paymentResult.insertId);
 
-await query(
-  `
+  await execute(
+    `
   INSERT INTO payment_bookings (
     payment_id,
     booking_id
   )
   VALUES (?, ?)
   `,
-  [paymentId, bookingId],
-);
+    [paymentId, bookingId],
+  );
 
   await syncTripAvailableSeatsRepo(payload.tripId);
   await createTicketHistory({
@@ -1312,9 +1309,22 @@ export async function findAdminTicketByBookingCode(bookingCode: string) {
 
 export async function findAvailableSeatsByBookingTrip(bookingId: number) {
   const booking = await findTicketBase(bookingId);
-  if (!booking) throw new Error("Không tìm thấy booking");
 
-  const rows = await query<any>(
+  if (!booking) {
+    throw new Error("Không tìm thấy booking");
+  }
+
+  const rows = await query<{
+    seatLayoutDetailId: number;
+    seatNumber: string;
+    floorNo: number;
+    rowNo: number;
+    columnNo: number;
+    bookingSeatId: number | null;
+    seatStatus: "BOOKED" | "HOLDING" | "AVAILABLE";
+    isCurrentBooking: boolean;
+    checkinStatus: "NOT_CHECKED_IN" | "CHECKED_IN" | null;
+  }>(
     `
     SELECT
       sld.seat_layout_detail_id AS seatLayoutDetailId,
@@ -1322,26 +1332,47 @@ export async function findAvailableSeatsByBookingTrip(bookingId: number) {
       sld.floor_no AS floorNo,
       sld.row_no AS rowNo,
       sld.column_no AS columnNo,
+
+      bs.booking_seat_id AS bookingSeatId,
+      bs.checkin_status AS checkinStatus,
+
       CASE
         WHEN bs.booking_seat_id IS NOT NULL THEN 'BOOKED'
         WHEN sh.seat_hold_id IS NOT NULL THEN 'HOLDING'
         ELSE 'AVAILABLE'
-      END AS seatStatus
+      END AS seatStatus,
+
+      CASE
+        WHEN bs.booking_id = ? THEN TRUE
+        ELSE FALSE
+      END AS isCurrentBooking
+
     FROM trips t
-    INNER JOIN vehicles v ON v.vehicle_id = t.vehicle_id
-    INNER JOIN seat_layout_details sld ON sld.seat_layout_id = v.seat_layout_id
+
+    INNER JOIN vehicles v
+      ON v.vehicle_id = t.vehicle_id
+
+    INNER JOIN seat_layout_details sld
+      ON sld.seat_layout_id = v.seat_layout_id
+
     LEFT JOIN booking_seats bs
       ON bs.trip_id = t.trip_id
-     AND bs.seat_layout_detail_id = sld.seat_layout_detail_id
+      AND bs.seat_layout_detail_id = sld.seat_layout_detail_id
+
     LEFT JOIN seat_holds sh
       ON sh.trip_id = t.trip_id
-     AND sh.seat_layout_detail_id = sld.seat_layout_detail_id
-     AND sh.expired_at > NOW()
+      AND sh.seat_layout_detail_id = sld.seat_layout_detail_id
+      AND sh.expired_at > NOW()
+
     WHERE t.trip_id = ?
       AND sld.is_active = TRUE
-    ORDER BY sld.floor_no, sld.row_no, sld.column_no
-  `,
-    [booking.trip_id],
+
+    ORDER BY
+      sld.floor_no,
+      sld.row_no,
+      sld.column_no
+    `,
+    [bookingId, booking.trip_id],
   );
 
   return rows;
@@ -1605,7 +1636,7 @@ export async function changeTicketTripRepo(
     payload.oldBookingSeatIds,
   );
 
-  await query(
+  await execute(
     `
     DELETE FROM booking_seats
     WHERE booking_id = ?
@@ -1617,7 +1648,7 @@ export async function changeTicketTripRepo(
   const newPrice = await getTripPriceRepo(payload.newTripId);
 
   for (const seatId of payload.newSeatLayoutDetailIds) {
-    await query(
+    await execute(
       `
       INSERT INTO booking_seats
         (booking_id, trip_id, seat_layout_detail_id, seat_price)
@@ -1627,7 +1658,7 @@ export async function changeTicketTripRepo(
     );
   }
 
-  await query(
+  await execute(
     `
     UPDATE booking_seats
     SET trip_id = ?
@@ -1636,7 +1667,7 @@ export async function changeTicketTripRepo(
     [payload.newTripId, bookingId],
   );
 
-  await query(
+  await execute(
     `
     UPDATE bookings
     SET
@@ -1670,7 +1701,7 @@ export async function changeTicketTripRepo(
   };
 }
 export async function undoCheckinBookingRepo(bookingId: number) {
-  await query(
+  await execute(
     `
     UPDATE booking_seats
     SET checkin_status = 'NOT_CHECKED_IN'
@@ -1686,15 +1717,20 @@ export async function undoCheckinSeatRepo(
   bookingId: number,
   bookingSeatId: number,
 ) {
-  await query(
+  const result = await execute(
     `
-    UPDATE booking_seats
-    SET checkin_status = 'NOT_CHECKED_IN'
-    WHERE booking_id = ?
-      AND booking_seat_id = ?
-  `,
+      UPDATE booking_seats
+      SET checkin_status = 'NOT_CHECKED_IN'
+      WHERE booking_id = ?
+        AND booking_seat_id = ?
+        AND checkin_status = 'CHECKED_IN'
+    `,
     [bookingId, bookingSeatId],
   );
+
+  if (result.affectedRows === 0) {
+    throw new Error("Ghế không thuộc booking hoặc chưa check-in");
+  }
 
   return { bookingId, bookingSeatId };
 }
@@ -1968,6 +2004,7 @@ SELECT
   r.origin_city_id AS originCityId,
   r.destination_city_id AS destinationCityId,
   t.departure_datetime AS departureDatetime,
+  t.arrival_datetime AS arrivalDatetime,
   t.status AS tripStatus,
   COALESCE(t.ticket_price, st.base_price, r.base_price, 0) AS ticketPrice,
 
@@ -2036,7 +2073,17 @@ LIMIT 1
     `,
     [tripId],
   );
+  const availableSeatCount = availableSeats.filter(
+    (seat: any) => seat.seatStatus === "AVAILABLE",
+  ).length;
 
+  const bookedSeatCount = availableSeats.filter(
+    (seat: any) => seat.seatStatus === "BOOKED",
+  ).length;
+
+  const holdingSeatCount = availableSeats.filter(
+    (seat: any) => seat.seatStatus === "HOLDING",
+  ).length;
   const stopRows = await query<any>(
     `
     SELECT
@@ -2074,21 +2121,261 @@ LIMIT 1
 
   return {
     tripId: Number(trip.tripId),
+
     routeName: trip.routeName,
+
     departureDatetime: trip.departureDatetime,
+
+    arrivalDatetime: trip.arrivalDatetime,
+
     ticketPrice: Number(trip.ticketPrice ?? 0),
 
     vehicleTypeName: trip.vehicleTypeName,
+
     vehicleName: trip.vehicleName,
+
     licensePlate: trip.licensePlate,
+
     totalSeats: Number(trip.totalSeats ?? availableSeats.length),
 
+    availableSeatCount,
+
+    bookedSeatCount,
+
+    holdingSeatCount,
+
     availableSeats,
+
     pickupPoints: stopRows.filter(
       (p) => Number(p.cityId) === Number(trip.originCityId),
     ),
+
     dropoffPoints: stopRows.filter(
       (p) => Number(p.cityId) === Number(trip.destinationCityId),
     ),
+  };
+}
+export async function searchAdminOfflineTripsRepo(
+  params: AdminOfflineTripSearchParams,
+) {
+  const {
+    originCityId,
+    destinationCityId,
+    date,
+    timeFrom,
+    timeTo,
+    vehicleTypeId,
+  } = params;
+
+  const conditions: string[] = [
+    "r.origin_city_id = ?",
+    "r.destination_city_id = ?",
+    "DATE(t.departure_datetime) = ?",
+    "t.status IN ('OPEN', 'FULL', 'RUNNING')",
+  ];
+
+  const values: unknown[] = [originCityId, destinationCityId, date];
+  if (timeFrom) {
+    conditions.push("TIME(t.departure_datetime) >= ?");
+    values.push(timeFrom);
+  }
+
+  if (timeTo) {
+    conditions.push("TIME(t.departure_datetime) <= ?");
+    values.push(timeTo);
+  }
+
+  if (vehicleTypeId) {
+    conditions.push("v.vehicle_type_id = ?");
+    values.push(vehicleTypeId);
+  }
+
+  const rows = await query(
+    `
+    SELECT
+      t.trip_id AS tripId,
+
+      CONCAT(
+        oc.city_name,
+        ' → ',
+        dc.city_name
+      ) AS routeName,
+
+      t.departure_datetime AS departureDatetime,
+      t.arrival_datetime AS arrivalDatetime,
+
+      TIMESTAMPDIFF(
+        MINUTE,
+        t.departure_datetime,
+        t.arrival_datetime
+      ) AS durationMinutes,
+
+      t.status AS tripStatus,
+
+      v.vehicle_type_id AS vehicleTypeId,
+      vt.type_name AS vehicleTypeName,
+
+      v.vehicle_name AS vehicleName,
+      v.license_plate AS licensePlate,
+
+      COALESCE(
+        sl.total_seats,
+        0
+      ) AS totalSeats,
+
+      COALESCE(bs.bookedSeats, 0) AS bookedSeats,
+
+      COALESCE(sh.holdingSeats, 0) AS holdingSeats,
+
+      GREATEST(
+        COALESCE(sl.total_seats, 0)
+        - COALESCE(bs.bookedSeats, 0)
+        - COALESCE(sh.holdingSeats, 0),
+        0
+      ) AS availableSeatCount,
+
+      COALESCE(
+        t.ticket_price,
+        st.base_price,
+        r.base_price,
+        0
+      ) AS ticketPrice
+
+    FROM trips t
+
+    INNER JOIN routes r
+      ON r.route_id = t.route_id
+
+    INNER JOIN cities oc
+      ON oc.city_id = r.origin_city_id
+
+    INNER JOIN cities dc
+      ON dc.city_id = r.destination_city_id
+
+    LEFT JOIN schedule_templates st
+      ON st.schedule_template_id = t.schedule_template_id
+
+    LEFT JOIN vehicles v
+      ON v.vehicle_id = t.vehicle_id
+
+    LEFT JOIN vehicle_types vt
+      ON vt.vehicle_type_id = v.vehicle_type_id
+
+    LEFT JOIN seat_layouts sl
+      ON sl.seat_layout_id = v.seat_layout_id
+
+    LEFT JOIN (
+      SELECT
+        bs.trip_id,
+        COUNT(*) AS bookedSeats
+      FROM booking_seats bs
+      INNER JOIN bookings b
+        ON b.booking_id = bs.booking_id
+      WHERE b.status IN ('PENDING', 'CONFIRMED')
+      GROUP BY bs.trip_id
+    ) bs
+      ON bs.trip_id = t.trip_id
+
+    LEFT JOIN (
+      SELECT
+        sh.trip_id,
+        COUNT(*) AS holdingSeats
+      FROM seat_holds sh
+      WHERE sh.expired_at > NOW()
+      GROUP BY sh.trip_id
+    ) sh
+      ON sh.trip_id = t.trip_id
+
+    WHERE ${conditions.join(" AND ")}
+
+    ORDER BY t.departure_datetime ASC
+    `,
+    values,
+  );
+
+  return rows.map((row: any) => {
+    const totalSeats = Number(row.totalSeats ?? 0);
+    const bookedSeats = Number(row.bookedSeats ?? 0);
+    const holdingSeats = Number(row.holdingSeats ?? 0);
+
+    const availableSeatCount = Math.max(
+      totalSeats - bookedSeats - holdingSeats,
+      0,
+    );
+
+    let availabilityStatus: "AVAILABLE" | "LIMITED" | "FULL";
+
+    if (availableSeatCount <= 0) {
+      availabilityStatus = "FULL";
+    } else if (availableSeatCount <= 3) {
+      availabilityStatus = "LIMITED";
+    } else {
+      availabilityStatus = "AVAILABLE";
+    }
+
+    return {
+      tripId: Number(row.tripId),
+
+      routeName: row.routeName,
+
+      departureDatetime: row.departureDatetime,
+      arrivalDatetime: row.arrivalDatetime,
+
+      durationMinutes: Number(row.durationMinutes ?? 0),
+
+      tripStatus: row.tripStatus,
+
+      vehicleTypeId:
+        row.vehicleTypeId != null ? Number(row.vehicleTypeId) : null,
+
+      vehicleTypeName: row.vehicleTypeName ?? null,
+
+      vehicleName: row.vehicleName ?? null,
+
+      licensePlate: row.licensePlate ?? null,
+
+      totalSeats,
+
+      bookedSeats,
+      holdingSeats,
+      availableSeatCount,
+
+      ticketPrice: Number(row.ticketPrice ?? 0),
+
+      availabilityStatus,
+    };
+  });
+}
+export async function getAdminOfflineTicketFilterOptionsRepo() {
+  const cityRows = await query(
+    `
+      SELECT
+        city_id AS cityId,
+        city_name AS cityName
+      FROM cities
+      ORDER BY city_name ASC
+    `,
+  );
+
+  const vehicleTypeRows = await query(
+    `
+      SELECT
+        vehicle_type_id AS vehicleTypeId,
+        type_name AS typeName
+      FROM vehicle_types
+      ORDER BY type_name ASC
+    `,
+  );
+
+  return {
+    cities: cityRows.map((row: any) => ({
+      cityId: Number(row.cityId),
+      cityName: row.cityName,
+    })),
+
+    vehicleTypes: vehicleTypeRows.map((row: any) => ({
+      vehicleTypeId: Number(row.vehicleTypeId),
+      typeName: row.typeName,
+    })),
   };
 }

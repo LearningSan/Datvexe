@@ -15,7 +15,6 @@ export const searchTripsRepo = async (input: SearchTripsRepoInput) => {
     seatPositions = [],
     floors = [],
     sort,
-    onlyAvailable = false,
   } = input;
 
   const safePage = Math.max(Number(page) || 1, 1);

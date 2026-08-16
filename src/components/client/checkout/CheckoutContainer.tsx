@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+import { useRouter } from "next/navigation";
 import styles from "./CheckoutContainer.module.css";
-
+import toast from "react-hot-toast";
+import CheckoutCountdown from "./countdown/CheckoutCountdown";
 import PassengerForm from "./PassengerForm/PassengerForm";
 import PickupDropoff from "./PickupDropoff/PickupDropoff";
 import CheckoutSummary from "./Summary/CheckoutSummary";
@@ -16,21 +17,19 @@ import BlockErrorState from "@/components/common/BlockErrorState";
 import ErrorRenderer from "@/lib/error/error.renderer";
 
 import { useBookingStore } from "@/store/booking.store";
-import { useCancelSeatHoldOnExit } from "@/hooks/client/useCancelSeatHoldOnExit";
-
+import { useReleaseSeats } from "@/hooks/client/useBooking";
 interface Props {
   tripId: number;
 }
 
 export default function CheckoutContainer({ tripId }: Props) {
-  useCancelSeatHoldOnExit();
-
+  const router = useRouter();
   const acceptedTerms = useBookingStore((state) => state.acceptedTerms);
 
   const setAcceptedTerms = useBookingStore((state) => state.setAcceptedTerms);
 
   const clearPromotion = useBookingStore((state) => state.clearPromotion);
-
+  const { mutateAsync: releaseSeats } = useReleaseSeats();
   const hydrated = useBookingStore((state) => state.hydrated);
 
   // Dữ liệu bắt buộc của trang checkout
@@ -42,8 +41,8 @@ export default function CheckoutContainer({ tripId }: Props) {
 
     outboundSeats,
     returnSeats,
+    holdExpiredAt,
   } = useBookingStore();
-
   const currentTrip = activeJourney === "OUTBOUND" ? outboundTrip : returnTrip;
 
   const currentSeats =
@@ -74,7 +73,42 @@ export default function CheckoutContainer({ tripId }: Props) {
       />
     );
   }
+  const handleHoldExpired = async () => {
+    toast.error("Thời gian giữ ghế đã hết.");
 
+    const sessionId = localStorage.getItem("session_id");
+
+    if (!sessionId) {
+      useBookingStore.getState().resetBooking();
+      router.replace("/trips");
+      return;
+    }
+
+    try {
+      // Hủy ghế chuyến đi
+      if (outboundTrip && outboundSeats.length > 0) {
+        await releaseSeats({
+          tripId: outboundTrip.id,
+          seatLayoutDetailIds: outboundSeats.map((seat) => seat.seatId),
+          sessionId,
+        });
+      }
+
+      // Hủy ghế chuyến về
+      if (returnTrip && returnSeats.length > 0) {
+        await releaseSeats({
+          tripId: returnTrip.id,
+          seatLayoutDetailIds: returnSeats.map((seat) => seat.seatId),
+          sessionId,
+        });
+      }
+    } catch (error) {
+      console.error("Không thể hủy ghế khi hết thời gian:", error);
+    } finally {
+      useBookingStore.getState().resetBooking();
+      router.replace("/trips");
+    }
+  };
   if (!currentTrip || currentSeats.length === 0) {
     return (
       <ErrorRenderer
@@ -143,6 +177,14 @@ export default function CheckoutContainer({ tripId }: Props) {
               />
             }
           >
+            <BlockErrorBoundary fallback={<BlockSkeleton height={80} />}>
+              {holdExpiredAt && (
+                <CheckoutCountdown
+                  expiredAt={holdExpiredAt}
+                  onExpired={handleHoldExpired}
+                />
+              )}
+            </BlockErrorBoundary>
             <TermsSection
               accepted={acceptedTerms}
               onChange={(checked) => {

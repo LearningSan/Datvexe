@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
+
 import styles from "./CountdownTimer.module.css";
 
 interface CountdownTimerProps {
-  expiredAt: string;
+  expiredAt: string | null;
   onExpired: () => void;
 }
 
@@ -12,7 +13,6 @@ export default function CountdownTimer({
   expiredAt,
   onExpired,
 }: CountdownTimerProps) {
-
   const onExpiredRef = useRef(onExpired);
   const expiredCalledRef = useRef(false);
 
@@ -21,6 +21,10 @@ export default function CountdownTimer({
   }, [onExpired]);
 
   const calcSeconds = useCallback(() => {
+    if (!expiredAt) {
+      return 0;
+    }
+
     const diff = Math.floor(
       (new Date(expiredAt).getTime() - Date.now()) / 1000,
     );
@@ -31,22 +35,39 @@ export default function CountdownTimer({
   const [secondsLeft, setSecondsLeft] = useState(() => calcSeconds());
 
   useEffect(() => {
-    expiredCalledRef.current = false;
-    setSecondsLeft(calcSeconds());
+    // Chưa có expiredAt thì không chạy timer
+    if (!expiredAt) {
+      setSecondsLeft(0);
+      return;
+    }
 
-    const interval = setInterval(() => {
+    expiredCalledRef.current = false;
+
+    const update = () => {
       const seconds = calcSeconds();
+
       setSecondsLeft(seconds);
 
       if (seconds <= 0 && !expiredCalledRef.current) {
         expiredCalledRef.current = true;
-        clearInterval(interval);
         onExpiredRef.current();
       }
-    }, 1000);
+    };
 
-    return () => clearInterval(interval);
+    // Tính ngay khi mount
+    update();
+
+    const interval = window.setInterval(update, 1000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
   }, [expiredAt, calcSeconds]);
+
+  // Chưa có thời gian hết hạn thì không render countdown
+  if (!expiredAt) {
+    return null;
+  }
 
   const minutes = Math.floor(secondsLeft / 60)
     .toString()
@@ -55,17 +76,19 @@ export default function CountdownTimer({
   const seconds = (secondsLeft % 60).toString().padStart(2, "0");
 
   const isUrgent = secondsLeft <= 60;
+
   const pct = Math.min(100, (secondsLeft / (10 * 60)) * 100);
 
   return (
     <div className={`${styles.wrapper} ${isUrgent ? styles.urgent : ""}`}>
-      <div className={styles.text}>
-        <span className={styles.icon}>⏳</span>
-        Thời gian giữ chỗ còn lại&nbsp;
-        <span className={styles.time}>
+      <span>⏳</span>
+
+      <span>
+        Thời gian giữ chỗ còn lại{" "}
+        <strong>
           {minutes} : {seconds}
-        </span>
-      </div>
+        </strong>
+      </span>
 
       <div className={styles.bar}>
         <div

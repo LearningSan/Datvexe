@@ -42,3 +42,8 @@ export interface DuplicateSeatLayoutPayload {
   layoutCode: string;
   layoutName: string;
 }
+
+export interface UpdateSeatLayoutDetailPayload {
+  seatNumber: string;
+  seatType: SeatType;
+}

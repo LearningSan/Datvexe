@@ -10,7 +10,6 @@ export async function GET(req: NextRequest) {
     await getAdminAuthUserId(req);
 
     const data = await getAdminRouteOptions();
-
     return successResponse(data);
   } catch (error: unknown) {
     console.error("[ADMIN ROUTE OPTIONS ERROR]", error);

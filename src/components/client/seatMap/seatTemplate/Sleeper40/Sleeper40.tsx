@@ -19,32 +19,19 @@ export default function Sleeper40Seat({
   onSelectSeat,
 }: Props) {
   const floors = useMemo(() => {
-    // 1. Chuẩn hóa dữ liệu: Đảo ngược rowNo và columnNo lại để map chuẩn với giao diện cũ
-    const normalizedSeats = seats.map((seat) => ({
-      ...seat,
-      // Hoán đổi vị trí row và column để đồng bộ với cấu trúc Grid 3 dãy của Frontend
-      rowNo: seat.columnNo,
-      columnNo: seat.rowNo,
-    }));
-
-    const floorNumbers = [...new Set(normalizedSeats.map((s) => s.floorNo))];
+    const floorNumbers = [...new Set(seats.map((s) => s.floorNo))];
 
     return floorNumbers.map((floorNo) => {
-      // 2. Lọc ghế theo tầng và sắp xếp theo thứ tự hiển thị từ đầu xe đến đuôi xe
-      const floorSeats = normalizedSeats
+      const floorSeats = seats
         .filter((seat) => seat.floorNo === floorNo)
-        .sort((a, b) => {
-          if (a.columnNo !== b.columnNo) {
-            return a.columnNo - b.columnNo;
-          }
-          return a.rowNo - b.rowNo;
-        });
+        .sort((a, b) => b.columnNo - a.columnNo);
 
       return {
         floorNo,
-        leftSeats: floorSeats.filter((s) => s.columnNo === 1),
-        middleSeats: floorSeats.filter((s) => s.columnNo === 2),
-        rightSeats: floorSeats.filter((s) => s.columnNo === 3),
+
+        filterSeat: (rowNo: number) => {
+          return floorSeats.filter((seat) => seat.rowNo == rowNo);
+        },
       };
     });
   }, [seats]);
@@ -61,9 +48,8 @@ export default function Sleeper40Seat({
             <div className={styles.responsiveWrapper}>
               <div className={styles.busInner}>
                 <div className={styles.cabinArea}>
-                  {/* DÃY TRÁI (Column 1) */}
                   <div className={styles.seatsRow}>
-                    {floor.leftSeats.map((seat) => (
+                    {floor.filterSeat(1).map((seat) => (
                       <SeatItem
                         key={seat.seatId}
                         seat={seat}
@@ -73,14 +59,12 @@ export default function Sleeper40Seat({
                     ))}
                   </div>
 
-                  {/* LỐI ĐI 1 */}
                   <div className={styles.aisleLane}>
-                    <span>LỐI ĐI</span>
+                    <span>LỐI ĐI CHUNG</span>
                   </div>
 
-                  {/* DÃY GIỮA (Column 2) */}
                   <div className={`${styles.seatsRow} ${styles.middleRow}`}>
-                    {floor.middleSeats.map((seat) => (
+                    {floor.filterSeat(2).map((seat) => (
                       <SeatItem
                         key={seat.seatId}
                         seat={seat}
@@ -90,14 +74,12 @@ export default function Sleeper40Seat({
                     ))}
                   </div>
 
-                  {/* LỐI ĐI 2 */}
                   <div className={styles.aisleLane}>
-                    <span>LỐI ĐI</span>
+                    <span>LỐI ĐI CHUNG</span>
                   </div>
 
-                  {/* DÃY PHẢI (Column 3) */}
                   <div className={styles.seatsRow}>
-                    {floor.rightSeats.map((seat) => (
+                    {floor.filterSeat(3).map((seat) => (
                       <SeatItem
                         key={seat.seatId}
                         seat={seat}

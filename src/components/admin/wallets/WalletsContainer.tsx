@@ -32,7 +32,6 @@ export default function WalletsContainer() {
   );
   const [page, setPage] = useState(1);
 
-  // States quản lý Modal thay thế window.prompt
   const [activeModal, setActiveModal] = useState<"STATUS" | "ADJUST" | null>(
     null,
   );

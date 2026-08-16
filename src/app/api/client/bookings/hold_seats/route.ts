@@ -31,7 +31,6 @@ export async function POST(req: NextRequest) {
     if (!payload.sessionId) {
       return errorResponse("sessionId không hợp lệ", null, 400);
     }
-
     const result = await holdSeats(payload, userId);
 
     return successResponse(result);

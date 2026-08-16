@@ -1,13 +1,22 @@
 "use client";
-import { useRef } from "react";
+
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import html2canvas from "html2canvas";
+
 import { useTicketDetail } from "@/hooks/client/useAccount";
+import {
+  useCancelTicket,
+  useCancelTicketPreview,
+} from "@/hooks/client/useTicketAction";
 import BlockSkeleton from "@/components/common/BlockSkeleton";
 import styles from "./TicketDetailModal.module.css";
-import html2canvas from "html2canvas";
 
 interface Props {
   bookingId: number;
   onClose: () => void;
+  redirectTo?: string;
 }
 
 function formatPaymentStatus(status?: string | null) {
@@ -27,20 +36,43 @@ function formatPaymentMethod(method?: string | null) {
   return "—";
 }
 
-export default function TicketDetailModal({ bookingId, onClose }: Props) {
+export default function TicketDetailModal({
+  bookingId,
+  onClose,
+  redirectTo = "/account/tickets",
+}: Props) {
+  const router = useRouter();
   const { data, isLoading } = useTicketDetail(bookingId);
   const ticketRef = useRef<HTMLDivElement>(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  const cancelMutation = useCancelTicket();
+  const cancelPreview = useCancelTicketPreview(bookingId, showCancelConfirm);
+
+  const handleCancelTicket = async () => {
+    if (!bookingId) return;
+
+    try {
+      const result = await cancelMutation.mutateAsync(bookingId);
+      toast.success(result.message || "Hủy vé thành công");
+      setShowCancelConfirm(false);
+      onClose();
+
+      // Thực hiện chuyển hướng trang sau khi hủy vé thành công
+      router.push(redirectTo);
+      router.refresh();
+    } catch (error: any) {
+      const message = error?.response?.data?.message || "Không thể hủy vé";
+      toast.error(message);
+    }
+  };
 
   const handleDownloadTicket = async () => {
     try {
-      if (!ticketRef.current || !data) {
-        console.log("Không có ticketRef hoặc data");
-        return;
-      }
+      if (!ticketRef.current || !data) return;
 
-      // Đợi một chút để đảm bảo DOM ổn định trước khi chụp
       const canvas = await html2canvas(ticketRef.current, {
-        scale: 2, // Tăng chất lượng ảnh sắc nét (Retina)
+        scale: 2,
         backgroundColor: "#ffffff",
         useCORS: true,
         logging: false,
@@ -61,8 +93,9 @@ export default function TicketDetailModal({ bookingId, onClose }: Props) {
   };
 
   const getStatusClassName = (status?: string | null) => {
-    if (status === "PAID") return styles.statusPaid;
-    if (status === "FAILED") return styles.statusFailed;
+    if (status === "PAID" || status === "CONFIRMED") return styles.statusPaid;
+    if (status === "FAILED" || status === "CANCELLED")
+      return styles.statusFailed;
     return styles.statusPending;
   };
 
@@ -90,9 +123,7 @@ export default function TicketDetailModal({ bookingId, onClose }: Props) {
           </div>
         ) : (
           <>
-            {/* Vùng bọc cuộn nội dung chính */}
             <div className={styles.scrollContainer}>
-              {/* Vùng Ref này sẽ được chụp làm ảnh (giữ nguyên background trắng và padding chuẩn) */}
               <div className={styles.ticketCaptureArea} ref={ticketRef}>
                 {/* SECTION 1: CHUYẾN ĐI */}
                 <section className={styles.section}>
@@ -107,7 +138,9 @@ export default function TicketDetailModal({ bookingId, onClose }: Props) {
                     <div className={styles.row}>
                       <span>Trạng thái vé</span>
                       <span
-                        className={`${styles.badge} ${getStatusClassName(data.bookingStatus)}`}
+                        className={`${styles.badge} ${getStatusClassName(
+                          data.bookingStatus,
+                        )}`}
                       >
                         {data.bookingStatus}
                       </span>
@@ -246,7 +279,7 @@ export default function TicketDetailModal({ bookingId, onClose }: Props) {
                   </div>
                 </section>
 
-                {/* SECTION 4: CHI TIẾT HÓA ĐƠN (Đã sửa lỗi lồng thẻ sai quy cách) */}
+                {/* SECTION 4: CHI TIẾT HÓA ĐƠN */}
                 <section className={styles.section}>
                   <h3>Chi tiết thanh toán</h3>
                   <div className={styles.row}>
@@ -317,7 +350,7 @@ export default function TicketDetailModal({ bookingId, onClose }: Props) {
               </div>
             </div>
 
-            {/* Nút chức năng nằm cố định ở chân modal */}
+            {/* Nút chức năng chân modal */}
             <div className={styles.actionRow}>
               <button
                 type="button"
@@ -326,7 +359,132 @@ export default function TicketDetailModal({ bookingId, onClose }: Props) {
               >
                 📥 Tải xuống vé điện tử
               </button>
+
+              {data.bookingStatus === "CONFIRMED" && (
+                <button
+                  type="button"
+                  className={styles.cancelBtn}
+                  disabled={cancelMutation.isPending}
+                  onClick={() => setShowCancelConfirm(true)}
+                >
+                  Hủy vé
+                </button>
+              )}
             </div>
+
+            {/* Modal Xác nhận Hủy vé - Đã khớp chính xác 100% tên Class & Thẻ trong CSS */}
+            {showCancelConfirm && (
+              <div className={styles.confirmOverlay}>
+                {" "}
+                <div className={styles.confirmBox}>
+                  {" "}
+                  <h4 className={styles.confirmTitle}>
+                    {" "}
+                    Xác nhận hủy vé{" "}
+                  </h4>{" "}
+                  <p className={styles.confirmText}>
+                    {" "}
+                    Bạn có chắc chắn muốn hủy vé này?{" "}
+                  </p>{" "}
+                  {/* LUÔN HIỂN THỊ LINK CHÍNH SÁCH */}{" "}
+                  <a
+                    href="/cancellation-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.policyLink}
+                  >
+                    {" "}
+                    Xem chính sách hủy vé & hoàn tiền{" "}
+                  </a>{" "}
+                  {cancelPreview.isLoading ? (
+                    <div className={styles.confirmLoading}>
+                      {" "}
+                      Đang tính tiền hoàn...{" "}
+                    </div>
+                  ) : cancelPreview.isError ? (
+                    <div className={styles.confirmError}>
+                      {" "}
+                      Không thể kiểm tra chính sách hoàn tiền.{" "}
+                    </div>
+                  ) : cancelPreview.data ? (
+                    <div className={styles.previewInfo}>
+                      {" "}
+                      <div className={styles.previewRow}>
+                        {" "}
+                        <span>Phí hủy:</span>{" "}
+                        <strong>
+                          {" "}
+                          {cancelPreview.data.cancelFeePercent}%{" "}
+                        </strong>{" "}
+                      </div>{" "}
+                      <div className={styles.previewRow}>
+                        {" "}
+                        <span>Tiền hoàn:</span>{" "}
+                        <strong className={styles.refundAmount}>
+                          {" "}
+                          {Number(
+                            cancelPreview.data.refundAmount,
+                          ).toLocaleString("vi-VN")}{" "}
+                          đ{" "}
+                        </strong>{" "}
+                      </div>{" "}
+                      {cancelPreview.data.refundAmount > 0 ? (
+                        <div className={styles.policyNotice}>
+                          {" "}
+                          <p>
+                            {" "}
+                            Số tiền hoàn sẽ được chuyển vào{" "}
+                            <strong>ví nội bộ</strong> theo chính sách hủy
+                            vé.{" "}
+                          </p>{" "}
+                          <p>
+                            {" "}
+                            Sau khi hủy thành công, vui lòng kiểm tra ví nội bộ
+                            để xác nhận khoản tiền hoàn.{" "}
+                          </p>{" "}
+                        </div>
+                      ) : (
+                        <div className={styles.policyNotice}>
+                          {" "}
+                          <p>
+                            {" "}
+                            Vé đủ điều kiện hủy nhưng không có tiền hoàn theo
+                            chính sách hiện tại.{" "}
+                          </p>{" "}
+                        </div>
+                      )}{" "}
+                    </div>
+                  ) : null}{" "}
+                  <div className={styles.confirmActions}>
+                    {" "}
+                    <button
+                      type="button"
+                      className={styles.cancelModalBtn}
+                      onClick={() => setShowCancelConfirm(false)}
+                    >
+                      {" "}
+                      Không{" "}
+                    </button>{" "}
+                    <button
+                      type="button"
+                      className={styles.submitModalBtn}
+                      disabled={
+                        cancelMutation.isPending ||
+                        cancelPreview.isLoading ||
+                        cancelPreview.isError ||
+                        !cancelPreview.data
+                      }
+                      onClick={handleCancelTicket}
+                    >
+                      {" "}
+                      {cancelMutation.isPending
+                        ? "Đang hủy..."
+                        : "Xác nhận hủy"}{" "}
+                    </button>{" "}
+                  </div>{" "}
+                </div>{" "}
+              </div>
+            )}
           </>
         )}
       </div>

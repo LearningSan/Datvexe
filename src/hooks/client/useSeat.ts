@@ -4,19 +4,19 @@ import { fetchTripSeats } from "@/services/client/seat.service";
 
 import type { TripSeatResponse } from "@/types/client/seat/seat-response.type";
 
-export function useTripSeats(tripId?: number) {
+export function useTripSeats(tripId?: number, sessionId?: string) {
   return useQuery<TripSeatResponse>({
-    queryKey: ["trip-seats", tripId],
+    queryKey: ["trip-seats", tripId, sessionId],
 
-    queryFn: () => fetchTripSeats(tripId!),
+    queryFn: () => fetchTripSeats(tripId!, sessionId!),
 
-    enabled: !!tripId,
+    enabled: !!tripId && !!sessionId,
 
     meta: {
       globalLoading: false,
     },
 
-    staleTime: 1000 * 30,
+    staleTime: 0,
     gcTime: 1000 * 60 * 10,
 
     refetchInterval: 1000 * 60,
@@ -24,7 +24,7 @@ export function useTripSeats(tripId?: number) {
 
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
-    refetchOnMount: false,
+    refetchOnMount: true,
 
     retry: 1,
     throwOnError: false,

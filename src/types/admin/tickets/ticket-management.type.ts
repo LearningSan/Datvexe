@@ -160,6 +160,8 @@ export interface AdminTicketDetail {
   arrivalDatetime: string;
   vehicleName: string | null;
   licensePlate: string | null;
+  seatLayoutId: number | null;
+  seatLayoutName: string | null;
   driverNames: string | null;
   tripStatus: string;
   pickupPointId: number | null;
@@ -325,7 +327,14 @@ export interface AdminTicketAvailableSeat {
   floorNo: number;
   rowNo: number;
   columnNo: number;
+
+  bookingSeatId: number | null;
+
   seatStatus: "AVAILABLE" | "BOOKED" | "HOLDING";
+
+  isCurrentBooking: boolean;
+
+  checkinStatus: "NOT_CHECKED_IN" | "CHECKED_IN" | null;
 }
 
 export interface ResendTicketResponse {
@@ -351,16 +360,26 @@ export interface AdminOfflineTripSeat {
 
 export interface AdminOfflineTicketPreview {
   tripId: number;
+
   routeName: string;
+
   departureDatetime: string;
+  arrivalDatetime: string;
+
   ticketPrice: number;
 
   vehicleTypeName: string | null;
   vehicleName: string | null;
   licensePlate: string | null;
-  totalSeats: number | null;
+
+  totalSeats: number;
+
+  availableSeatCount: number;
+  bookedSeatCount: number;
+  holdingSeatCount: number;
 
   availableSeats: AdminOfflineTripSeat[];
+
   pickupPoints: {
     pickupPointId: number;
     pointName: string;
@@ -371,6 +390,7 @@ export interface AdminOfflineTicketPreview {
     zoneName?: string;
     stopType?: "PICKUP" | "DROP_OFF" | "BOTH";
   }[];
+
   dropoffPoints: {
     pickupPointId: number;
     pointName: string;
@@ -381,4 +401,63 @@ export interface AdminOfflineTicketPreview {
     zoneName?: string;
     stopType?: "PICKUP" | "DROP_OFF" | "BOTH";
   }[];
+}
+
+export type OfflineTripAvailabilityStatus = "AVAILABLE" | "LIMITED" | "FULL";
+
+export interface AdminOfflineTripSearchItem {
+  tripId: number;
+
+  routeName: string;
+
+  departureDatetime: string;
+  arrivalDatetime: string;
+  durationMinutes: number;
+
+  tripStatus: string;
+
+  vehicleTypeId: number | null;
+  vehicleTypeName: string | null;
+
+  vehicleName: string | null;
+  licensePlate: string | null;
+
+  totalSeats: number;
+
+  bookedSeats: number;
+  holdingSeats: number;
+  availableSeatCount: number;
+
+  ticketPrice: number;
+
+  availabilityStatus: OfflineTripAvailabilityStatus;
+}
+
+export interface AdminOfflineTripSearchParams {
+  originCityId: number;
+  destinationCityId: number;
+  date: string;
+
+  timeFrom?: string;
+  timeTo?: string;
+
+  vehicleTypeId?: number;
+}
+
+export interface AdminOfflineTripSearchResponse {
+  trips: AdminOfflineTripSearchItem[];
+  total: number;
+}
+export interface AdminOfflineCityOption {
+  cityId: number;
+  cityName: string;
+}
+
+export interface AdminOfflineVehicleTypeOption {
+  vehicleTypeId: number;
+  typeName: string;
+}
+export interface AdminOfflineTicketFilterOptions {
+  cities: AdminOfflineCityOption[];
+  vehicleTypes: AdminOfflineVehicleTypeOption[];
 }

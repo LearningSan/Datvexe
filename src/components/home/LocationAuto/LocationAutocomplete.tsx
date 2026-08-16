@@ -144,13 +144,12 @@ export default function LocationAutocomplete({
 
       {open && (
         <div className={styles.dropdown}>
-          {isFetching && <div className={styles.loading}>Đang tìm kiếm...</div>}
 
           {!isFetching && data.length === 0 && (
             <div className={styles.empty}>Không tìm thấy kết quả</div>
           )}
 
-          {!isFetching &&
+          {
             data.map((city) => (
               <div key={city.city_id} className={styles.cityBlock}>
                 <div className={styles.sectionTitle}>TỈNH / THÀNH</div>

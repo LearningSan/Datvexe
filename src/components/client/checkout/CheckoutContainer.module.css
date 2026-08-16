@@ -62,3 +62,20 @@
     position: static;
   }
 }
+.holdNotice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.holdNoticeIcon {
+  flex-shrink: 0;
+}

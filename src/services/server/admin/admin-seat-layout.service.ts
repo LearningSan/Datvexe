@@ -3,6 +3,7 @@ import {
   findSeatLayoutDetail,
   findSeatLayouts,
   updateSeatLayoutStatusRepo,
+  updateSeatLayoutDetailRepo,
 } from "@/repositories/admin/seat-layout.repo";
 
 export async function getAdminSeatLayouts() {
@@ -28,4 +29,18 @@ export async function updateAdminSeatLayoutStatus(
   isActive: boolean,
 ) {
   return await updateSeatLayoutStatusRepo(seatLayoutId, isActive);
+}
+export async function updateAdminSeatLayoutDetail(
+  seatLayoutId: number,
+  seatLayoutDetailId: number,
+  payload: {
+    seatNumber: string;
+    seatType: "NORMAL" | "VIP";
+  },
+) {
+  return await updateSeatLayoutDetailRepo(
+    seatLayoutId,
+    seatLayoutDetailId,
+    payload,
+  );
 }

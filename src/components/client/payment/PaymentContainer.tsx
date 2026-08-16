@@ -11,6 +11,7 @@ import styles from "./PaymentContainer.module.css";
 import ErrorRenderer from "@/lib/error/error.renderer";
 import { usePaymentStore } from "@/store/payment.store";
 import { useRouter } from "next/navigation";
+import { useBookingStore } from "@/store/booking.store";
 
 import {
   useBookingSummary,
@@ -21,7 +22,10 @@ import {
   useConfirmManualPayment,
 } from "@/hooks/client/usePayment";
 
-import { useCancelSeatHoldOnExit } from "@/hooks/client/useCancelSeatHoldOnExit";
+import {
+  useCancelSeatHoldOnExit,
+  clearActiveSeatHold,
+} from "@/hooks/client/useCancelSeatHoldOnExit";
 
 import CountdownTimer from "./countdownTimer/CountdownTimer";
 import PaymentMethods from "./methods/PaymentMethods";
@@ -42,9 +46,9 @@ interface Props {
 }
 
 export default function PaymentContainer({ bookingIds }: Props) {
-  useCancelSeatHoldOnExit();
 
   const router = useRouter();
+  const { holdExpiredAt } = useBookingStore();
   const initialCreatedRef = useRef(false);
   const expiredHandledRef = useRef(false);
   const methodChangingRef = useRef(false);
@@ -266,29 +270,36 @@ export default function PaymentContainer({ bookingIds }: Props) {
     });
   }, [summary, sessionId, cancelHold, setStep, step]);
 
-  const handleCancel = useCallback(() => {
-    if (!sessionId || !summary) return;
-    let completed = 0;
-    summary.bookings.forEach((booking) => {
-      cancelHold(
-        {
+  const handleCancel = useCallback(async () => {
+    if (!sessionId || !summary?.bookings?.length) return;
+
+    try {
+      const cancelRequests = summary.bookings.map((booking) =>
+        cancelHold({
           bookingId: booking.bookingId,
           tripId: booking.tripId,
           sessionId,
-        },
-        {
-          onSettled: () => {
-            completed++;
-
-            if (completed === summary.bookings.length) {
-              reset();
-              router.replace("/trips");
-            }
-          },
-        },
+        }),
       );
-    });
-  }, [summary, sessionId, cancelHold, reset, router]);
+
+      await Promise.allSettled(cancelRequests);
+
+      // Xóa hold ở sessionStorage
+      clearActiveSeatHold();
+
+      // Reset payment store
+      reset();
+
+      // Reset booking store
+      useBookingStore.getState().resetBooking();
+
+      // Redirect
+      router.replace("/trips");
+    } catch (error) {
+      console.error("[HANDLE CANCEL ERROR]", error);
+      setPaymentError("Không thể hủy đặt vé.");
+    }
+  }, [sessionId, summary, cancelHold, reset, router]);
   const handleRetry = useCallback(() => {
     initialCreatedRef.current = false;
     methodChangingRef.current = false;
@@ -531,7 +542,7 @@ export default function PaymentContainer({ bookingIds }: Props) {
             <div className={styles.centerCol}>
               <BlockErrorBoundary fallback={<BlockSkeleton height={480} />}>
                 <CountdownTimer
-                  expiredAt={summary.bookings[0].holdExpiredAt}
+                  expiredAt={holdExpiredAt}
                   onExpired={handleExpired}
                 />
                 {paymentError && (

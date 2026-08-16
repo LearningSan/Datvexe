@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+
 import type {
   AdminTripItem,
   AdminTripOptionsResponse,
@@ -8,6 +9,9 @@ import type {
   UpdateAdminTripPayload,
   TripStatus,
 } from "@/types/admin/trips/trip-management.type";
+
+import { useAvailableTripResources } from "@/hooks/admin/useTrips";
+
 import styles from "./TripFormModal.module.css";
 
 interface Props {
@@ -20,62 +24,157 @@ interface Props {
   onSubmit: (payload: CreateAdminTripPayload | UpdateAdminTripPayload) => void;
 }
 
-function toDateInputValue(date: Date) {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-    date.getDate(),
-  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+/* =========================================================
+ * DATE / TIME HELPERS
+ * ======================================================= */
+
+function pad(n: number) {
+  return String(n).padStart(2, "0");
 }
 
+function getLocalDateFromISOString(value: string) {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return `${date.getFullYear()}-${pad(
+    date.getMonth() + 1,
+  )}-${pad(date.getDate())}`;
+}
+
+function toDateInputValue(date: Date) {
+  return `${date.getFullYear()}-${pad(
+    date.getMonth() + 1,
+  )}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function getTodayLocal() {
+  const now = new Date();
+
+  return `${now.getFullYear()}-${pad(
+    now.getMonth() + 1,
+  )}-${pad(now.getDate())}`;
+}
+
+/**
+ * Ghép ngày + giờ của schedule template
+ *
+ * Ví dụ:
+ * date = 2026-08-15
+ * time = 08:00:00
+ *
+ * => 2026-08-15T08:00
+ */
 function mergeDateAndTime(dateValue: string, timeValue: string) {
-  if (!dateValue || !timeValue) return "";
+  if (!dateValue || !timeValue) {
+    return "";
+  }
+
   const dateOnly = dateValue.slice(0, 10);
   const timeOnly = timeValue.slice(0, 5);
+
   return `${dateOnly}T${timeOnly}`;
 }
 
+/**
+ * Tính arrival từ departure + estimatedDuration
+ */
 function addMinutesToDatetime(datetimeValue: string, minutes: number) {
-  if (!datetimeValue || !minutes) return "";
+  if (!datetimeValue || !minutes) {
+    return "";
+  }
+
   const date = new Date(datetimeValue);
-  date.setMinutes(date.getMinutes() + minutes);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  date.setMinutes(date.getMinutes() + Number(minutes));
+
   return toDateInputValue(date);
 }
+
+/* =========================================================
+ * COMPONENT
+ * ======================================================= */
 
 export default function TripFormModal({
   open,
   mode,
   trip,
   options,
-  loading,
+  loading = false,
   onClose,
   onSubmit,
 }: Props) {
+  /* =======================================================
+   * FORM STATE
+   * ===================================================== */
+
   const [routeId, setRouteId] = useState("");
+
   const [scheduleTemplateId, setScheduleTemplateId] = useState("");
+
   const [vehicleId, setVehicleId] = useState("");
-  const [departureDatetime, setDepartureDatetime] = useState("");
-  const [arrivalDatetime, setArrivalDatetime] = useState("");
-  const [availableSeats, setAvailableSeats] = useState("");
-  const [ticketPrice, setTicketPrice] = useState("");
-  const [status, setStatus] = useState<TripStatus>("OPEN");
+
   const [driverId, setDriverId] = useState("");
+
+  /**
+   * Admin CHỈ chọn ngày.
+   *
+   * Không có departureTime state.
+   * Không có input giờ thủ công.
+   */
+  const [departureDate, setDepartureDate] = useState("");
+
+  /**
+   * Hai field này chỉ là kết quả được tính tự động.
+   */
+  const [departureDatetime, setDepartureDatetime] = useState("");
+
+  const [arrivalDatetime, setArrivalDatetime] = useState("");
+
+  const [availableSeats, setAvailableSeats] = useState("");
+
+  const [ticketPrice, setTicketPrice] = useState("");
+
+  const [status, setStatus] = useState<TripStatus>("OPEN");
+
+  /* =======================================================
+   * OPTIONS
+   * ===================================================== */
+
   const routeOptions = options?.routes ?? [];
-  const vehicleOptions = options?.vehicles ?? [];
+
   const scheduleOptions = options?.scheduleTemplates ?? [];
 
+  /* =======================================================
+   * SELECTED ROUTE
+   * ===================================================== */
+
   const selectedRoute = useMemo(() => {
+    if (!routeId) {
+      return undefined;
+    }
+
     return routeOptions.find(
-      (item: any) => Number(item.routeId) === Number(routeId),
+      (route: any) => Number(route.routeId) === Number(routeId),
     );
   }, [routeOptions, routeId]);
-  const selectedVehicle = useMemo(() => {
-    return vehicleOptions.find(
-      (vehicle: any) => Number(vehicle.vehicleId) === Number(vehicleId),
-    );
-  }, [vehicleOptions, vehicleId]);
+
+  /* =======================================================
+   * SCHEDULE FILTER THEO ROUTE
+   * ======================================================= */
 
   const filteredScheduleOptions = useMemo(() => {
-    if (!selectedRoute) return [];
+    if (!selectedRoute) {
+      return [];
+    }
 
     return scheduleOptions.filter(
       (item: any) =>
@@ -85,142 +184,570 @@ export default function TripFormModal({
     );
   }, [scheduleOptions, selectedRoute]);
 
+  /* =======================================================
+   * SELECTED SCHEDULE
+   * ======================================================= */
+
   const selectedSchedule = useMemo(() => {
+    if (!scheduleTemplateId) {
+      return undefined;
+    }
+
     return scheduleOptions.find(
       (item: any) =>
         Number(item.scheduleTemplateId) === Number(scheduleTemplateId),
     );
   }, [scheduleOptions, scheduleTemplateId]);
 
-  // Khởi tạo/Đặt lại dữ liệu Form khi đóng/mở Modal
-  useEffect(() => {
-    if (!open) return;
+  /* =======================================================
+   * TÍNH GIỜ TỪ SCHEDULE TEMPLATE
+   *
+   * Đây là logic trung tâm của form.
+   *
+   * departureDate
+   *       +
+   * schedule.departureTime
+   *       ↓
+   * departureDatetime
+   *       +
+   * schedule.estimatedDuration
+   *       ↓
+   * arrivalDatetime
+   * ===================================================== */
 
-    if (mode === "EDIT" && trip) {
-      setRouteId(String(trip.routeId));
-      setScheduleTemplateId(String(trip.scheduleTemplateId ?? ""));
-      setVehicleId(trip.vehicleId ? String(trip.vehicleId) : "");
-      setDepartureDatetime(trip.departureDatetime?.slice(0, 16) ?? "");
-      setArrivalDatetime(trip.arrivalDatetime?.slice(0, 16) ?? "");
-      setAvailableSeats(String(trip.availableSeats ?? ""));
-      setTicketPrice(String((trip as any).ticketPrice ?? ""));
-      setStatus(trip.status);
-      setDriverId(
-        (trip as any).mainDriverId ? String((trip as any).mainDriverId) : "",
-      );
+  const syncTimeFromSchedule = (date: string, schedule: any) => {
+    if (!date || !schedule) {
+      setDepartureDatetime("");
+      setArrivalDatetime("");
+
       return;
     }
 
-    // Giá trị mặc định cho form CREATE (Ngày mặc định là hôm nay)
+    const departure = mergeDateAndTime(date, schedule.departureTime);
+
+    setDepartureDatetime(departure);
+
+    if (
+      schedule.estimatedDuration !== null &&
+      schedule.estimatedDuration !== undefined
+    ) {
+      const arrival = addMinutesToDatetime(
+        departure,
+        Number(schedule.estimatedDuration),
+      );
+
+      setArrivalDatetime(arrival);
+    } else {
+      setArrivalDatetime("");
+    }
+  };
+
+  /* =======================================================
+   * RESOURCE CHECK
+   * ======================================================= */
+
+  const canCheckResources =
+    open &&
+    !!routeId &&
+    !!scheduleTemplateId &&
+    !!departureDate &&
+    !!departureDatetime &&
+    !!arrivalDatetime;
+
+  const {
+    data: availableResources,
+    isLoading: isLoadingResources,
+    isFetching: isFetchingResources,
+  } = useAvailableTripResources({
+    routeId: canCheckResources ? Number(routeId) : undefined,
+
+    scheduleTemplateId: canCheckResources
+      ? Number(scheduleTemplateId)
+      : undefined,
+
+    departureDatetime: canCheckResources ? departureDatetime : undefined,
+
+    arrivalDatetime: canCheckResources ? arrivalDatetime : undefined,
+
+    tripId: mode === "EDIT" && trip?.tripId ? Number(trip.tripId) : undefined,
+  });
+
+  const availableVehicleOptions = useMemo(() => {
+    return availableResources?.vehicles ?? [];
+  }, [availableResources?.vehicles]);
+
+  const availableDriverOptions = useMemo(() => {
+    return availableResources?.drivers ?? [];
+  }, [availableResources?.drivers]);
+
+  /* =======================================================
+   * SELECTED VEHICLE
+   * ======================================================= */
+
+  const selectedVehicle = useMemo(() => {
+    if (!vehicleId) {
+      return undefined;
+    }
+
+    return availableVehicleOptions.find(
+      (vehicle: any) => Number(vehicle.vehicleId) === Number(vehicleId),
+    );
+  }, [availableVehicleOptions, vehicleId]);
+
+  /* =======================================================
+   * RESOURCE OPTIONS
+   * ======================================================= */
+
+  const vehicleSelectOptions = availableVehicleOptions;
+
+  const driverSelectOptions = availableDriverOptions;
+
+  /* =======================================================
+   * CHECK SELECTED RESOURCE
+   * ======================================================= */
+
+  const selectedVehicleIsUnavailable =
+    mode === "EDIT" &&
+    !!vehicleId &&
+    canCheckResources &&
+    !isLoadingResources &&
+    !isFetchingResources &&
+    !availableVehicleOptions.some(
+      (vehicle: any) => Number(vehicle.vehicleId) === Number(vehicleId),
+    );
+
+  const selectedDriverIsUnavailable =
+    mode === "EDIT" &&
+    !!driverId &&
+    canCheckResources &&
+    !isLoadingResources &&
+    !isFetchingResources &&
+    !availableDriverOptions.some(
+      (driver: any) => Number(driver.driverId) === Number(driverId),
+    );
+
+  /* =======================================================
+   * BOOKING LOCK
+   * ======================================================= */
+
+  const isLockedByBooking =
+    mode === "EDIT" && !!trip && Number(trip.bookingCount ?? 0) > 0;
+
+  /* =======================================================
+   * INIT FORM
+   * ======================================================= */
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    /* =====================================================
+     * EDIT
+     * =================================================== */
+
+    if (mode === "EDIT" && trip) {
+      const nextRouteId = String(trip.routeId);
+
+      setRouteId(nextRouteId);
+
+      const departure = trip.departureDatetime
+        ? new Date(String(trip.departureDatetime))
+        : null;
+
+      const route = routeOptions.find(
+        (item: any) => Number(item.routeId) === Number(trip.routeId),
+      );
+
+      const actualDepartureTime =
+        departure && !Number.isNaN(departure.getTime())
+          ? `${pad(departure.getHours())}:${pad(departure.getMinutes())}`
+          : "";
+
+      /**
+       * Tìm schedule template tương ứng
+       * với route + giờ xuất bến hiện tại.
+       */
+      const matchedSchedule = scheduleOptions.find(
+        (item: any) =>
+          String(item.departureTime).slice(0, 5) === actualDepartureTime &&
+          Number(item.originCityId) === Number(route?.originCityId) &&
+          Number(item.destinationCityId) === Number(route?.destinationCityId),
+      );
+
+      const nextScheduleId = matchedSchedule
+        ? String(matchedSchedule.scheduleTemplateId)
+        : "";
+
+      setScheduleTemplateId(nextScheduleId);
+
+      /**
+       * Chỉ lấy NGÀY từ trip cũ.
+       *
+       * Không lấy giờ cũ.
+       */
+      const nextDepartureDate =
+        departure && !Number.isNaN(departure.getTime())
+          ? getLocalDateFromISOString(String(trip.departureDatetime))
+          : "";
+
+      setDepartureDate(nextDepartureDate);
+
+      /**
+       * TÍNH LẠI GIỜ TỪ SCHEDULE.
+       *
+       * Không dùng giờ cũ của trip.
+       */
+      if (matchedSchedule && nextDepartureDate) {
+        syncTimeFromSchedule(nextDepartureDate, matchedSchedule);
+      } else {
+        setDepartureDatetime("");
+        setArrivalDatetime("");
+      }
+
+      setVehicleId(trip.vehicleId ? String(trip.vehicleId) : "");
+
+      setDriverId(
+        (trip as any).mainDriverId ? String((trip as any).mainDriverId) : "",
+      );
+
+      setAvailableSeats(String(trip.availableSeats ?? ""));
+
+      setTicketPrice(String(trip.ticketPrice ?? ""));
+
+      setStatus(trip.status);
+
+      return;
+    }
+
+    /* =====================================================
+     * CREATE
+     * =================================================== */
+
     setRouteId("");
     setScheduleTemplateId("");
     setVehicleId("");
-    setDepartureDatetime(`${new Date().toISOString().slice(0, 10)}T00:00`);
+    setDriverId("");
+
+    const today = getTodayLocal();
+
+    setDepartureDate(today);
+
+    setDepartureDatetime("");
     setArrivalDatetime("");
+
     setAvailableSeats("");
     setTicketPrice("");
-    setStatus("OPEN");
-    setDriverId("");
-  }, [open, mode, trip]);
 
-  // Tự động cập nhật số ghế khi chọn xe (Chỉ áp dụng khi tạo mới hoặc xe chưa có ai đặt)
+    setStatus("OPEN");
+  }, [open, mode, trip, scheduleOptions, routeOptions]);
+
+  /* =======================================================
+   * AUTO SET SEAT COUNT
+   * ======================================================= */
+
   useEffect(() => {
-    if (!selectedVehicle) return;
-    if (mode === "EDIT" && trip?.bookingCount && trip.bookingCount > 0) return;
+    if (!selectedVehicle) {
+      return;
+    }
+
+    if (isLockedByBooking) {
+      return;
+    }
 
     setAvailableSeats(String(selectedVehicle.totalSeats ?? ""));
-  }, [selectedVehicle, mode, trip?.bookingCount]);
+  }, [selectedVehicle, isLockedByBooking]);
 
-  // Điền dữ liệu từ lịch chạy mẫu (CHỈ kích hoạt khi người dùng thao tác ở chế độ CREATE)
-  useEffect(() => {
-    if (!selectedSchedule || mode !== "CREATE") return;
+  /* =======================================================
+   * SCHEDULE CHANGE
+   * ======================================================= */
 
-    const currentDate =
-      departureDatetime?.slice(0, 10) || new Date().toISOString().slice(0, 10);
-    const nextDeparture = mergeDateAndTime(
-      currentDate,
-      selectedSchedule.departureTime,
+  const handleScheduleChange = (nextScheduleId: string) => {
+    setScheduleTemplateId(nextScheduleId);
+
+    const schedule = scheduleOptions.find(
+      (item: any) => Number(item.scheduleTemplateId) === Number(nextScheduleId),
     );
 
-    setDepartureDatetime(nextDeparture);
+    /**
+     * Đổi schedule => xe/tài xế cũ
+     * cần được kiểm tra lại.
+     */
+    setVehicleId("");
+    setDriverId("");
 
-    if (selectedSchedule.estimatedDuration) {
-      setArrivalDatetime(
-        addMinutesToDatetime(
-          nextDeparture,
-          Number(selectedSchedule.estimatedDuration),
-        ),
-      );
+    if (!schedule || !departureDate) {
+      setDepartureDatetime("");
+      setArrivalDatetime("");
+
+      return;
     }
 
-    if (selectedSchedule.basePrice) {
-      setTicketPrice(String(selectedSchedule.basePrice));
+    /**
+     * QUAN TRỌNG:
+     * giờ LUÔN lấy từ schedule.
+     */
+    syncTimeFromSchedule(departureDate, schedule);
+
+    if (schedule.basePrice !== null && schedule.basePrice !== undefined) {
+      setTicketPrice(String(schedule.basePrice));
     }
-  }, [selectedSchedule, mode]); // Thêm mode vào dependency để kiểm soát chặt chẽ
+  };
 
-  // Tự động tính toán lại Giờ Đến khi người điều hành thay đổi Giờ Chạy chính thức
-  useEffect(() => {
-    if (!departureDatetime || !selectedSchedule?.estimatedDuration) return;
+  /* =======================================================
+   * ROUTE CHANGE
+   * ======================================================= */
 
-    setArrivalDatetime(
-      addMinutesToDatetime(
-        departureDatetime,
-        Number(selectedSchedule.estimatedDuration),
-      ),
+  const handleRouteChange = (nextRouteId: string) => {
+    setRouteId(nextRouteId);
+
+    setScheduleTemplateId("");
+
+    setVehicleId("");
+    setDriverId("");
+
+    setDepartureDatetime("");
+    setArrivalDatetime("");
+
+    setTicketPrice("");
+  };
+
+  /* =======================================================
+   * DATE CHANGE
+   * ======================================================= */
+
+  const handleDepartureDateChange = (nextDate: string) => {
+    if (!nextDate) {
+      setDepartureDate("");
+
+      setDepartureDatetime("");
+      setArrivalDatetime("");
+
+      return;
+    }
+
+    setDepartureDate(nextDate);
+
+    if (!selectedSchedule) {
+      setDepartureDatetime("");
+      setArrivalDatetime("");
+
+      return;
+    }
+
+    /**
+     * Đổi ngày => giờ vẫn lấy từ schedule.
+     */
+    syncTimeFromSchedule(nextDate, selectedSchedule);
+  };
+
+  /* =======================================================
+   * VEHICLE CHANGE
+   * ======================================================= */
+
+  const handleVehicleChange = (nextVehicleId: string) => {
+    setVehicleId(nextVehicleId);
+
+    if (!nextVehicleId) {
+      if (!isLockedByBooking) {
+        setAvailableSeats("");
+      }
+
+      return;
+    }
+
+    const vehicle = vehicleSelectOptions.find(
+      (item: any) => Number(item.vehicleId) === Number(nextVehicleId),
     );
-  }, [departureDatetime, selectedSchedule?.estimatedDuration]);
 
-  if (!open) return null;
+    if (vehicle && !isLockedByBooking) {
+      setAvailableSeats(String(vehicle.totalSeats ?? ""));
+    }
+  };
 
-  const isLockedByBooking = mode === "EDIT" && !!trip && trip.bookingCount > 0;
+  /* =======================================================
+   * DRIVER CHANGE
+   * ======================================================= */
+
+  const handleDriverChange = (nextDriverId: string) => {
+    setDriverId(nextDriverId);
+  };
+
+  /* =======================================================
+   * SUBMIT
+   * ======================================================= */
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (mode === "CREATE" && !scheduleTemplateId) {
-      alert("Tuyến này chưa chọn lịch chạy mẫu. Vui lòng tạo lịch mẫu trước.");
+    if (!routeId) {
+      alert("Vui lòng chọn tuyến xe.");
       return;
     }
 
-    if (mode === "CREATE") {
-      const createPayload: CreateAdminTripPayload = {
-        routeId: Number(selectedSchedule!.routeId),
-        scheduleTemplateId: Number(scheduleTemplateId),
-        vehicleId: vehicleId ? Number(vehicleId) : null,
-        driverId: driverId ? Number(driverId) : null,
-        departureDatetime,
-        arrivalDatetime,
-        availableSeats: Number(availableSeats),
-        ticketPrice: ticketPrice ? Number(ticketPrice) : null,
-      };
-      onSubmit(createPayload);
+    if (!scheduleTemplateId) {
+      alert("Vui lòng chọn lịch chạy mẫu.");
       return;
     }
+
+    if (!departureDate) {
+      alert("Vui lòng chọn ngày xuất bến.");
+      return;
+    }
+
+    if (!selectedSchedule) {
+      alert("Không tìm thấy lịch chạy mẫu đã chọn.");
+      return;
+    }
+
+    /**
+     * LUÔN TÍNH LẠI Ở THỜI ĐIỂM SUBMIT.
+     *
+     * Không tin state cũ.
+     */
+    const calculatedDeparture = mergeDateAndTime(
+      departureDate,
+      selectedSchedule.departureTime,
+    );
+
+    const calculatedArrival = addMinutesToDatetime(
+      calculatedDeparture,
+      Number(selectedSchedule.estimatedDuration),
+    );
+
+    if (!calculatedDeparture || !calculatedArrival) {
+      alert("Không thể tính thời gian chuyến xe.");
+      return;
+    }
+
+    const departure = new Date(calculatedDeparture);
+
+    const arrival = new Date(calculatedArrival);
+
+    if (Number.isNaN(departure.getTime()) || Number.isNaN(arrival.getTime())) {
+      alert("Thời gian chuyến xe không hợp lệ.");
+      return;
+    }
+
+    if (arrival <= departure) {
+      alert("Giờ tới phải sau giờ xuất bến.");
+      return;
+    }
+
+    if (!ticketPrice) {
+      alert("Vui lòng nhập giá vé.");
+      return;
+    }
+
+    if (canCheckResources && selectedVehicleIsUnavailable) {
+      alert("Xe hiện tại không khả dụng với thời gian chuyến mới.");
+      return;
+    }
+
+    if (canCheckResources && selectedDriverIsUnavailable) {
+      alert("Tài xế hiện tại không khả dụng với thời gian chuyến mới.");
+      return;
+    }
+
+    /* =====================================================
+     * CREATE
+     * =================================================== */
+
+    if (mode === "CREATE") {
+      const createPayload: CreateAdminTripPayload = {
+        routeId: Number(routeId),
+
+        scheduleTemplateId: Number(scheduleTemplateId),
+
+        vehicleId: vehicleId ? Number(vehicleId) : null,
+
+        driverId: driverId ? Number(driverId) : null,
+
+        departureDatetime: calculatedDeparture,
+
+        arrivalDatetime: calculatedArrival,
+
+        ticketPrice: ticketPrice ? Number(ticketPrice) : null,
+      };
+
+      onSubmit(createPayload);
+
+      return;
+    }
+
+    /* =====================================================
+     * EDIT
+     * =================================================== */
+
+    if (!trip?.tripId) {
+      alert("Không xác định được chuyến xe cần cập nhật.");
+      return;
+    }
+
     const updatePayload: UpdateAdminTripPayload = {
+      /**
+       * BỔ SUNG:
+       * Backend cần biết schedule mới.
+       */
+      scheduleTemplateId: Number(scheduleTemplateId),
+
       vehicleId: vehicleId ? Number(vehicleId) : null,
+
       driverId: driverId ? Number(driverId) : null,
-      departureDatetime,
-      arrivalDatetime,
+
+      /**
+       * Frontend gửi giá trị đã tính.
+       *
+       * Backend vẫn phải tính lại.
+       */
+      departureDatetime: calculatedDeparture,
+
+      arrivalDatetime: calculatedArrival,
+
       status,
+
       ticketPrice: ticketPrice ? Number(ticketPrice) : null,
     };
+
     onSubmit(updatePayload);
   };
+
+  /* =======================================================
+   * RENDER
+   * ======================================================= */
+
+  if (!open) {
+    return null;
+  }
+
+  const resourceLoading = isLoadingResources || isFetchingResources;
+
+  const cannotSubmit =
+    loading ||
+    (canCheckResources && resourceLoading) ||
+    selectedVehicleIsUnavailable ||
+    selectedDriverIsUnavailable;
 
   return (
     <div className={styles.overlay}>
       <div className={styles.modalNode}>
+        {/* =================================================
+         * HEADER
+         * =============================================== */}
+
         <div className={styles.dispatchHeader}>
           <div className={styles.brandingNode}>
             <span className={styles.badgeIndicator}>THÔNG TIN CHUYẾN</span>
+
             <h2>
               {mode === "CREATE"
                 ? "THÊM CHUYẾN XE MỚI"
                 : "SỬA THÔNG TIN CHUYẾN XE"}
             </h2>
+
             <p>
-              Chọn tuyến, lịch mẫu, gán xe. Hệ thống sẽ tự tính giờ chạy, giờ
-              tới, số ghế và giá vé.
+              Chọn tuyến, lịch mẫu, ngày chạy, xe và tài xế. Giờ xuất bến và giờ
+              tới được tự động tính theo lịch mẫu.
             </p>
           </div>
 
@@ -228,33 +755,34 @@ export default function TripFormModal({
             type="button"
             className={styles.closeConsoleBtn}
             onClick={onClose}
+            disabled={loading}
           >
             ✕
           </button>
         </div>
 
         <form className={styles.dispatchForm} onSubmit={handleSubmit}>
-          {/* Section 1: Tuyến & Khung giờ */}
+          {/* =================================================
+           * ROUTE + SCHEDULE
+           * =============================================== */}
+
           <div className={styles.formSection}>
             <div className={styles.sectionTitle}>
-              🗺️ Chọn tuyến đường & Lịch chạy
+              🗺️ Chọn tuyến đường & lịch chạy
             </div>
 
             <div className={styles.formGroup}>
               <label>Tuyến đường chạy chính</label>
+
               <div className={styles.selectWrapper}>
                 <select
                   value={routeId}
-                  onChange={(e) => {
-                    setRouteId(e.target.value);
-                    setScheduleTemplateId("");
-                    setArrivalDatetime("");
-                    setTicketPrice("");
-                  }}
+                  onChange={(e) => handleRouteChange(e.target.value)}
                   required
-                  disabled={isLockedByBooking}
+                  disabled={isLockedByBooking || loading}
                 >
                   <option value="">-- Chọn tuyến xe chạy --</option>
+
                   {routeOptions.map((route: any) => (
                     <option key={route.routeId} value={route.routeId}>
                       {route.routeName}
@@ -266,12 +794,13 @@ export default function TripFormModal({
 
             <div className={styles.formGroup}>
               <label>Khung giờ / Lịch chạy mẫu</label>
+
               <div className={styles.selectWrapper}>
                 <select
                   value={scheduleTemplateId}
-                  onChange={(e) => setScheduleTemplateId(e.target.value)}
+                  onChange={(e) => handleScheduleChange(e.target.value)}
                   required
-                  disabled={!routeId || isLockedByBooking}
+                  disabled={!routeId || isLockedByBooking || loading}
                 >
                   <option value="">
                     {!routeId
@@ -286,7 +815,8 @@ export default function TripFormModal({
                       key={item.scheduleTemplateId}
                       value={item.scheduleTemplateId}
                     >
-                      {item.scheduleName} — Giá{" "}
+                      {item.scheduleName} —{" "}
+                      {String(item.departureTime).slice(0, 5)} — Giá{" "}
                       {Number(item.basePrice).toLocaleString("vi-VN")}đ
                     </option>
                   ))}
@@ -297,127 +827,257 @@ export default function TripFormModal({
             {routeId && filteredScheduleOptions.length === 0 && (
               <div className={styles.criticalLockNotice}>
                 <span className={styles.lockIcon}>⚠️</span>
+
                 <div className={styles.lockText}>
                   <strong>Tuyến này chưa có lịch chạy mẫu.</strong> Bạn cần tạo
-                  lịch mẫu trong module Quản lý lịch chạy trước, rồi quay lại
-                  tạo chuyến.
+                  lịch mẫu trước.
                 </div>
               </div>
             )}
           </div>
 
-          {/* Section 2: Gán xe */}
+          {/* =================================================
+           * TIME
+           * =============================================== */}
+
+          <div className={styles.formSection}>
+            <div className={styles.sectionTitle}>⏰ Thời gian chuyến xe</div>
+
+            <div className={styles.gridConsole2}>
+              <div className={styles.formGroup}>
+                <label>Ngày xuất bến</label>
+
+                <input
+                  type="date"
+                  className={styles.datetimeInput}
+                  value={departureDate}
+                  onChange={(e) => handleDepartureDateChange(e.target.value)}
+                  required
+                  disabled={isLockedByBooking || loading}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Giờ theo lịch mẫu</label>
+
+                <input
+                  type="text"
+                  className={styles.datetimeInput}
+                  value={
+                    selectedSchedule?.departureTime
+                      ? String(selectedSchedule.departureTime).slice(0, 5)
+                      : ""
+                  }
+                  readOnly
+                  disabled
+                />
+              </div>
+            </div>
+
+            <div className={styles.gridConsole2}>
+              <div className={styles.formGroup}>
+                <label>Giờ xuất bến</label>
+
+                <input
+                  type="datetime-local"
+                  className={styles.datetimeInput}
+                  value={departureDatetime}
+                  readOnly
+                  disabled
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Giờ dự kiến tới bến</label>
+
+                <input
+                  type="datetime-local"
+                  className={styles.datetimeInput}
+                  value={arrivalDatetime}
+                  readOnly
+                  disabled
+                />
+              </div>
+            </div>
+
+            <div className={styles.criticalLockNotice}>
+              <span className={styles.lockIcon}>🕐</span>
+
+              <div className={styles.lockText}>
+                Giờ xuất bến và giờ tới được tự động tính theo{" "}
+                <strong>lịch chạy mẫu</strong>. Không thể nhập thủ công.
+              </div>
+            </div>
+          </div>
+
+          {/* =================================================
+           * VEHICLE
+           * =============================================== */}
+
           <div className={styles.formSection}>
             <div className={styles.sectionTitle}>🚌 Gán xe cho chuyến</div>
 
             <div className={styles.formGroup}>
               <label>Xe chạy</label>
+
               <div className={styles.selectWrapper}>
                 <select
                   value={vehicleId}
-                  onChange={(e) => setVehicleId(e.target.value)}
+                  onChange={(e) => handleVehicleChange(e.target.value)}
+                  disabled={!canCheckResources || loading || resourceLoading}
                 >
                   <option value="">
-                    ⚠️ Để trống, sẽ bổ sung hoặc xếp xe sau
+                    {!canCheckResources
+                      ? "⚠️ Nhập đủ thông tin thời gian trước"
+                      : resourceLoading
+                        ? "⏳ Đang kiểm tra xe khả dụng..."
+                        : "⚠️ Để trống, sẽ xếp xe sau"}
                   </option>
 
-                  {vehicleOptions.map((vehicle: any) => (
+                  {vehicleSelectOptions.map((vehicle: any) => (
                     <option key={vehicle.vehicleId} value={vehicle.vehicleId}>
                       {vehicle.licensePlate} — {vehicle.vehicleTypeName} —{" "}
-                      {vehicle.totalSeats} ghế{" "}
-                      {vehicle.status ? `[${vehicle.status}]` : ""}
+                      {vehicle.totalSeats} ghế
+                      {vehicle.status ? ` [${vehicle.status}]` : ""}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
 
+            {selectedVehicleIsUnavailable && (
+              <div className={styles.criticalLockNotice}>
+                <span className={styles.lockIcon}>⚠️</span>
+
+                <div className={styles.lockText}>
+                  <strong>Xe hiện tại không còn khả dụng.</strong> Vui lòng chọn
+                  xe khác.
+                </div>
+              </div>
+            )}
+
+            {canCheckResources &&
+              !resourceLoading &&
+              vehicleSelectOptions.length === 0 && (
+                <div className={styles.criticalLockNotice}>
+                  <span className={styles.lockIcon}>⚠️</span>
+
+                  <div className={styles.lockText}>
+                    <strong>Không có xe khả dụng.</strong> Xe có thể đang chạy
+                    chuyến khác hoặc chưa đủ thời gian quay đầu.
+                  </div>
+                </div>
+              )}
+
             {selectedVehicle && (
               <div className={styles.criticalLockNotice}>
                 <span className={styles.lockIcon}>🚌</span>
+
                 <div className={styles.lockText}>
                   Xe được chọn là{" "}
                   <strong>{selectedVehicle.vehicleTypeName}</strong>, sức chứa{" "}
-                  <strong>{selectedVehicle.totalSeats} ghế</strong>. Số ghế mở
-                  bán đã tự cập nhật theo xe.
+                  <strong>{selectedVehicle.totalSeats} ghế</strong>.
                 </div>
               </div>
             )}
           </div>
+
+          {/* =================================================
+           * DRIVER
+           * =============================================== */}
+
           <div className={styles.formSection}>
             <div className={styles.sectionTitle}>🪪 Gán tài xế cho chuyến</div>
 
             <div className={styles.formGroup}>
               <label>Tài xế chính</label>
+
               <div className={styles.selectWrapper}>
                 <select
                   value={driverId}
-                  onChange={(e) => setDriverId(e.target.value)}
+                  onChange={(e) => handleDriverChange(e.target.value)}
+                  disabled={!canCheckResources || loading || resourceLoading}
                 >
-                  <option value="">⚠️ Để trống, sẽ xếp tài xế sau</option>
+                  <option value="">
+                    {!canCheckResources
+                      ? "⚠️ Nhập đủ thông tin thời gian trước"
+                      : resourceLoading
+                        ? "⏳ Đang kiểm tra tài xế khả dụng..."
+                        : "⚠️ Để trống, sẽ xếp tài xế sau"}
+                  </option>
 
-                  {options?.drivers.map((driver: any) => (
+                  {driverSelectOptions.map((driver: any) => (
                     <option
                       key={driver.driverId}
                       value={driver.driverId}
                       disabled={driver.status === "OFF"}
                     >
-                      {driver.fullName} — GPLX: {driver.licenseNumber}
+                      {driver.fullName}
+                      {" — GPLX: "}
+                      {driver.licenseNumber}
                       {driver.status ? ` [${driver.status}]` : ""}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
+
+            {selectedDriverIsUnavailable && (
+              <div className={styles.criticalLockNotice}>
+                <span className={styles.lockIcon}>⚠️</span>
+
+                <div className={styles.lockText}>
+                  <strong>Tài xế hiện tại không còn khả dụng.</strong> Vui lòng
+                  chọn tài xế khác.
+                </div>
+              </div>
+            )}
+
+            {canCheckResources &&
+              !resourceLoading &&
+              driverSelectOptions.length === 0 && (
+                <div className={styles.criticalLockNotice}>
+                  <span className={styles.lockIcon}>⚠️</span>
+
+                  <div className={styles.lockText}>
+                    <strong>Không có tài xế khả dụng.</strong> Có thể tài xế
+                    đang chạy chuyến khác hoặc chưa đủ thời gian nghỉ.
+                  </div>
+                </div>
+              )}
           </div>
-          {/* Section 3: Thời gian & Giá cả */}
+
+          {/* =================================================
+           * SEAT + PRICE + STATUS
+           * =============================================== */}
+
           <div className={styles.formSection}>
-            <div className={styles.sectionTitle}>⏰ Giờ chạy & Số ghế bán</div>
-
-            <div className={styles.gridConsole2}>
-              <div className={styles.formGroup}>
-                <label>Giờ xuất bến chính thức</label>
-                <input
-                  type="datetime-local"
-                  value={departureDatetime}
-                  onChange={(e) => setDepartureDatetime(e.target.value)}
-                  required
-                  disabled={isLockedByBooking}
-                />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Giờ dự kiến tới bến</label>
-                <input
-                  type="datetime-local"
-                  value={arrivalDatetime}
-                  onChange={(e) => setArrivalDatetime(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
+            <div className={styles.sectionTitle}>🎫 Số ghế & Giá vé</div>
 
             <div className={styles.gridConsole2}>
               <div className={styles.formGroup}>
                 <label>Số lượng ghế mở bán</label>
+
                 <input
                   type="number"
                   min={1}
                   value={availableSeats}
                   onChange={(e) => setAvailableSeats(e.target.value)}
                   required
-                  disabled={isLockedByBooking}
+                  disabled={isLockedByBooking || loading}
                 />
               </div>
 
               <div className={styles.formGroup}>
                 <label>Giá vé (đ)</label>
+
                 <input
                   type="number"
                   min={0}
                   value={ticketPrice}
                   onChange={(e) => setTicketPrice(e.target.value)}
                   required
+                  disabled={loading}
                   placeholder="Tự lấy từ lịch mẫu"
                 />
               </div>
@@ -425,34 +1085,65 @@ export default function TripFormModal({
 
             <div className={styles.formGroup}>
               <label>Trạng thái chuyến xe</label>
+
               <div className={styles.selectWrapper}>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as TripStatus)}
-                  disabled={mode === "CREATE"}
-                  className={`${styles.statusSelect} ${styles[status.toLowerCase()]}`}
+                  disabled={mode === "CREATE" || loading}
+                  className={`${styles.statusSelect} ${
+                    styles[status.toLowerCase()]
+                  }`}
                 >
                   <option value="OPEN">🟢 Đang mở bán vé</option>
+
                   <option value="FULL">🔴 Khóa sổ, hết ghế</option>
+
                   <option value="RUNNING">🟡 Xe đang chạy</option>
+
                   <option value="COMPLETED">⚪ Đã hoàn thành</option>
+
                   <option value="CANCELLED">❌ Hủy chuyến xe</option>
                 </select>
               </div>
             </div>
           </div>
 
+          {/* =================================================
+           * BOOKING LOCK
+           * =============================================== */}
+
           {isLockedByBooking && (
             <div className={styles.criticalLockNotice}>
               <span className={styles.lockIcon}>🔒</span>
+
               <div className={styles.lockText}>
                 <strong>Chuyến xe này đã có khách mua vé.</strong> Hệ thống khóa
-                tuyến, giờ xuất bến và số ghế gốc để tránh lệch dữ liệu booking.
+                tuyến, lịch mẫu, ngày chạy và số ghế gốc để tránh lệch dữ liệu
+                booking. Xe và tài xế vẫn có thể thay đổi nếu khả dụng.
               </div>
             </div>
           )}
 
-          {/* Footer controls */}
+          {/* =================================================
+           * RESOURCE LOADING
+           * =============================================== */}
+
+          {canCheckResources && resourceLoading && (
+            <div className={styles.criticalLockNotice}>
+              <span className={styles.lockIcon}>⏳</span>
+
+              <div className={styles.lockText}>
+                Hệ thống đang kiểm tra xe và tài xế có đáp ứng điều kiện quay
+                đầu và thời gian nghỉ hay không...
+              </div>
+            </div>
+          )}
+
+          {/* =================================================
+           * FOOTER
+           * =============================================== */}
+
           <div className={styles.controlFooter}>
             <button
               type="button"
@@ -466,11 +1157,12 @@ export default function TripFormModal({
             <button
               type="submit"
               className={styles.dispatchConfirmBtn}
-              disabled={loading}
+              disabled={cannotSubmit}
             >
               {loading ? (
                 <div className={styles.loadingFlex}>
-                  <div className={styles.spinner}></div>
+                  <div className={styles.spinner} />
+
                   <span>Đang lưu...</span>
                 </div>
               ) : mode === "CREATE" ? (

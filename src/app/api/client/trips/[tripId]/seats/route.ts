@@ -4,7 +4,10 @@ import { errorResponse, successResponse } from "@/lib/server/response";
 
 import { getTripSeats } from "@/services/server/client/seat.service";
 
-import { tripSeatParamsSchema } from "@/validators/client/seat.validator";
+import {
+  tripSeatParamsSchema,
+  tripSeatQuerySchema,
+} from "@/validators/client/seat.validator";
 
 export async function GET(
   req: NextRequest,
@@ -17,10 +20,15 @@ export async function GET(
   try {
     const params = await context.params;
 
-    const validated = tripSeatParamsSchema.parse(params);
+    const validatedParams = tripSeatParamsSchema.parse(params);
+    const validatedQuery = tripSeatQuerySchema.parse({
+      sessionId: req.nextUrl.searchParams.get("sessionId"),
+    });
 
-    const result = await getTripSeats(validated.tripId);
-
+    const result = await getTripSeats(
+      validatedParams.tripId,
+      validatedQuery.sessionId,
+    );
     return successResponse(result);
   } catch (error: any) {
     console.error(error);

@@ -46,9 +46,10 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-     await getAdminAuthUserId(req);
+    await getAdminAuthUserId(req);
 
     const body = await req.json();
+
     const parsed = createAdminTripSchema.parse(body);
 
     const data = await createAdminTrip(parsed);

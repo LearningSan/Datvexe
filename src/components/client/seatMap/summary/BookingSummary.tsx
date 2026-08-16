@@ -7,17 +7,8 @@ import { useRouter } from "next/navigation";
 
 import { useBookingStore } from "@/store/booking.store";
 import { useHoldSeats } from "@/hooks/client/useBooking";
+import { toast } from "react-hot-toast";
 
-function generateSessionId() {
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    return crypto.randomUUID();
-  }
-
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
 
 export default function BookingSummary() {
   const router = useRouter();
@@ -61,44 +52,7 @@ export default function BookingSummary() {
   if (!outboundTrip) return null;
 
   const handleConfirmSeat = async () => {
-    if (
-      outboundSeats.length === 0 ||
-      (isRoundTrip && returnSeats.length === 0)
-    ) {
-      return;
-    }
-
     try {
-      let sessionId = localStorage.getItem("session_id");
-
-      if (!sessionId) {
-        sessionId = generateSessionId();
-        localStorage.setItem("session_id", sessionId);
-      }
-
-      await holdSeats({
-        tripId: outboundTrip.id,
-        seatLayoutDetailIds: outboundSeats.map((seat) => seat.seatId),
-        sessionId,
-      });
-
-      if (isRoundTrip && returnTrip) {
-        await holdSeats({
-          tripId: returnTrip.id,
-          seatLayoutDetailIds: returnSeats.map((seat) => seat.seatId),
-          sessionId,
-        });
-      }
-
-      sessionStorage.setItem(
-        "active_seat_hold",
-        JSON.stringify({
-          bookingId: null,
-          sessionId,
-          outboundTripId: outboundTrip.id,
-          returnTripId: returnTrip?.id ?? null,
-        }),
-      );
       setActiveJourney("OUTBOUND");
       if (isRoundTrip && returnTrip) {
         router.push(
@@ -108,8 +62,7 @@ export default function BookingSummary() {
         router.push(`/checkout/${outboundTrip.id}`);
       }
     } catch (error: any) {
-      console.error(error);
-      alert(error?.response?.data?.message || "Không thể giữ ghế");
+      toast.error("Không thể giữ ghế");
     }
   };
 

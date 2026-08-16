@@ -8,6 +8,7 @@ import {
   updateAdminTripStatusApi,
   bulkUpdateTripPriceApi,
   copyAdminTripsApi,
+  fetchAvailableTripResources,
 } from "@/services/admin/trip.service";
 
 import type {
@@ -18,7 +19,6 @@ import type {
   BulkUpdateTripPricePayload,
   CopyTripsPayload,
 } from "@/types/admin/trips/trip-management.type";
-
 
 export function useCopyTrips() {
   const queryClient = useQueryClient();
@@ -88,8 +88,11 @@ export function useUpdateTrip() {
     }
   >({
     mutationFn: ({ tripId, payload }) => updateAdminTripApi(tripId, payload),
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-trips"] });
+      queryClient.invalidateQueries({
+        queryKey: ["admin-trips"],
+      });
     },
   });
 }
@@ -110,5 +113,49 @@ export function useUpdateTripStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-trips"] });
     },
+  });
+}
+export function useAvailableTripResources(params: {
+  routeId?: number;
+  scheduleTemplateId?: number;
+  departureDatetime?: string;
+  arrivalDatetime?: string;
+  tripId?: number;
+}) {
+  const enabled =
+    !!params.routeId &&
+    !!params.scheduleTemplateId &&
+    !!params.departureDatetime &&
+    !!params.arrivalDatetime;
+
+  return useQuery({
+    queryKey: [
+      "admin-trip-available-resources",
+      {
+        routeId: params.routeId,
+        scheduleTemplateId: params.scheduleTemplateId,
+        departureDatetime: params.departureDatetime,
+        arrivalDatetime: params.arrivalDatetime,
+        tripId: params.tripId,
+      },
+    ],
+
+    queryFn: () =>
+      fetchAvailableTripResources({
+        routeId: params.routeId!,
+        scheduleTemplateId: params.scheduleTemplateId!,
+        departureDatetime: params.departureDatetime!,
+        arrivalDatetime: params.arrivalDatetime!,
+        tripId: params.tripId,
+      }),
+
+    enabled,
+
+    meta: {
+      globalLoading: false,
+    },
+
+    staleTime: 10_000,
+    retry: 1,
   });
 }

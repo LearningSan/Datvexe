@@ -33,10 +33,14 @@ export async function updateAdminVehicle(
   payload: UpdateAdminVehiclePayload,
 ) {
   const vehicle = await findVehicleById(vehicleId);
-  if (!vehicle) throw new Error("Không tìm thấy xe");
+
+  if (!vehicle) {
+    throw new Error("Không tìm thấy xe");
+  }
 
   if (payload.status === "MAINTENANCE") {
     const running = await hasRunningTrip(vehicleId);
+
     if (running) {
       throw new Error(
         "Không thể đưa xe vào bảo trì vì xe đang có chuyến RUNNING",
@@ -45,6 +49,7 @@ export async function updateAdminVehicle(
   }
 
   const usage = await countVehicleUsage(vehicleId);
+
   const isLocked = usage.tripCount > 0 || usage.bookingCount > 0;
 
   return await updateVehicleRepo(vehicleId, payload, isLocked);

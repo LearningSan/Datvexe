@@ -4,8 +4,10 @@ import {
   findBookingSummaryRaw,
   checkSeatsAlreadyBooked,
   checkSeatsAlreadyHeld,
+  deleteSeatHolds,
   insertSeatHolds,
   updateTripHoldCount,
+  updateTripHoldCountRelease,
   findBookingForHoldCancel,
   cancelPendingBooking,
   countHeldSeatsBySession,
@@ -23,6 +25,9 @@ import {
 import {
   checkSeatsNotHeld,
   checkSeatsHeldBySession,
+  findExpiredSeatHolds,
+  deleteSeatHoldsByIds,
+  updateTripAvailableSeats,
 } from "@/repositories/client/seat-hold.repo";
 import {
   createBooking,
@@ -80,21 +85,74 @@ export async function holdSeats(
       (id) => !ownHeldSeatIds.includes(id),
     );
 
-    await insertSeatHolds(conn, {
+    const expiredAt = await insertSeatHolds(conn, {
       tripId,
       seatIds: seatLayoutDetailIds,
       sessionId,
       userId,
     });
-
     if (newSeatIds.length > 0)
       await updateTripHoldCount(conn, tripId, newSeatIds.length);
 
     return {
       tripId,
       seatCount: seatLayoutDetailIds.length,
-      expiresIn: 720,
+      expiredAt,
     };
+  });
+}
+export async function releaseSeats(
+  payload: HoldSeatsPayload,
+  userId: number | null,
+) {
+  const { tripId, seatLayoutDetailIds, sessionId } = payload;
+
+  return await withTransaction(async (conn) => {
+    const booked = await checkSeatsAlreadyBooked(
+      conn,
+      tripId,
+      seatLayoutDetailIds,
+    );
+
+    if (booked.length > 0) {
+      throw new Error("SEATS_ALREADY_BOOKED");
+    }
+
+    const heldByOther = await checkSeatsAlreadyHeld(
+      conn,
+      tripId,
+      seatLayoutDetailIds,
+      sessionId,
+    );
+
+    if (heldByOther.length > 0) {
+      throw new Error("SEATS_ARE_NOT_HELD");
+    }
+
+    const existingOwnHolds = await findExistingSeatHolds(
+      conn,
+      tripId,
+      seatLayoutDetailIds,
+    );
+
+    const ownHeldSeatIds = existingOwnHolds
+      .filter((h) => h.session_id === sessionId)
+      .map((h) => h.seat_layout_detail_id);
+
+    if (ownHeldSeatIds.length === 0) {
+      throw new Error("SEATS_ARE_NOT_HELD");
+    }
+
+    await deleteSeatHolds(conn, {
+      tripId,
+      seatIds: ownHeldSeatIds,
+      sessionId,
+      userId,
+    });
+
+    await updateTripHoldCountRelease(conn, tripId, ownHeldSeatIds.length);
+
+    return;
   });
 }
 export async function createBookingShuttleBulk(payload: any) {
@@ -470,4 +528,41 @@ export async function getBookingsByGroupId(bookingGroupId: number) {
       totalAmount: Number(item.totalAmount),
     })),
   };
+}
+export async function expireSeatHolds() {
+  return await withTransaction(async (conn) => {
+    const expiredHolds = await findExpiredSeatHolds(conn);
+
+    if (expiredHolds.length === 0) {
+      return {
+        expiredCount: 0,
+        trips: [],
+      };
+    }
+
+    const countByTrip = new Map<number, number>();
+
+    for (const hold of expiredHolds) {
+      const currentCount = countByTrip.get(hold.trip_id) ?? 0;
+
+      countByTrip.set(hold.trip_id, currentCount + 1);
+    }
+
+    for (const [tripId, count] of countByTrip) {
+      await updateTripAvailableSeats(conn, tripId, count);
+    }
+
+    await deleteSeatHoldsByIds(
+      conn,
+      expiredHolds.map((hold) => hold.seat_hold_id),
+    );
+
+    return {
+      expiredCount: expiredHolds.length,
+      trips: Array.from(countByTrip.entries()).map(([tripId, count]) => ({
+        tripId,
+        releasedSeats: count,
+      })),
+    };
+  });
 }

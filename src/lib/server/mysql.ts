@@ -17,6 +17,10 @@ export async function query<T = unknown>(
   } finally {
     conn.release();
   }
+
+  // const [rows] = await pool.query(sql, params);
+
+  // return rows as T[];
 }
 
 export async function withTransaction<T>(
@@ -40,6 +44,7 @@ export async function withTransaction<T>(
   } finally {
     conn.release();
   }
+ 
 }
 
 // ============================================================

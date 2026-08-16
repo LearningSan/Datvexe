@@ -31,6 +31,8 @@ import {
   updatePickupDropoffRepo,
   updateTicketStatusRepo,
   getOfflineTicketPreviewRepo,
+  searchAdminOfflineTripsRepo,
+  getAdminOfflineTicketFilterOptionsRepo,
 } from "@/repositories/admin/ticket.repo";
 
 import type {
@@ -42,6 +44,7 @@ import type {
   ChangeTicketSeatsPayload,
   UpdatePickupDropoffPayload,
   CreateOfflineTicketPayload,
+  AdminOfflineTripSearchParams,
 } from "@/types/admin/tickets/ticket-management.type";
 
 export async function getAdminTickets(params: AdminTicketListParams) {
@@ -560,4 +563,12 @@ export async function getAdminTicketHistories(bookingId: number) {
 }
 export async function getAdminOfflineTicketPreview(tripId: number) {
   return await getOfflineTicketPreviewRepo(tripId);
+}
+export async function searchAdminOfflineTrips(
+  params: AdminOfflineTripSearchParams,
+) {
+  return await searchAdminOfflineTripsRepo(params);
+}
+export async function getAdminOfflineTicketFilterOptions() {
+  return await getAdminOfflineTicketFilterOptionsRepo();
 }

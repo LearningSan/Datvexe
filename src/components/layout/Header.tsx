@@ -40,7 +40,7 @@ export default function Header() {
 
           {/* Logo ở trung tâm */}
           <div className={styles.brandBox}>
-            <Link href="/" className={styles.logoWrapper}>
+            <Link href="/home" className={styles.logoWrapper}>
               <Image
                 src="/logo.png"
                 alt="XeKhachPT Logo"

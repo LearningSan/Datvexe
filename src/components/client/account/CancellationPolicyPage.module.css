@@ -1,0 +1,210 @@
+/* ==========================================================================
+   CANCELLATION POLICY PAGE - MODERN UI/UX STYLES
+   ========================================================================== */
+
+.container {
+  min-height: 100vh;
+  padding: 48px 20px;
+  background-color: #f8fafc;
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 10px 25px -5px rgba(15, 23, 42, 0.05),
+    0 8px 10px -6px rgba(15, 23, 42, 0.05);
+}
+
+.card h1 {
+  margin: 0 0 16px;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.intro {
+  margin-bottom: 36px;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #475569;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* --- Các Section --- */
+.section {
+  margin-top: 36px;
+}
+
+.section h2 {
+  margin-bottom: 18px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section h2::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 18px;
+  background-color: #2563eb;
+  border-radius: 99px;
+}
+
+.section p {
+  margin: 0 0 14px;
+  line-height: 1.7;
+  color: #334155;
+  font-size: 0.975rem;
+}
+
+/* --- Bảng dữ liệu chính sách --- */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  margin-top: 12px;
+}
+
+.tableWrapper table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+  text-align: left;
+}
+
+.tableWrapper th {
+  background: #f8fafc;
+  padding: 16px 20px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tableWrapper td {
+  padding: 16px 20px;
+  color: #1e293b;
+  font-size: 0.925rem;
+  font-weight: 500;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.15s ease;
+}
+
+.tableWrapper tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tableWrapper tbody tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* --- Danh sách Điều kiện (List Component) --- */
+.section ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section li {
+  position: relative;
+  padding-left: 28px;
+  color: #334155;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.section li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%232563eb'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z' clip-rule='evenodd' /%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+/* --- Khung Lưu ý quan trọng (Callout Card) --- */
+.section:last-child {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 20px 24px;
+  border-radius: 12px;
+}
+
+.section:last-child h2 {
+  color: #1e40af;
+  margin-bottom: 10px;
+}
+
+.section:last-child h2::before {
+  background-color: #2563eb;
+}
+
+.section:last-child p {
+  color: #1e3a8a;
+  margin-bottom: 8px;
+}
+
+.section:last-child p:last-child {
+  margin-bottom: 0;
+}
+
+/* --- Responsive design --- */
+@media (max-width: 640px) {
+  .container {
+    padding: 16px 12px;
+  }
+
+  .card {
+    padding: 24px 18px;
+    border-radius: 14px;
+  }
+
+  .card h1 {
+    font-size: 1.5rem;
+  }
+
+  .intro {
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+  }
+
+  .section {
+    margin-top: 28px;
+  }
+
+  .section h2 {
+    font-size: 1.1rem;
+  }
+
+  .tableWrapper th,
+  .tableWrapper td {
+    padding: 12px 14px;
+  }
+}

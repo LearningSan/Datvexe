@@ -28,6 +28,8 @@ import {
   fetchAdminTicketAvailableSeatsApi,
   resendAdminTicketWithResultApi,
   fetchAdminOfflineTicketPreviewApi,
+  searchAdminOfflineTripsApi,
+  fetchAdminOfflineTicketFilterOptionsApi,
 } from "@/services/admin/ticket.service";
 import type {
   AdminTicketListParams,
@@ -39,6 +41,7 @@ import type {
   ExtendTicketHoldPayload,
   UpdatePickupDropoffPayload,
   UpdateTicketStatusPayload,
+  AdminOfflineTripSearchParams,
 } from "@/types/admin/tickets/ticket-management.type";
 
 export function useAdminTickets(params: AdminTicketListParams) {
@@ -345,5 +348,26 @@ export function useAdminOfflineTicketPreview(tripId?: number | null) {
     queryKey: ["admin-offline-ticket-preview", tripId],
     queryFn: () => fetchAdminOfflineTicketPreviewApi(Number(tripId)),
     enabled: !!tripId,
+  });
+}
+export function useAdminOfflineTripSearch(
+  params: AdminOfflineTripSearchParams | null,
+) {
+  return useQuery({
+    queryKey: ["admin-offline-trip-search", params],
+
+    queryFn: () => searchAdminOfflineTripsApi(params!),
+
+    enabled: !!params,
+  });
+}
+export function useAdminOfflineTicketFilterOptions(enabled: boolean) {
+  return useQuery({
+    queryKey: ["admin-offline-ticket-filter-options"],
+
+    queryFn: fetchAdminOfflineTicketFilterOptionsApi,
+
+    enabled,
+    staleTime: 5 * 60 * 1000,
   });
 }

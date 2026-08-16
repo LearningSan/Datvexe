@@ -1,9 +1,10 @@
-import { query } from "@/lib/server/mysql";
+import { query, execute } from "@/lib/server/mysql";
 import type {
   AdminVehicleListParams,
   CreateAdminVehiclePayload,
   UpdateAdminVehiclePayload,
   VehicleStatus,
+  AdminVehicleOption,
 } from "@/types/admin/vehicles/vehicle-management.type";
 
 export async function findAdminVehicles(params: AdminVehicleListParams) {
@@ -146,18 +147,27 @@ export async function findVehicleById(vehicleId: number) {
 }
 
 export async function findVehicleOptions() {
-  const vehicleTypes = await query<any>(`
+  const vehicleTypes = await query<AdminVehicleOption>(`
     SELECT
       vt.vehicle_type_id AS vehicleTypeId,
       vt.type_name AS vehicleTypeName,
+
       sl.seat_layout_id AS seatLayoutId,
       sl.layout_code AS layoutCode,
       sl.layout_name AS layoutName,
       sl.total_seats AS totalSeats
+
     FROM vehicle_types vt
-    INNER JOIN seat_layouts sl ON sl.vehicle_type_id = vt.vehicle_type_id
+
+    INNER JOIN seat_layouts sl
+      ON sl.vehicle_type_id = vt.vehicle_type_id
+
     WHERE sl.is_active = TRUE
-    ORDER BY vt.type_name ASC, sl.total_seats ASC
+
+    ORDER BY
+      vt.type_name ASC,
+      sl.total_seats ASC,
+      sl.seat_layout_id ASC
   `);
 
   return { vehicleTypes };
@@ -216,13 +226,21 @@ export async function hasRunningTrip(vehicleId: number) {
 }
 
 export async function createVehicleRepo(data: CreateAdminVehiclePayload) {
-  const layout = await findDefaultSeatLayoutByVehicleType(data.vehicleTypeId);
+  const layout = await findSeatLayoutById(data.seatLayoutId);
 
   if (!layout) {
-    throw new Error("Loại xe này chưa có sơ đồ ghế khả dụng");
+    throw new Error("Không tìm thấy sơ đồ ghế");
   }
 
-  const result: any = await query(
+  if (!layout.isActive) {
+    throw new Error("Sơ đồ ghế đang tạm ngưng");
+  }
+
+  if (layout.vehicleTypeId !== data.vehicleTypeId) {
+    throw new Error("Sơ đồ ghế không phù hợp với loại xe");
+  }
+
+  const result: any = await execute(
     `
     INSERT INTO vehicles (
       internal_code,
@@ -230,23 +248,27 @@ export async function createVehicleRepo(data: CreateAdminVehiclePayload) {
       seat_layout_id,
       license_plate,
       vehicle_name,
+      manufacture_year,
       status,
       note
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `,
     [
-      data.internalCode,
+      data.internalCode || null,
       data.vehicleTypeId,
-      layout.seatLayoutId,
+      data.seatLayoutId,
       data.licensePlate,
       data.vehicleName || null,
+      data.manufactureYear || null,
       data.status || "AVAILABLE",
       data.note || null,
     ],
   );
 
-  return { vehicleId: result.insertId };
+  return {
+    vehicleId: result.insertId,
+  };
 }
 
 export async function updateVehicleRepo(
@@ -255,7 +277,7 @@ export async function updateVehicleRepo(
   isLocked: boolean,
 ) {
   if (isLocked) {
-    await query(
+    await execute(
       `
       UPDATE vehicles
       SET
@@ -283,13 +305,25 @@ export async function updateVehicleRepo(
     throw new Error("Vui lòng chọn loại xe");
   }
 
-  const layout = await findDefaultSeatLayoutByVehicleType(data.vehicleTypeId);
-
-  if (!layout) {
-    throw new Error("Loại xe này chưa có sơ đồ ghế khả dụng");
+  if (!data.seatLayoutId) {
+    throw new Error("Vui lòng chọn sơ đồ ghế");
   }
 
-  await query(
+  const layout = await findSeatLayoutById(data.seatLayoutId);
+
+  if (!layout) {
+    throw new Error("Không tìm thấy sơ đồ ghế");
+  }
+
+  if (!layout.isActive) {
+    throw new Error("Sơ đồ ghế đang tạm ngưng");
+  }
+
+  if (layout.vehicleTypeId !== data.vehicleTypeId) {
+    throw new Error("Sơ đồ ghế không phù hợp với loại xe");
+  }
+
+  await execute(
     `
     UPDATE vehicles
     SET
@@ -303,7 +337,7 @@ export async function updateVehicleRepo(
     WHERE vehicle_id = ?
     `,
     [
-      data.internalCode,
+      data.internalCode || null,
       data.vehicleTypeId,
       layout.seatLayoutId,
       data.licensePlate,
@@ -321,7 +355,7 @@ export async function updateVehicleStatusRepo(
   vehicleId: number,
   status: VehicleStatus,
 ) {
-  await query(
+  await execute(
     `
     UPDATE vehicles
     SET status = ?
@@ -331,4 +365,26 @@ export async function updateVehicleStatusRepo(
   );
 
   return { vehicleId, status };
+}
+export async function findSeatLayoutById(seatLayoutId: number) {
+  const result = await query<{
+    seatLayoutId: number;
+    vehicleTypeId: number;
+    isActive: boolean;
+    totalSeats: number;
+  }>(
+    `
+    SELECT
+      seat_layout_id AS seatLayoutId,
+      vehicle_type_id AS vehicleTypeId,
+      is_active AS isActive,
+      total_seats AS totalSeats
+    FROM seat_layouts
+    WHERE seat_layout_id = ?
+    LIMIT 1
+    `,
+    [seatLayoutId],
+  );
+
+  return result[0] ?? null;
 }

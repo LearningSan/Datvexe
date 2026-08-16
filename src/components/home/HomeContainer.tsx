@@ -7,12 +7,12 @@ import styles from "./HomeContainer.module.css";
 
 import { usePopularRoutes } from "@/hooks/client/useRoute";
 import { usePromotions } from "@/hooks/client/usePromotion";
+import { useCleanupExpiredSeatHolds } from "@/hooks/client/useBooking";
 import { useSearchStore, RecentSearch } from "@/store/search.store";
 import { useTripFilterStore } from "@/store/filter.store";
 import BlockQueryState from "@/components/common/BlockQueryState";
 import BlockErrorState from "@/components/common/BlockErrorState";
 import { SelectedLocation } from "@/types/client/route/location-search.type";
-
 import SearchForm from "./Search/SearchForm";
 import PromoSection from "./Promo/PromoSection";
 import PopularRoutes from "./Popular/PopularRoutes";
@@ -39,6 +39,7 @@ function getCityId(location: SelectedLocation | null) {
 }
 export default function HomeContainer() {
   const router = useRouter();
+  const { mutate: cleanupExpiredSeatHolds } = useCleanupExpiredSeatHolds();
   const searchParams = useSearchParams();
 
   const { setFilters } = useTripFilterStore();
@@ -99,7 +100,9 @@ export default function HomeContainer() {
     setOrigin(destination);
     setDestination(origin);
   };
-
+  useEffect(() => {
+    cleanupExpiredSeatHolds();
+  }, [cleanupExpiredSeatHolds]);
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 

@@ -1,79 +1,104 @@
 .limoCabin {
   --seat-width: 70px;
   --seat-height: 50px;
-  --col-gap: 32px;
-  --cabin-height: 235px;
-  --aisle-height: 70px;
+  --col-gap: 16px;
+  --row-gap: 12px;
+  --aisle-width: 32px;
 
   display: flex;
-  gap: var(--col-gap);
-  height: var(--cabin-height);
+  flex-direction: column;
+
+  gap: var(--row-gap);
+
+  width: max-content;
+  height: auto;
+
   box-sizing: border-box;
 }
 
-.limoCol {
-  display: flex;
-  flex-direction: column;
-  width: var(--seat-width);
-  justify-content: space-between;
-}
+.limoRow {
+  display: grid;
 
-.aisleSpace {
-  width: var(--seat-width);
-  height: var(--aisle-height);
+  grid-template-columns: repeat(6, var(--seat-width));
+
+  gap: var(--col-gap);
+
+  align-items: center;
+}
+.aisleLane {
+  grid-column: 2 / 7;
+
+  height: var(--seat-height);
+
   background: #e2e8f0;
-  border-left: 2px dashed #cbd5e1;
-  border-right: 2px dashed #cbd5e1;
+
+  border-radius: 4px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* ========================================================
-   MEDIA QUERY SỬA LỖI GHẾ BỊ XẾP THÀNH 1 HÀNG DỌC TRÊN MOBILE
-   ======================================================== */
 @media (max-width: 600px) {
   .limoCabin {
     --seat-width: 44px;
     --seat-height: 38px;
     --col-gap: 12px;
-    --aisle-height: 40px; /* Chiều cao khoảng trống lối đi dọc */
+    --row-gap: 8px;
 
-    /* Đổi sang hiển thị dạng ROW (Hàng ngang) để các cột nằm cạnh nhau */
     display: flex;
-    flex-direction: row !important; 
-    
-    /* QUAN TRỌNG: Cho phép các hàng ghế tự động đẩy xuống dòng khi hết chiều rộng */
-    flex-wrap: wrap; 
-    
-    /* Xoay ngược thứ tự hiển thị để đầu xe ở trên, đuôi xe ở dưới */
-    flex-direction: row-reverse !important; 
+    flex-direction: row !important;
 
-    height: auto;
     width: 100%;
+    height: auto;
+
     justify-content: center;
+    align-items: flex-start;
+
     gap: var(--col-gap);
   }
 
-  .limoCol {
-    /* Đổi hướng cột thành hàng ngang để các ghế nằm ngang */
-    flex-direction: row !important; 
-    
-    /* Ép chiều rộng bằng 100% để mỗi hàng ghế chiếm trọn 1 dòng */
-    width: 100% !important; 
-    justify-content: space-between;
+  .limoRow {
+    /*
+     * Mỗi row desktop trở thành một column trên mobile
+     */
+    display: flex;
+
+    flex-direction: column !important;
+
+    width: var(--seat-width);
+
+    gap: var(--row-gap);
+
     align-items: center;
+    justify-content: flex-start;
   }
 
-  .aisleSpace {
-    /* Biến lối đi thành một ô trống nằm giữa các ghế trên cùng một hàng */
-    width: var(--aisle-height) !important; 
-    height: var(--seat-height) !important;
+@media (max-width: 600px) {
+  .aisleLane {
+    width: calc(
+      (var(--seat-width) * 5) 
+    );
+
+
+    flex-shrink: 0;
+
     background: #e2e8f0;
-    
-    /* Đổi nét đứt sang Trái / Phải để tạo thành lối đi dọc chạy từ trên xuống */
-    border-top: none !important;
-    border-bottom: none !important;
-    border-left: 2px dashed #cbd5e1 !important;
-    border-right: 2px dashed #cbd5e1 !important;
+    border-radius: 4px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 9px;
+    text-align: center;
+
+    writing-mode: horizontal-tb;
+
+    transform-origin: center center;
+    transform:translateY(90px) rotate(90deg);
   }
+}
 }
 
 .frontWrapper {

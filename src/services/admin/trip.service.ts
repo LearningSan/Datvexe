@@ -98,3 +98,29 @@ export async function updateAdminTripStatusApi(
     throwApiError(error, "Không thể cập nhật trạng thái chuyến xe");
   }
 }
+export async function fetchAvailableTripResources(
+  params: {
+    routeId: number;
+    scheduleTemplateId: number;
+    departureDatetime: string;
+    arrivalDatetime: string;
+    tripId?: number;
+  },
+) {
+  try {
+    const res =
+      await adminApi.get(
+        "/admin/trips/available-resources",
+        {
+          params,
+        },
+      );
+
+    return res.data.data;
+  } catch (error: any) {
+    throwApiError(
+      error,
+      "Không thể tải xe và tài xế khả dụng",
+    );
+  }
+}

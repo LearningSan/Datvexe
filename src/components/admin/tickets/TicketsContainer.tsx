@@ -516,8 +516,8 @@ export default function TicketsContainer() {
             <table className={styles.dataTable}>
               <thead>
                 <tr>
-                  <th>Mã Đơn / Thời Gian Mua</th>
-                  <th>Thông Tin Khách Hàng</th>
+                  <th>Mã Đơn</th>
+                  <th>Khách Hàng</th>
                   <th>Lộ Trình & Chuyến Xe</th>
                   <th>Vị Trí Ghế</th>
                   <th>Tổng Tiền</th>
@@ -828,7 +828,6 @@ export default function TicketsContainer() {
       )}
       <OfflineTicketModal
         open={isOfflineModalOpen}
-        options={options}
         loading={offlineMutation.isPending}
         onClose={() => setIsOfflineModalOpen(false)}
         onSubmit={(payload: CreateOfflineTicketPayload) => {

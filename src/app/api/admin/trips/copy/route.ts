@@ -9,9 +9,10 @@ import { copyTripsSchema } from "@/validators/admin/trip.validator";
 
 export async function POST(req: NextRequest) {
   try {
-     await getAdminAuthUserId(req);
+    await getAdminAuthUserId(req);
 
     const body = await req.json();
+
     const parsed = copyTripsSchema.parse(body);
 
     const data = await copyAdminTrips(parsed);

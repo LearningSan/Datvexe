@@ -1,197 +1,234 @@
-/* --- Overlay & Cửa sổ Modal chính --- */
+/* ==========================================================================
+   1. OVERLAY & MODAL CONTAINER
+   ========================================================================== */
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  inset: 0;
   z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
   padding: 16px;
   animation: fadeIn 0.2s ease-out;
 }
 
 .modal {
-  background-color: #ffffff;
+  position: relative;
   width: 100%;
   max-width: 680px;
   max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
   border-radius: 16px;
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  position: relative;
-  display: flex;
-  flex-direction: column;
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* --- Tiêu đề & Nút Close --- */
-.title {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #1e293b;
-  padding: 18px 24px;
-  margin: 0;
-  border-bottom: 1px solid #f1f5f9;
-  text-align: center;
+  animation: scaleUp 0.25s ease-out;
 }
 
 .closeBtn {
   position: absolute;
-  top: 14px;
+  top: 16px;
   right: 16px;
-  background: #f1f5f9;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 22px;
-  color: #64748b;
-  cursor: pointer;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: none;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  font-size: 24px;
+  line-height: 1;
+  border-radius: 50%;
+  cursor: pointer;
   transition: all 0.2s ease;
   z-index: 10;
 }
 
 .closeBtn:hover {
-  background-color: #e2e8f0;
-  color: #0f172a;
+  background-color: #e5e7eb;
+  color: #111827;
 }
 
-/* --- Khung cuộn nội dung --- */
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  padding: 20px 24px;
+  margin: 0;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: center;
+}
+
+/* ==========================================================================
+   2. SCROLLABLE TICKET CONTENT
+   ========================================================================== */
 .scrollContainer {
-  overflow-y: auto;
   flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
 }
 
-/* Khung dùng để html2canvas chụp ảnh (Phải có nền cố định và padding đẹp mắt) */
 .ticketCaptureArea {
-  background-color: #ffffff;
-  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
+  background-color: #ffffff;
 }
 
+.content,
 .emptyContent {
-  padding: 40px;
+  padding: 24px;
   text-align: center;
-  color: #64748b;
+  color: #6b7280;
 }
 
-/* --- Sections định dạng Card --- */
+/* ==========================================================================
+   3. SECTIONS & LAYOUT GRID
+   ========================================================================== */
 .section {
-  background: #f8fafc;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 16px;
-  border: 1px solid #f1f5f9;
+  padding: 16px 20px;
 }
 
 .section h3 {
-  font-size: 0.9rem;
-  color: #475569;
-  margin-top: 0;
-  margin-bottom: 14px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 12px 0;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-left: 3px solid #2563eb;
-  padding-left: 8px;
+  letter-spacing: 0.025em;
 }
 
-/* --- Hệ thống Grid linh hoạt --- */
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 24px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 20px;
 }
 
 .twoColumnGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
-/* --- Các dòng dữ liệu --- */
 .row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.9rem;
+  font-size: 14px;
   line-height: 1.5;
-  min-height: 28px;
 }
 
 .row span {
-  color: #64748b;
+  color: #6b7280;
 }
 
 .row strong {
-  color: #1e293b;
+  color: #111827;
   font-weight: 600;
+  text-align: right;
 }
 
-/* --- Các điểm nhấn dữ liệu (UI Highlight) --- */
+/* Specific Highlights & Formatters */
 .bookingCode {
   color: #2563eb !important;
   font-family: monospace;
-  font-size: 1rem;
-  letter-spacing: 0.5px;
+  font-size: 15px;
 }
 
 .timeHighlight {
-  color: #0f172a !important;
-  font-weight: 700 !important;
+  color: #d97706 !important;
 }
 
 .seatHighlight {
-  background: #eff6ff;
-  color: #2563eb !important;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 0.85rem;
+  color: #059669 !important;
+}
+
+.truncate {
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .codeText {
   font-family: monospace;
-  font-size: 0.85rem;
-  color: #334155;
 }
 
-.truncate {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 170px;
+.discountText {
+  color: #dc2626 !important;
 }
 
-/* --- Route Timeline (Điểm đón / trả) --- */
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #d1d5db;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.totalPrice {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.statusPaid {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.statusPending {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.statusFailed {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+/* ==========================================================================
+   4. ROUTE TIMELINE (Điểm đón / trả)
+   ========================================================================== */
 .routeTimeline {
+  position: relative;
+  padding-left: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  position: relative;
-  padding-left: 18px;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .routeTimeline::before {
   content: "";
   position: absolute;
+  top: 8px;
+  bottom: 8px;
   left: 5px;
-  top: 10px;
-  bottom: 10px;
   width: 2px;
-  background: #cbd5e1;
-  border-style: dashed;
+  background-color: #e5e7eb;
 }
 
 .timelineItem {
@@ -200,101 +237,243 @@
 
 .timelineDot {
   position: absolute;
-  left: -18px;
-  top: 5px;
+  left: -20px;
+  top: 4px;
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #10b981;
-  border: 2px solid #fff;
-  box-shadow: 0 0 0 2px #10b981;
+  background-color: #2563eb;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 2px #2563eb;
 }
 
 .dotEnd {
-  background: #ef4444;
-  box-shadow: 0 0 0 2px #ef4444;
+  background-color: #dc2626;
+  box-shadow: 0 0 0 2px #dc2626;
 }
 
 .timelineContent span {
-  font-size: 0.9rem;
-  color: #334155;
+  font-size: 14px;
+  color: #374151;
 }
 
 .timelineContent p {
-  margin: 4px 0 0 0;
-  font-size: 0.85rem;
-  color: #64748b;
+  margin: 2px 0 0 0;
+  font-size: 13px;
+  color: #6b7280;
 }
 
-/* --- Badge Trạng thái màu sắc linh hoạt --- */
-.badge {
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.statusPaid {
-  color: #10b981 !important;
-}
-.statusFailed {
-  color: #ef4444 !important;
-}
-.statusPending {
-  color: #f59e0b !important;
-}
-.discountText {
-  color: #ef4444 !important;
-}
-
-/* --- Dòng Tổng tiền cuối cùng --- */
-.totalRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px dashed #cbd5e1;
-}
-
-.totalRow span {
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.totalPrice {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: #2563eb;
-}
-
-/* --- Chân Modal cố định nút Action --- */
+/* ==========================================================================
+   5. FOOTER ACTION ROW
+   ========================================================================== */
 .actionRow {
-  padding: 16px 24px;
-  background: #ffffff;
-  border-top: 1px solid #f1f5f9;
   display: flex;
-  justify-content: flex-end;
   gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #f3f4f6;
+  background-color: #ffffff;
+}
+
+.printBtn,
+.cancelBtn {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .printBtn {
-  background: #2563eb;
-  color: white;
-  border: none;
-  padding: 10px 22px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.2s ease;
+  background-color: #f3f4f6;
+  color: #374151;
 }
 
 .printBtn:hover {
-  background: #1d4ed8;
+  background-color: #e5e7eb;
 }
 
-/* --- Keyframes Animations --- */
+.cancelBtn {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background-color: #fca5a5;
+}
+
+.cancelBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   6. CANCEL CONFIRMATION MODAL & PREVIEW
+   ========================================================================== */
+.confirmOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.confirmBox {
+  width: 100%;
+  max-width: 440px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: scaleUp 0.2s ease-out;
+}
+
+.confirmTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.confirmText {
+  font-size: 14px;
+  color: #4b5563;
+  margin: 0;
+}
+
+.policyLink {
+  font-size: 13px;
+  color: #2563eb;
+  text-decoration: underline;
+  display: inline-block;
+}
+
+.policyLink:hover {
+  color: #1d4ed8;
+}
+
+.confirmLoading,
+.confirmError {
+  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin-top: 4px;
+}
+
+.confirmLoading {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.confirmError {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.previewInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 4px;
+}
+
+.previewRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.previewRow span {
+  color: #6b7280;
+}
+
+.refundAmount {
+  color: #16a34a !important;
+  font-size: 15px;
+}
+
+.policyNotice {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.policyNotice p {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 2px 0;
+  line-height: 1.4;
+}
+
+.policyNotice strong {
+  color: #374151;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.cancelModalBtn,
+.submitModalBtn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.cancelModalBtn {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.cancelModalBtn:hover {
+  background-color: #e5e7eb;
+}
+
+.submitModalBtn {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+.submitModalBtn:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.submitModalBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   7. ANIMATIONS & RESPONSIVE
+   ========================================================================== */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -304,30 +483,31 @@
   }
 }
 
-@keyframes slideUp {
+@keyframes scaleUp {
   from {
-    transform: translateY(15px);
     opacity: 0;
+    transform: scale(0.95);
   }
   to {
-    transform: translateY(0);
     opacity: 1;
+    transform: scale(1);
   }
 }
 
-/* --- Mobile Responsiveness --- */
 @media (max-width: 640px) {
   .grid,
   .twoColumnGrid {
     grid-template-columns: 1fr;
-    gap: 12px;
   }
-  .modal {
-    max-height: 95vh;
-  }
-  .ticketCaptureArea {
+
+  .scrollContainer {
     padding: 16px;
   }
+
+  .actionRow {
+    flex-direction: column;
+  }
+
   .truncate {
     max-width: 140px;
   }

@@ -4,8 +4,12 @@ import {
   fetchAdminSeatLayoutDetail,
   fetchAdminSeatLayouts,
   updateAdminSeatLayoutStatusApi,
+  updateAdminSeatLayoutDetailApi,
 } from "@/services/admin/seat-layout.service";
-import type { DuplicateSeatLayoutPayload } from "@/types/admin/seat-layouts/seat-layout-management.type";
+import type {
+  DuplicateSeatLayoutPayload,
+  UpdateSeatLayoutDetailPayload,
+} from "@/types/admin/seat-layouts/seat-layout-management.type";
 
 export function useSeatLayouts() {
   return useQuery({
@@ -53,6 +57,32 @@ export function useUpdateSeatLayoutStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-seat-layouts"] });
       queryClient.invalidateQueries({ queryKey: ["admin-seat-layout-detail"] });
+    },
+  });
+}
+export function useUpdateSeatLayoutDetail() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      seatLayoutId,
+      seatLayoutDetailId,
+      payload,
+    }: {
+      seatLayoutId: number;
+      seatLayoutDetailId: number;
+      payload: UpdateSeatLayoutDetailPayload;
+    }) =>
+      updateAdminSeatLayoutDetailApi(seatLayoutId, seatLayoutDetailId, payload),
+
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["admin-seat-layouts"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["admin-seat-layout-detail", variables.seatLayoutId],
+      });
     },
   });
 }

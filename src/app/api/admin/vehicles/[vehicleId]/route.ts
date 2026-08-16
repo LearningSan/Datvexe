@@ -48,17 +48,26 @@ function getMysqlDuplicateMessage(error: MysqlError): string {
   return "Mã xe hoặc biển số xe đã tồn tại";
 }
 
-export async function PATCH(req: NextRequest, context: Context) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ vehicleId: string }> },
+) {
   try {
     await getAdminAuthUserId(req);
 
-    const { vehicleId: rawVehicleId } = await context.params;
-    const vehicleId = parseVehicleId(rawVehicleId);
+    const { vehicleId } = await params;
+
+    const id = Number(vehicleId);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return errorResponse("ID xe không hợp lệ", null, 400);
+    }
 
     const body = await req.json();
+
     const parsed = updateAdminVehicleSchema.parse(body);
 
-    const data = await updateAdminVehicle(vehicleId, parsed);
+    const data = await updateAdminVehicle(id, parsed);
 
     return successResponse(data, "Cập nhật xe thành công");
   } catch (error: unknown) {
@@ -71,13 +80,9 @@ export async function PATCH(req: NextRequest, context: Context) {
       return errorResponse("Phiên đăng nhập quản trị không hợp lệ", null, 401);
     }
 
-    if (error instanceof SyntaxError) {
-      return errorResponse("Dữ liệu JSON không hợp lệ", null, 400);
-    }
-
     if (error instanceof ZodError) {
       return errorResponse(
-        error.issues[0]?.message || "Dữ liệu cập nhật xe không hợp lệ",
+        error.issues[0]?.message || "Dữ liệu xe không hợp lệ",
         null,
         400,
       );
@@ -87,14 +92,6 @@ export async function PATCH(req: NextRequest, context: Context) {
       return errorResponse(getMysqlDuplicateMessage(error), null, 409);
     }
 
-    if (message === "Không tìm thấy xe") {
-      return errorResponse(message, null, 404);
-    }
-
-    return errorResponse(
-      message,
-      null,
-      message === "vehicleId không hợp lệ" ? 400 : 500,
-    );
+    return errorResponse(message, null, 500);
   }
 }

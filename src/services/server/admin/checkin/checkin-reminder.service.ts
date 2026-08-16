@@ -39,15 +39,7 @@ export async function processCheckinReminders(input?: {
     ).values(),
   );
 
-  console.log("[CHECKIN REMINDER CANDIDATES]", {
-    rawCount: candidateRows.length,
-    uniqueCount: candidates.length,
-    items: candidates.map((candidate) => ({
-      bookingId: candidate.bookingId,
-      tripId: candidate.tripId,
-      userId: candidate.userId,
-    })),
-  });
+
 
   const results: CheckinReminderProcessItem[] = [];
 

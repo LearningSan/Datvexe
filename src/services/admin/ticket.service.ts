@@ -20,7 +20,10 @@ import type {
   ChangeTicketTripPayload,
   ChangeTicketPreview,
   CancelTicketPreview,
-  AdminOfflineTicketPreview 
+  AdminOfflineTicketPreview,
+  AdminOfflineTripSearchParams,
+  AdminOfflineTicketFilterOptions,
+  AdminOfflineTripSearchItem,
 } from "@/types/admin/tickets/ticket-management.type";
 
 function throwApiError(error: any, fallback: string): never {
@@ -82,7 +85,10 @@ export async function updateAdminTicketStatusApi(
   payload: UpdateTicketStatusPayload,
 ) {
   try {
-    const res = await adminApi.patch(`/admin/tickets/${bookingId}/status`, payload);
+    const res = await adminApi.patch(
+      `/admin/tickets/${bookingId}/status`,
+      payload,
+    );
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể cập nhật trạng thái vé");
@@ -94,7 +100,10 @@ export async function cancelAdminTicketApi(
   payload: CancelTicketPayload,
 ) {
   try {
-    const res = await adminApi.post(`/admin/tickets/${bookingId}/cancel`, payload);
+    const res = await adminApi.post(
+      `/admin/tickets/${bookingId}/cancel`,
+      payload,
+    );
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể hủy vé");
@@ -106,7 +115,10 @@ export async function extendAdminTicketHoldApi(
   payload: ExtendTicketHoldPayload,
 ) {
   try {
-    const res = await adminApi.patch(`/admin/tickets/${bookingId}/hold`, payload);
+    const res = await adminApi.patch(
+      `/admin/tickets/${bookingId}/hold`,
+      payload,
+    );
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể gia hạn giữ chỗ");
@@ -127,7 +139,10 @@ export async function addAdminTicketSeatsApi(
   payload: AddTicketSeatsPayload,
 ) {
   try {
-    const res = await adminApi.post(`/admin/tickets/${bookingId}/seats`, payload);
+    const res = await adminApi.post(
+      `/admin/tickets/${bookingId}/seats`,
+      payload,
+    );
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể thêm ghế");
@@ -225,7 +240,9 @@ export async function createAdminOfflineTicketApi(
 
 export async function resendAdminTicketApi(bookingId: number) {
   try {
-    const res = await adminApi.post(`/admin/tickets/${bookingId}/resend-ticket`);
+    const res = await adminApi.post(
+      `/admin/tickets/${bookingId}/resend-ticket`,
+    );
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể gửi lại vé");
@@ -437,5 +454,33 @@ export async function fetchAdminOfflineTicketPreviewApi(tripId: number) {
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể tải dữ liệu tạo vé offline");
+  }
+}
+export async function searchAdminOfflineTripsApi(
+  params: AdminOfflineTripSearchParams,
+): Promise<AdminOfflineTripSearchItem[]> {
+  try {
+    const res = await adminApi.get<ApiResponse<AdminOfflineTripSearchItem[]>>(
+      "/admin/tickets/offline/search",
+      {
+        params,
+      },
+    );
+
+    return res.data.data;
+  } catch (error: any) {
+    throwApiError(error, "Không thể tìm kiếm chuyến xe");
+    throw error;
+  }
+}
+export async function fetchAdminOfflineTicketFilterOptionsApi() {
+  try {
+    const res = await adminApi.get<
+      ApiResponse<AdminOfflineTicketFilterOptions>
+    >("/admin/tickets/offline/options");
+
+    return res.data.data;
+  } catch (error: any) {
+    throwApiError(error, "Không thể tải dữ liệu bộ lọc tra cứu chuyến");
   }
 }

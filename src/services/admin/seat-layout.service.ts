@@ -4,6 +4,7 @@ import type {
   DuplicateSeatLayoutPayload,
   SeatLayoutDetailResponse,
   SeatLayoutItem,
+  UpdateSeatLayoutDetailPayload,
 } from "@/types/admin/seat-layouts/seat-layout-management.type";
 
 function throwApiError(error: any, fallback: string): never {
@@ -61,12 +62,33 @@ export async function updateAdminSeatLayoutStatusApi(
   isActive: boolean,
 ) {
   try {
-    const res = await adminApi.patch(`/admin/seat-layouts/${seatLayoutId}/status`, {
-      isActive,
-    });
+    const res = await adminApi.patch(
+      `/admin/seat-layouts/${seatLayoutId}/status`,
+      {
+        isActive,
+      },
+    );
 
     return res.data.data;
   } catch (error: any) {
     throwApiError(error, "Không thể cập nhật trạng thái sơ đồ ghế");
+  }
+}
+export async function updateAdminSeatLayoutDetailApi(
+  seatLayoutId: number,
+  seatLayoutDetailId: number,
+  payload: UpdateSeatLayoutDetailPayload,
+) {
+  try {
+    const res = await adminApi.patch<
+      ApiResponse<UpdateSeatLayoutDetailPayload>
+    >(
+      `/admin/seat-layouts/${seatLayoutId}/details/${seatLayoutDetailId}`,
+      payload,
+    );
+
+    return res.data.data;
+  } catch (error: any) {
+    throwApiError(error, "Không thể cập nhật thông tin ghế");
   }
 }

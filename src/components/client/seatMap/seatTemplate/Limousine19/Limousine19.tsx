@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, Fragment } from "react";
+import { useMemo, Fragment, useEffect } from "react";
 
 import SeatItem from "../../seatItem/SeatItem";
 
@@ -26,43 +26,27 @@ export default function Limousine19Seat({
 
   onSelectSeat,
 }: Props) {
-  // =========================
-  // MAX COLUMN
-  // =========================
-  const maxCol = useMemo(
-    () => Math.max(...seats.map((s) => s.columnNo)),
-    [seats],
-  );
-
-  // =========================
-  // GROUP COLUMNS
-  // =========================
-  const columns = useMemo(() => {
-    const cols = [...new Set(seats.map((s) => s.columnNo))].sort(
-      (a, b) => b - a,
+  const rows = useMemo(() => {
+    const rowNos = [...new Set(seats.map((s) => s.rowNo))].sort(
+      (a, b) => a - b,
     );
-
-    return cols.map((colNo) => ({
-      colNo,
-
+    return rowNos.map((rowNo) => ({
+      rowNo,
       seats: seats
-        .filter((s) => s.columnNo === colNo)
-        .sort((a, b) => b.rowNo - a.rowNo),
+        .filter((s) => s.rowNo === rowNo)
+        .sort((a, b) => b.columnNo - a.columnNo),
     }));
   }, [seats]);
 
-  // =========================
-  // SELECTED
-  // =========================
   const isSelected = (seatId: number) =>
     selectedSeats.some((s) => s.seatId === seatId);
 
   return (
     <CarFrame>
       <div className={styles.limoCabin}>
-        {columns.map((col) => (
-          <div key={col.colNo} className={styles.limoCol}>
-            {col.seats.map((seat, index) => (
+        {rows.map((row) => (
+          <div key={row.rowNo} className={styles.limoRow}>
+            {row.seats.map((seat, index) => (
               <Fragment key={seat.seatId}>
                 <SeatItem
                   seat={seat}
@@ -70,8 +54,10 @@ export default function Limousine19Seat({
                   onSelect={onSelectSeat}
                 />
 
-                {col.colNo !== maxCol && index === 1 && (
-                  <div className={styles.aisleSpace} />
+                {row.rowNo === 3 && (
+                  <div className={styles.aisleLane}>
+                    <span>LỐI ĐI CHUNG</span>
+                  </div>
                 )}
               </Fragment>
             ))}

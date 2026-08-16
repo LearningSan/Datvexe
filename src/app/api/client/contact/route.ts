@@ -43,18 +43,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("[CONTACT REQUEST]", {
-      ...parsed.data,
-      createdAt: new Date().toISOString(),
-    });
-
-    /*
-      Sau này có thể thay console.log bằng:
-      - Gửi email cho admin.
-      - Lưu vào bảng contact_requests.
-      - Gửi thông báo nội bộ.
-    */
-
     return successResponse(
       {
         received: true,

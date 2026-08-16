@@ -1,628 +1,693 @@
-.backdrop {
+/* =========================================================
+   MODAL OVERLAY / CONTAINER
+========================================================= */
+
+.largeModal {
   position: fixed;
   inset: 0;
-  z-index: 150;
-  background-color: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
+  z-index: 1000;
 
-/* Modal kích thước lớn chuyên dùng cho màn bán vé tại quầy */
-.largeModal {
-  background: #ffffff;
-  width: min(1200px, 100%);
-  max-height: 92vh;
-  border-radius: 12px;
+  width: min(1500px, calc(100vw - 40px));
+  height: min(94vh, 1100px);
+
+  margin: auto;
+
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+
   box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.15),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    0 24px 70px rgba(15, 23, 42, 0.25),
+    0 8px 25px rgba(15, 23, 42, 0.1);
+
   display: flex;
   flex-direction: column;
+
   overflow: hidden;
-  animation: modalFadeIn 0.2s ease-out;
+
+  animation: modalEnter 0.18s ease-out;
 }
 
-@keyframes modalFadeIn {
+@keyframes modalEnter {
   from {
     opacity: 0;
-    transform: scale(0.96);
+    transform: translateY(12px) scale(0.985);
   }
+
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(0) scale(1);
   }
 }
 
-/* Header UI Component */
+/* =========================================================
+   HEADER
+========================================================= */
+
 .header {
-  padding: 16px 20px;
+  flex-shrink: 0;
+
+  min-height: 86px;
+  padding: 18px 26px;
+
+  background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
+
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background-color: #f8fafc;
+  justify-content: space-between;
+  gap: 20px;
 }
 
 .header h2 {
   margin: 0;
-  font-size: 16px;
-  font-weight: 700;
+
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 750;
+
   color: #0f172a;
 }
 
 .header p {
-  margin: 4px 0 0 0;
-  font-size: 12px;
+  margin: 6px 0 0;
+
+  font-size: 13px;
+  line-height: 1.5;
+
   color: #64748b;
-  line-height: 1.4;
 }
 
 .closeBtn {
-  border: none;
-  background: transparent;
-  color: #94a3b8;
-  font-size: 24px;
-  cursor: pointer;
-  padding: 4px;
+  flex-shrink: 0;
+
+  width: 38px;
+  height: 38px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+
+  background: #f8fafc;
+
+  color: #64748b;
+
+  font-size: 25px;
   line-height: 1;
-  border-radius: 6px;
-  transition: all 0.15s;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
 }
 
 .closeBtn:hover {
-  color: #475569;
-  background-color: #e2e8f0;
+  background: #fee2e2;
+  color: #dc2626;
+  transform: rotate(3deg);
 }
 
-/* Form Layout Elements */
+/* =========================================================
+   BODY
+========================================================= */
+
 .body {
-  padding: 20px;
+  flex: 1;
+
+  min-height: 0;
+
+  padding: 22px 26px 110px;
+
   overflow-y: auto;
+  overflow-x: hidden;
+
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  background-color: #f8fafc;
+  gap: 18px;
+
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
-.workflowRowSplit {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+.body::-webkit-scrollbar {
+  width: 8px;
 }
+
+.body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.body::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* =========================================================
+   PANEL
+========================================================= */
 
 .panel {
   background: #ffffff;
+
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  border-radius: 14px;
+
+  padding: 20px;
+
+  box-shadow: 0 2px 7px rgba(15, 23, 42, 0.04);
 }
 
 .panelHeader {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 8px;
-}
+  align-items: flex-start;
+  gap: 12px;
 
-.stepIndicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  background-color: #4f46e5;
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 700;
-  border-radius: 50%;
+  margin-bottom: 18px;
 }
 
 .panelHeader h3 {
   margin: 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: #1e293b;
+
+  font-size: 16px;
+  font-weight: 750;
+
+  color: #0f172a;
 }
+
+.panelHeader p {
+  margin: 4px 0 0;
+
+  font-size: 12px;
+  line-height: 1.45;
+
+  color: #64748b;
+}
+
+.stepIndicator {
+  flex-shrink: 0;
+
+  min-width: 30px;
+  height: 30px;
+
+  padding: 0 7px;
+
+  border-radius: 9px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #eff6ff;
+  color: #2563eb;
+
+  border: 1px solid #bfdbfe;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* =========================================================
+   FORM
+========================================================= */
 
 .filterFieldsGrid {
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
-  gap: 10px;
+
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  gap: 14px;
 }
 
 .formGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 14px;
 }
 
 .fullWidth {
-  grid-column: span 2;
+  grid-column: 1 / -1;
 }
 
 .formLabel {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
+
+  min-width: 0;
+}
+
+.formLabel > span {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+
   color: #334155;
 }
 
 .formLabel input,
 .formLabel select,
 .searchInput {
-  padding: 9px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 13px;
-  color: #0f172a;
-  background-color: #ffffff;
-  outline: none;
-  transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
   width: 100%;
+  min-height: 42px;
+
+  padding: 0 12px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: #0f172a;
+
+  font-size: 13px;
+
+  outline: none;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.formLabel input:hover,
+.formLabel select:hover,
+.searchInput:hover {
+  border-color: #94a3b8;
 }
 
 .formLabel input:focus,
 .formLabel select:focus,
 .searchInput:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  border-color: #2563eb;
+
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Danh sách cuộn chọn chuyến và điểm đón trả */
-.tripList,
-.pointList {
-  max-height: 160px;
-  overflow-y: auto;
+.formLabel input::placeholder,
+.searchInput::placeholder {
+  color: #94a3b8;
+}
+
+/* =========================================================
+   TIME SEARCH
+========================================================= */
+
+.timeSearchSection {
+  margin-top: 18px;
+
+  padding: 16px;
+
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  display: flex;
-  flex-direction: column;
-}
-
-.tripOption,
-.pointOption {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 10px 12px;
-  border: none;
-  border-bottom: 1px solid #f1f5f9;
-  background: #ffffff;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.15s;
-  width: 100%;
-}
-
-.tripOption:last-child,
-.pointOption:last-child {
-  border-bottom: none;
-}
-
-.tripOption:hover,
-.pointOption:hover {
-  background-color: #f8fafc;
-}
-
-.tripOptionActive,
-.pointOptionActive {
-  background-color: #eff6ff !important;
-  border-left: 3px solid #3b82f6;
-  padding-left: 9px;
-}
-
-.tripMeta {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.tripIdTag {
-  font-size: 11px;
-  background: #e2e8f0;
-  color: #475569;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.vehicleTypeTag {
-  font-size: 11px;
-  background: #e0f2fe;
-  color: #0369a1;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 500;
-}
-
-.tripNameText {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.tripVehicleLine {
-  margin-top: 4px;
-  font-size: 11px;
-  color: #64748b;
-  display: flex;
-  gap: 12px;
-}
-
-.pointOption strong {
-  font-size: 13px;
-  color: #1e293b;
-}
-
-.pointOption span {
-  font-size: 11px;
-  color: #64748b;
-  margin-top: 2px;
-}
-
-/* Thông tin chuyến tổng quan */
-.vehicleSummaryBox {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 12px;
-}
-
-.summaryItem {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.summaryItem span {
-  font-size: 11px;
-  color: #64748b;
-}
-
-.summaryItem strong {
-  font-size: 13px;
-  color: #0f172a;
-}
-
-/* ==========================================================================
-   XỬ LÝ ĐỒ HỌA SƠ ĐỒ XE (CHẠY NGANG THEO CHIỀU DỌC XE THỰC TẾ)
-   ========================================================================== */
-.floorList {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-}
-
-.floorCard {
-  border: 1px dashed #cbd5e1;
   border-radius: 12px;
-  padding: 16px;
-  background-color: #ffffff;
+
+  background: #f8fafc;
 }
 
-.floorTitle {
+.timeSearchTitle {
+  margin-bottom: 10px;
+
   font-size: 12px;
-  font-weight: 700;
-  color: #475569;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-  text-align: center;
-  letter-spacing: 0.05em;
-}
+  font-weight: 750;
 
-.busCabin {
-  display: flex;
-  background-color: #ffffff;
-  border: 3px solid #94a3b8;
-  border-radius: 24px 10px 10px 24px; /* Bo tròn mạnh phía đầu xe */
-  padding: 16px;
-  align-items: center;
-  gap: 16px;
-  overflow-x: auto; /* Tạo thanh cuộn ngang mượt mà khi xe dài */
-}
-
-.busFront {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  height: 100%;
-  min-height: 160px;
-  border-right: 2px dashed #cbd5e1;
-  padding-right: 16px;
-  min-width: 75px;
-}
-
-.busDoor {
-  font-size: 9px;
-  font-weight: 700;
-  color: #16a34a;
-  background-color: #f0fdf4;
-  padding: 3px 6px;
-  border: 1px solid #bbf7d0;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-.driverSeat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.steeringWheel {
-  width: 26px;
-  height: 26px;
-  border: 4px dashed #64748b;
-  border-radius: 50%;
-}
-
-.gridContainer {
-  flex: 1;
-}
-
-.seatGrid {
-  display: grid;
-  gap: 10px 14px;
-  min-width: max-content;
-  padding: 4px;
-}
-
-.gridCell {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Định hình nút Ghế / Giường nằm */
-.changeSeatButton {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  width: 76px;
-  height: 52px;
-  padding: 4px;
-  border: 2px solid #cbd5e1;
-  border-radius: 6px;
-  background-color: #ffffff;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.changeSeatButton:hover:not(:disabled) {
-  border-color: #4f46e5;
-  background-color: #f5f3ff;
-  transform: translateY(-1px);
-}
-
-/* Các trạng thái màu của ghế */
-.selectedSeat {
-  border-color: #22c55e !important;
-  background-color: #f0fdf4 !important;
-  color: #15803d !important;
-}
-
-.bookedSeat {
-  border-color: #cbd5e1 !important;
-  background-color: #f1f5f9 !important;
-  color: #94a3b8 !important;
-}
-
-.holdingSeat {
-  border-color: #f59e0b !important;
-  background-color: #fffbeb !important;
-  color: #b45309 !important;
-}
-
-.disabledSeat {
-  cursor: not-allowed !important;
-}
-
-/* Gối kê đầu trên ghế */
-.seatCap {
-  width: 36px;
-  height: 5px;
-  background-color: #e2e8f0;
-  border-radius: 2px;
-}
-
-.selectedSeat .seatCap {
-  background-color: #22c55e;
-}
-.bookedSeat .seatCap {
-  background-color: #cbd5e1;
-}
-.holdingSeat .seatCap {
-  background-color: #f59e0b;
-}
-
-.seatBody {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-.seatBody strong {
-  font-size: 13px;
-  line-height: 1.1;
-}
-
-.seatBody small {
-  font-size: 9px;
-  font-weight: 500;
-  opacity: 0.8;
-}
-
-/* Chú thích sơ đồ */
-.seatLegendBar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  font-size: 12px;
-  color: #475569;
-  margin-bottom: 4px;
-}
-
-.legendItem {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.legendBox {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-}
-
-.bgAvailable {
-  background-color: #ffffff;
-  border: 2px solid #cbd5e1;
-}
-.bgSelected {
-  background-color: #f0fdf4;
-  border: 2px solid #22c55e;
-}
-.bgBooked {
-  background-color: #f1f5f9;
-  border: 2px solid #cbd5e1;
-}
-.bgHolding {
-  background-color: #fffbeb;
-  border: 2px solid #f59e0b;
-}
-
-/* Các khung thông tin tóm tắt text */
-.selectionSummary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #f1f5f9;
-  padding: 10px 14px;
-  border-radius: 6px;
-  font-size: 13px;
   color: #334155;
 }
 
-.seatsHighlight {
-  color: #4f46e5;
-  font-size: 14px;
-}
-.priceHighlight {
-  color: #0f172a;
-  font-size: 14px;
-}
-
-/* KPI Preview Box */
-.previewGrid {
+.timeModeGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
 
-.kpiCard {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 10px;
-  text-align: center;
-}
+  grid-template-columns: repeat(6, minmax(0, 1fr));
 
-.kpiCard span {
-  display: block;
-  font-size: 11px;
-  color: #64748b;
-  margin-bottom: 2px;
-}
-
-.kpiCard strong {
-  font-size: 14px;
-  color: #0f172a;
-}
-
-.totalPriceHighlight {
-  color: #ef4444 !important;
-}
-
-/* Trạng thái hộp kiểm thu tiền */
-.statusBox {
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 8px;
-  padding: 12px 14px;
-}
-
-.checkLine {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.checkLine input[type="checkbox"] {
-  margin-top: 3px;
-  width: 15px;
-  height: 15px;
-  accent-color: #16a34a;
-  cursor: pointer;
-}
-
-.checkText strong {
-  display: block;
-  font-size: 13px;
-  color: #14532d;
-  font-weight: 600;
-}
-
-.checkText p {
-  margin: 2px 0 0 0;
-  font-size: 11px;
-  color: #166534;
-  line-height: 1.4;
-}
-
-/* Loading & Empty States */
-.loadingState,
-.emptyState {
-  padding: 24px;
-  text-align: center;
-  font-size: 13px;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 8px;
 }
 
+.timeModeButton {
+  min-height: 38px;
+
+  padding: 0 10px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #475569;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.timeModeButton:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.timeModeButtonActive {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.customTimeRow {
+  margin-top: 12px;
+
+  max-width: 280px;
+}
+
+/* =========================================================
+   SEARCH BUTTON
+========================================================= */
+
+.searchAction {
+  margin-top: 16px;
+
+  display: flex;
+  justify-content: flex-end;
+}
+
+.searchBtn {
+  min-height: 42px;
+
+  padding: 0 20px;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: #2563eb;
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 750;
+
+  cursor: pointer;
+
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.18);
+
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.searchBtn:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25);
+}
+
+.searchBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   SEARCH RESULT
+========================================================= */
+
+.searchResultSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 12px;
+
+  padding: 10px 12px;
+
+  border-radius: 9px;
+
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+
+  font-size: 12px;
+  color: #64748b;
+}
+
+.searchResultSummary strong {
+  color: #0f172a;
+}
+
+.tripList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tripOption {
+  width: 100%;
+
+  padding: 15px;
+
+  text-align: left;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.tripOption:hover {
+  border-color: #93c5fd;
+  background: #f8fbff;
+
+  box-shadow: 0 5px 15px rgba(15, 23, 42, 0.07);
+
+  transform: translateY(-1px);
+}
+
+.tripOptionActive {
+  border-color: #2563eb;
+
+  background: #eff6ff;
+
+  box-shadow:
+    0 0 0 2px rgba(37, 99, 235, 0.1),
+    0 6px 16px rgba(37, 99, 235, 0.08);
+}
+
+.tripResultTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+.tripResultTop > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.tripIdTag {
+  padding: 3px 7px;
+
+  border-radius: 6px;
+
+  background: #f1f5f9;
+  color: #475569;
+
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.tripDeparture {
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.availabilityBadge {
+  flex-shrink: 0;
+
+  padding: 5px 9px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.availabilityAvailable {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.availabilityLimited {
+  background: #fef3c7;
+  color: #a16207;
+}
+
+.availabilityFull {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.tripRouteText {
+  margin-top: 9px;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  color: #334155;
+}
+
+.tripVehicleLine {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 12px;
+
+  margin-top: 10px;
+
+  font-size: 11px;
+
+  color: #64748b;
+}
+
+.tripVehicleLine span:last-child {
+  font-weight: 750;
+  color: #2563eb;
+}
+
+.tripSeatStats {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 12px;
+
+  margin-top: 10px;
+  padding-top: 9px;
+
+  border-top: 1px dashed #e2e8f0;
+
+  font-size: 10px;
+
+  color: #64748b;
+}
+
+/* =========================================================
+   SELECTED TRIP
+========================================================= */
+
+.selectedTripCard {
+  display: grid;
+
+  grid-template-columns: 1.2fr 2fr;
+
+  gap: 18px;
+
+  padding: 16px;
+
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+
+  background: #eff6ff;
+}
+
+.selectedTripMain {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  gap: 5px;
+
+  padding-right: 18px;
+
+  border-right: 1px solid #bfdbfe;
+}
+
+.selectedTripMain span {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.selectedTripMain strong {
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.selectedTripStats {
+  display: grid;
+
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+.selectedTripStats div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.selectedTripStats span {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.selectedTripStats strong {
+  font-size: 12px;
+  color: #0f172a;
+}
+
+.availableSeatNumber {
+  color: #15803d !important;
+}
+
+/* =========================================================
+   LOADING / EMPTY
+========================================================= */
+
+.loadingState,
+.emptyState {
+  min-height: 90px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+
+  background: #f8fafc;
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
 .smallSpinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid #cbd5e1;
+  width: 18px;
+  height: 18px;
+
+  border: 2px solid #dbeafe;
+  border-top-color: #2563eb;
+
   border-radius: 50%;
-  border-top-color: #4f46e5;
-  animation: spin 0.8s linear infinite;
+
+  animation: spin 0.7s linear infinite;
 }
 
 @keyframes spin {
@@ -631,68 +696,826 @@
   }
 }
 
-/* Actions Footer Rows */
-.footerActions {
-  display: flex;
-  justify-content: flex-end;
+/* =========================================================
+   SEAT SUMMARY
+========================================================= */
+
+.seatAvailabilitySummary {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
   gap: 10px;
-  margin-top: 8px;
+
+  margin-top: 16px;
+}
+
+.seatAvailabilitySummary > div {
+  padding: 12px;
+
+  border-radius: 10px;
+
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.seatAvailabilitySummary span {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.seatAvailabilitySummary strong {
+  font-size: 17px;
+  color: #0f172a;
+}
+
+.availableText {
+  color: #16a34a !important;
+}
+
+/* =========================================================
+   PICKUP / DROPOFF
+========================================================= */
+
+.workflowRowSplit {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 18px;
+}
+
+.searchInput {
+  margin-bottom: 10px;
+}
+
+.pointList {
+  max-height: 260px;
+
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+
+  padding-right: 3px;
+
+  scrollbar-width: thin;
+}
+
+.pointOption {
+  width: 100%;
+
+  padding: 11px 12px;
+
+  text-align: left;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.pointOption:hover {
+  border-color: #93c5fd;
+  background: #f8fbff;
+}
+
+.pointOptionActive {
+  border-color: #2563eb;
+
+  background: #eff6ff;
+
+  box-shadow: inset 3px 0 0 #2563eb;
+}
+
+.pointOption strong {
+  font-size: 12px;
+  color: #334155;
+}
+
+.pointOption span {
+  font-size: 10px;
+  line-height: 1.4;
+  color: #64748b;
+}
+
+/* =========================================================
+   SEAT LEGEND
+========================================================= */
+
+.seatLegendBar {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 16px;
+
+  margin-bottom: 16px;
+  padding: 10px 12px;
+
+  border-radius: 9px;
+
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 11px;
+  color: #475569;
+}
+
+.legendBox {
+  width: 14px;
+  height: 14px;
+
+  border-radius: 4px;
+
+  border: 1px solid #cbd5e1;
+}
+
+.bgAvailable {
+  background: #ffffff;
+}
+
+.bgSelected {
+  background: #00ff22;
+  border-color: #2563eb;
+}
+
+.bgBooked {
+  background: #dedede;
+  border-color: #94a3b8;
+}
+
+.bgHolding {
+  background: #ffcc00;
+  border-color: #ffa200;
+}
+
+/* =========================================================
+   FLOOR / BUS
+========================================================= */
+
+.floorList {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.floorCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+
+  overflow: hidden;
+
+  background: #f8fafc;
+}
+
+.floorTitle {
+  padding: 11px 14px;
+
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+
+  font-size: 12px;
+  font-weight: 750;
+
+  color: #334155;
+}
+
+.busCabin {
+  padding: 18px;
+
+  overflow-x: auto;
+
+  background: #ffffff;
+}
+
+.busFront {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 16px;
+  padding: 10px 14px;
+
+  border-radius: 9px;
+
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.busDoor {
+  font-size: 10px;
+  font-weight: 750;
+  color: #64748b;
+}
+
+.driverSeat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 9px;
+  font-weight: 750;
+
+  color: #64748b;
+}
+
+.steeringWheel {
+  width: 22px;
+  height: 22px;
+
+  border: 3px solid #64748b;
+  border-radius: 50%;
+
+  position: relative;
+}
+
+.steeringWheel::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  width: 8px;
+  height: 3px;
+
+  background: #64748b;
+
+  transform: translate(-50%, -50%);
+}
+
+.gridContainer {
+  overflow-x: auto;
+
+  padding: 4px;
+
+  scrollbar-width: thin;
+}
+
+.seatGrid {
+  position: relative;
+
+  display: grid;
+
+  width: max-content;
+
+  min-width: 100%;
+}
+
+.gridCell {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================================================
+   SEAT
+========================================================= */
+
+.changeSeatButton {
+  position: relative;
+
+  width: 72px;
+  height: 54px;
+
+  padding: 0;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  cursor: pointer;
+
+  overflow: hidden;
+
+  transition:
+    transform 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
+}
+
+.changeSeatButton:hover:not(:disabled) {
+  border-color: #2563eb;
+
+  transform: translateY(-2px);
+
+  box-shadow: 0 5px 12px rgba(37, 99, 235, 0.15);
+}
+
+.seatCap {
+  position: absolute;
+
+  top: 4px;
+  left: 50%;
+
+  width: 42px;
+  height: 10px;
+
+  border-radius: 7px 7px 3px 3px;
+
+  background: #e2e8f0;
+
+  transform: translateX(-50%);
+}
+
+.seatBody {
+  position: absolute;
+
+  inset: 13px 5px 4px;
+
+  border-radius: 6px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 2px;
+
+  background: #ffffff;
+}
+
+.seatBody strong {
+  font-size: 11px;
+  color: #0f172a;
+}
+
+.seatBody small {
+  font-size: 7px;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.selectedSeat {
+  border-color: #2563eb;
+
+  background: #eff6ff;
+
+  box-shadow:
+    0 0 0 2px rgba(37, 99, 235, 0.14),
+    0 5px 12px rgba(37, 99, 235, 0.12);
+}
+
+.selectedSeat .seatCap {
+  background: #60a5fa;
+}
+
+.selectedSeat .seatBody {
+  background: #dbeafe;
+}
+
+.selectedSeat .seatBody strong,
+.selectedSeat .seatBody small {
+  color: #1d4ed8;
+}
+
+.bookedSeat {
+  border-color: #cbd5e1;
+
+  background: #f1f5f9;
+
+  cursor: not-allowed;
+}
+
+.bookedSeat .seatCap {
+  background: #94a3b8;
+}
+
+.bookedSeat .seatBody {
+  background: #cbd5e1;
+}
+
+.bookedSeat .seatBody strong,
+.bookedSeat .seatBody small {
+  color: #475569;
+}
+
+.holdingSeat {
+  border-color: #fbbf24;
+
+  background: #fffbeb;
+
+  cursor: not-allowed;
+}
+
+.holdingSeat .seatCap {
+  background: #fbbf24;
+}
+
+.holdingSeat .seatBody {
+  background: #fef3c7;
+}
+
+.holdingSeat .seatBody strong,
+.holdingSeat .seatBody small {
+  color: #a16207;
+}
+
+.disabledSeat {
+  opacity: 0.85;
+}
+
+/* =========================================================
+   SELECTED SEAT SUMMARY
+========================================================= */
+
+.selectionSummary {
+  margin-top: 16px;
+
+  padding: 13px 15px;
+
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+
+  background: #eff6ff;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  font-size: 12px;
+}
+
+.selectionSummary > span {
+  color: #64748b;
+}
+
+.seatsHighlight {
+  color: #1d4ed8;
+
+  word-break: break-word;
+}
+
+/* =========================================================
+   PAYMENT
+========================================================= */
+
+.previewGrid {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 12px;
+}
+
+.kpiCard {
+  padding: 15px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
+
+  background: #f8fafc;
+
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.kpiCard span {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.kpiCard strong {
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.totalPriceHighlight {
+  color: #2563eb !important;
+}
+
+.statusBox {
+  margin-top: 14px;
+
+  padding: 14px;
+
+  border-radius: 11px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+}
+
+.checkLine {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  cursor: pointer;
+}
+
+.checkLine input {
+  width: 17px;
+  height: 17px;
+
+  margin-top: 2px;
+
+  accent-color: #2563eb;
+
+  cursor: pointer;
+}
+
+.checkText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.checkText strong {
+  font-size: 12px;
+  color: #334155;
+}
+
+.checkText p {
+  margin: 0;
+
+  font-size: 11px;
+  line-height: 1.45;
+
+  color: #64748b;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.footerActions {
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  z-index: 10;
+
+  min-height: 76px;
+
+  padding: 14px 26px;
+
+  background: rgba(255, 255, 255, 0.96);
+
   border-top: 1px solid #e2e8f0;
-  padding-top: 16px;
+
+  backdrop-filter: blur(8px);
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 10px;
 }
 
 .cancelBtn,
 .submitBtn {
-  padding: 9px 16px;
+  min-height: 42px;
+
+  padding: 0 20px;
+
+  border-radius: 9px;
+
   font-size: 13px;
-  font-weight: 600;
-  border-radius: 6px;
+  font-weight: 750;
+
   cursor: pointer;
-  transition: background-color 0.15s;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .cancelBtn {
-  background-color: #ffffff;
-  color: #475569;
   border: 1px solid #cbd5e1;
+
+  background: #ffffff;
+
+  color: #475569;
 }
 
-.cancelBtn:hover {
-  background-color: #f8fafc;
+.cancelBtn:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #94a3b8;
 }
 
 .submitBtn {
-  background-color: #4f46e5;
+  border: 1px solid #2563eb;
+
+  background: #2563eb;
+
   color: #ffffff;
-  border: none;
+
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.18);
 }
 
 .submitBtn:hover:not(:disabled) {
-  background-color: #4338ca;
+  background: #1d4ed8;
+
+  transform: translateY(-1px);
+
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.24);
 }
 
+.cancelBtn:disabled,
 .submitBtn:disabled {
-  background-color: #cbd5e1;
-  color: #94a3b8;
+  opacity: 0.5;
+
   cursor: not-allowed;
+
+  transform: none;
 }
 
-/* Responsive Breakpoints */
-@media (max-width: 992px) {
+/* =========================================================
+   RESPONSIVE - LAPTOP
+========================================================= */
+
+@media (max-width: 1200px) {
+  .largeModal {
+    width: calc(100vw - 24px);
+    height: calc(100vh - 24px);
+  }
+
+  .filterFieldsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .timeModeGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .selectedTripCard {
+    grid-template-columns: 1fr;
+  }
+
+  .selectedTripMain {
+    padding-right: 0;
+    padding-bottom: 12px;
+
+    border-right: 0;
+    border-bottom: 1px solid #bfdbfe;
+  }
+
+  .selectedTripStats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - TABLET
+========================================================= */
+
+@media (max-width: 800px) {
+  .largeModal {
+    width: 100vw;
+    height: 100vh;
+
+    border-radius: 0;
+  }
+
+  .header {
+    padding: 15px 18px;
+  }
+
+  .header h2 {
+    font-size: 18px;
+  }
+
+  .body {
+    padding: 16px 18px 100px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
   .workflowRowSplit {
     grid-template-columns: 1fr;
   }
-}
 
-@media (max-width: 540px) {
-  .filterFieldsGrid,
-  .previewGrid {
-    grid-template-columns: 1fr;
-  }
   .formGrid {
     grid-template-columns: 1fr;
   }
+
   .fullWidth {
-    grid-column: span 1;
+    grid-column: auto;
+  }
+
+  .previewGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .seatAvailabilitySummary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .footerActions {
+    padding: 12px 18px;
+  }
+
+  .cancelBtn,
+  .submitBtn {
+    flex: 1;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - MOBILE
+========================================================= */
+
+@media (max-width: 560px) {
+  .header {
+    min-height: 70px;
+  }
+
+  .header p {
+    display: none;
+  }
+
+  .body {
+    padding: 12px 12px 92px;
+
+    gap: 12px;
+  }
+
+  .panel {
+    padding: 13px;
+
+    border-radius: 11px;
+  }
+
+  .filterFieldsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .timeModeGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .tripResultTop {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .tripVehicleLine {
+    flex-direction: column;
+
+    gap: 5px;
+  }
+
+  .tripSeatStats {
+    flex-direction: column;
+
+    gap: 4px;
+  }
+
+  .selectedTripStats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .seatAvailabilitySummary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .seatLegendBar {
+    gap: 9px;
+  }
+
+  .footerActions {
+    gap: 7px;
+  }
+
+  .cancelBtn,
+  .submitBtn {
+    padding: 0 12px;
   }
 }

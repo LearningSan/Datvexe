@@ -1,123 +1,305 @@
+/* Animation cho Modal */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* OVERLAY WITH GLASSMORPHISM */
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 1000;
   display: grid;
   place-items: center;
-  padding: 24px;
-  background: rgba(15, 23, 42, 0.55);
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* MODAL CONTAINER */
 .modal {
-  width: min(760px, 100%);
+  width: min(680px, 100%);
   max-height: 90vh;
-  overflow: auto;
-  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* HEADER */
 .header {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  padding: 24px;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 24px 28px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
 }
 
-.header span {
+.headerTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.badgeMode {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  background: #eff6ff;
   color: #2563eb;
-  font-size: 12px;
-  font-weight: 900;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid #bfdbfe;
 }
 
 .header h2 {
-  margin: 6px 0;
+  margin: 4px 0 0 0;
+  font-size: 20px;
+  font-weight: 700;
   color: #0f172a;
+  letter-spacing: -0.01em;
 }
 
 .header p {
   margin: 0;
+  font-size: 13px;
   color: #64748b;
 }
 
-.header button {
-  width: 38px;
-  height: 38px;
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 10px;
+  background: transparent;
+  color: #64748b;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
+.closeBtn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* FORM CONTENT */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 24px;
+  gap: 20px;
+  padding: 28px;
+  overflow-y: auto;
 }
 
 .grid2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .formGroup label {
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   color: #334155;
+}
+
+.required {
+  color: #ef4444;
 }
 
 .formGroup input,
 .formGroup select,
 .formGroup textarea {
+  width: 100%;
   border: 1px solid #cbd5e1;
-  border-radius: 12px;
-  padding: 12px;
-  font: inherit;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #0f172a;
+  background-color: #ffffff;
+  outline: none;
+  transition: all 0.15s ease;
+  box-sizing: border-border;
 }
 
-.infoBox {
-  border-radius: 16px;
-  padding: 14px 16px;
-  background: #eff6ff;
-  color: #1e40af;
-  border: 1px solid #bfdbfe;
+.formGroup input::placeholder,
+.formGroup textarea::placeholder {
+  color: #94a3b8;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.formGroup input:disabled,
+.formGroup select:disabled,
+.formGroup textarea:disabled {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+}
+
+/* CARDS & MESSAGES */
+.infoCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0369a1;
+  font-size: 13px;
+}
+
+.infoCardItem {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.infoCardItem span {
+  color: #0284c7;
+}
+
+.infoCardDivider {
+  width: 1px;
+  height: 16px;
+  background: #bae6fd;
 }
 
 .warningBox {
-  border-radius: 16px;
+  display: flex;
+  gap: 12px;
+  border-radius: 12px;
   padding: 14px 16px;
   background: #fff7ed;
+  border: 1px solid #ffedd5;
   color: #9a3412;
-  border: 1px solid #fed7aa;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
+.warningIcon {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+  color: #ea580c;
+}
+
+.warningContent strong {
+  font-weight: 600;
+}
+
+/* FOOTER */
 .footer {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 8px;
 }
 
-.footer button {
-  border: 0;
-  border-radius: 12px;
-  padding: 12px 18px;
-  font-weight: 800;
+.cancelBtn,
+.submitBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
 }
 
-.footer button:first-child {
-  background: #e2e8f0;
+.cancelBtn {
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background: #f8fafc;
   color: #0f172a;
 }
 
-.footer button:last-child {
+.submitBtn {
   background: #2563eb;
   color: #ffffff;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.submitBtn:disabled,
+.cancelBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinnerWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
 }

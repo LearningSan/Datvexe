@@ -124,7 +124,6 @@ export default function VehiclesContainer() {
 
   return (
     <div className={styles.page}>
-
       <div className={styles.header}>
         <div>
           <h1>Quản lý xe</h1>
@@ -196,75 +195,77 @@ export default function VehiclesContainer() {
           </thead>
 
           <tbody>
-            {data?.items.map((vehicle) => (
-              <tr key={vehicle.vehicleId}>
-                <td>{vehicle.internalCode || "Chưa có"}</td>
-                <td>
-                  <strong>{vehicle.licensePlate}</strong>
-                </td>
-                <td>{vehicle.vehicleName || "Không đặt tên"}</td>
-                <td>
-                  <div>{vehicle.vehicleTypeName}</div>
-                  <small>{vehicle.layoutName}</small>
-                </td>
-                <td>{vehicle.totalSeats}</td>
-                <td>
-                  <span
-                    className={`${styles.status} ${
-                      styles[vehicle.status.toLowerCase()]
-                    }`}
-                  >
-                    {getStatusLabel(vehicle.status)}
-                  </span>
-                </td>
-                <td>{vehicle.upcomingTrip || "Chưa có"}</td>
-                <td>
-                  <div className={styles.actions}>
-                    <button
-                      className={styles.editBtn}
-                      onClick={() => {
-                        setFormMode("EDIT");
-                        setSelectedVehicle(vehicle);
-                        setOpenForm(true);
-                      }}
+            {data?.items.map((vehicle, index) => {
+              return (
+                <tr key={`vehicle-${vehicle.vehicleId}` }>
+                  <td>{vehicle.internalCode || "Chưa có"}</td>
+                  <td>
+                    <strong>{vehicle.licensePlate}</strong>
+                  </td>
+                  <td>{vehicle.vehicleName || "Không đặt tên"}</td>
+                  <td>
+                    <div>{vehicle.vehicleTypeName}</div>
+                    <small>{vehicle.layoutName}</small>
+                  </td>
+                  <td>{vehicle.totalSeats}</td>
+                  <td>
+                    <span
+                      className={`${styles.status} ${
+                        styles[vehicle.status.toLowerCase()]
+                      }`}
                     >
-                      Sửa
-                    </button>
+                      {getStatusLabel(vehicle.status)}
+                    </span>
+                  </td>
+                  <td>{vehicle.upcomingTrip || "Chưa có"}</td>
+                  <td>
+                    <div className={styles.actions}>
+                      <button
+                        className={styles.editBtn}
+                        onClick={() => {
+                          setFormMode("EDIT");
+                          setSelectedVehicle(vehicle);
+                          setOpenForm(true);
+                        }}
+                      >
+                        Sửa
+                      </button>
 
-                    <button
-                      className={
-                        vehicle.status === "INACTIVE"
-                          ? styles.activateBtn
-                          : styles.inactiveBtn
-                      }
-                      onClick={() => {
-                        if (vehicle.status === "INACTIVE") {
-                          statusMutation.mutate(
-                            {
-                              vehicleId: vehicle.vehicleId,
-                              payload: { status: "AVAILABLE" },
-                            },
-                            {
-                              onSuccess: () =>
-                                toast.success("Đã kích hoạt lại xe"),
-                              onError: (error: any) =>
-                                toast.error(error.message),
-                            },
-                          );
-                          return;
+                      <button
+                        className={
+                          vehicle.status === "INACTIVE"
+                            ? styles.activateBtn
+                            : styles.inactiveBtn
                         }
+                        onClick={() => {
+                          if (vehicle.status === "INACTIVE") {
+                            statusMutation.mutate(
+                              {
+                                vehicleId: vehicle.vehicleId,
+                                payload: { status: "AVAILABLE" },
+                              },
+                              {
+                                onSuccess: () =>
+                                  toast.success("Đã kích hoạt lại xe"),
+                                onError: (error: any) =>
+                                  toast.error(error.message),
+                              },
+                            );
+                            return;
+                          }
 
-                        setVehicleToInactive(vehicle);
-                      }}
-                    >
-                      {vehicle.status === "INACTIVE"
-                        ? "Kích hoạt lại"
-                        : "Ngưng dùng"}
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                          setVehicleToInactive(vehicle);
+                        }}
+                      >
+                        {vehicle.status === "INACTIVE"
+                          ? "Kích hoạt lại"
+                          : "Ngưng dùng"}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
 
             {data?.items.length === 0 && (
               <tr>

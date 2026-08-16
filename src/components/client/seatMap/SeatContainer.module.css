@@ -232,4 +232,116 @@
     padding: 16px;
   }
 }
-  
+.noTripContainer {
+  width: 100%;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.noTripCard {
+  width: 100%;
+  max-width: 500px;
+  padding: 40px;
+  text-align: center;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.noTripIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.noTripTitle {
+  margin: 0 0 10px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.noTripDescription {
+  margin: 0 0 24px;
+  color: #64748b;
+  font-size: 15px;
+}
+
+.chooseTripButton {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chooseTripButton:hover {
+  background: #1d4ed8;
+}
+
+.changeTripContainer {
+  margin-bottom: 16px;
+}
+
+.changeTripButton {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.changeTripButton:hover {
+  background: #f8fafc;
+}
+.unsupportedLayout {
+  padding: 20px;
+  text-align: center;
+  color: #aaa;
+  border: 1px dashed #444;
+  border-radius: 12px;
+}
+
+.errorBanner {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.retryButton {
+  margin-left: 8px;
+}
+
+.changeTripContainer {
+  margin-bottom: 16px;
+}
+
+.changeTripButton {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.changeTripButton:hover {
+  background: #f8fafc;
+}
+
+.fetchingMessage {
+  margin-top: 10px;
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+}

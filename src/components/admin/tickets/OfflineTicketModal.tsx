@@ -2,123 +2,282 @@
 
 import { FormEvent, MouseEvent, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { useAdminOfflineTicketPreview } from "@/hooks/admin/useTickets";
+
+import {
+  useAdminOfflineTicketFilterOptions,
+  useAdminOfflineTicketPreview,
+  useAdminOfflineTripSearch,
+} from "@/hooks/admin/useTickets";
+
 import type {
   AdminOfflineTripSeat,
-  AdminTicketOptionsResponse,
+  AdminOfflineTripSearchItem,
   CreateOfflineTicketPayload,
+  AdminTicketAvailableSeat,
 } from "@/types/admin/tickets/ticket-management.type";
+import SeatMap from "@/components/admin/AdminSeatMap";
 import { formatCurrency, formatDateTimeVN } from "@/lib/client/helpers";
+
 import styles from "./OfflineTicketModal.module.css";
 
 interface Props {
   open: boolean;
-  options?: AdminTicketOptionsResponse;
   loading?: boolean;
   onClose: () => void;
   onSubmit: (payload: CreateOfflineTicketPayload) => void;
 }
 
+type TimeMode = "ALL" | "MORNING" | "NOON" | "AFTERNOON" | "EVENING" | "CUSTOM";
+
+const getToday = () => {
+  return new Date().toISOString().slice(0, 10);
+};
+
+const parseLocalDatetime = (value: string) => {
+  return new Date(String(value).replace(" ", "T"));
+};
+
+const formatDuration = (minutes: number) => {
+  if (!minutes || minutes <= 0) return "—";
+
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+
+  if (hours === 0) return `${mins} phút`;
+  if (mins === 0) return `${hours} giờ`;
+
+  return `${hours} giờ ${mins} phút`;
+};
+
 export default function OfflineTicketModal({
   open,
-  options,
   loading,
   onClose,
   onSubmit,
 }: Props) {
-  const getToday = () => new Date().toISOString().slice(0, 10);
+  /*
+   * ============================================================
+   * 1. TRA CỨU CHUYẾN
+   * ============================================================
+   */
+
+  const [originCityId, setOriginCityId] = useState("");
+  const [destinationCityId, setDestinationCityId] = useState("");
 
   const [targetDate, setTargetDate] = useState(getToday());
-  const [tripSearch, setTripSearch] = useState("");
-  const [tripId, setTripId] = useState("");
+
+  const [timeMode, setTimeMode] = useState<TimeMode>("ALL");
+  const [customTime, setCustomTime] = useState("");
+
+  const [vehicleTypeId, setVehicleTypeId] = useState("");
+
+  const [hasSearched, setHasSearched] = useState(false);
+
+  /*
+   * ============================================================
+   * 2. CHUYẾN ĐANG ĐƯỢC CHỌN
+   * ============================================================
+   */
+
+  const [tripId, setTripId] = useState<number | null>(null);
+
+  /*
+   * ============================================================
+   * 3. THÔNG TIN KHÁCH
+   * ============================================================
+   */
 
   const [passengerName, setPassengerName] = useState("");
   const [passengerPhone, setPassengerPhone] = useState("");
   const [passengerEmail, setPassengerEmail] = useState("");
 
+  /*
+   * ============================================================
+   * 4. ĐIỂM ĐÓN / ĐIỂM TRẢ
+   * ============================================================
+   */
+
   const [pickupPointId, setPickupPointId] = useState("");
   const [dropoffPointId, setDropoffPointId] = useState("");
+
   const [pickupSearch, setPickupSearch] = useState("");
   const [dropoffSearch, setDropoffSearch] = useState("");
 
+  /*
+   * ============================================================
+   * 5. GHẾ
+   * ============================================================
+   */
+
   const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
+
+  /*
+   * ============================================================
+   * 6. THANH TOÁN
+   * ============================================================
+   */
+
   const [paid, setPaid] = useState(true);
 
-  const preview = useAdminOfflineTicketPreview(tripId ? Number(tripId) : null);
-  const [vehicleTypeFilter, setVehicleTypeFilter] = useState("");
-  const parseLocalDatetime = (value: string) => {
-    return new Date(value.replace(" ", "T"));
-  };
+  /*
+   * ============================================================
+   * SEARCH PARAMS
+   * ============================================================
+   */
 
-  const tripsByDate = useMemo(() => {
-    const now = new Date();
+  const timeRange = useMemo(() => {
+    switch (timeMode) {
+      case "MORNING":
+        return {
+          timeFrom: "05:00",
+          timeTo: "11:59",
+        };
 
-    return (options?.trips ?? []).filter((trip) => {
-      const departureText = String(trip.departureDatetime);
-      const departure = parseLocalDatetime(departureText);
-      const tripDate = departureText.slice(0, 10);
+      case "NOON":
+        return {
+          timeFrom: "11:00",
+          timeTo: "13:59",
+        };
 
-      if (departure.getTime() < now.getTime()) return false;
+      case "AFTERNOON":
+        return {
+          timeFrom: "12:00",
+          timeTo: "17:59",
+        };
 
-      if (!targetDate) return true;
+      case "EVENING":
+        return {
+          timeFrom: "18:00",
+          timeTo: "23:59",
+        };
 
-      return tripDate === targetDate;
-    });
-  }, [options?.trips, targetDate]);
-  const vehicleTypeOptions = useMemo(() => {
-    const names = tripsByDate
-      .map((trip) => trip.vehicleTypeName)
-      .filter(Boolean) as string[];
+      case "CUSTOM":
+        if (!customTime) {
+          return {};
+        }
 
-    return Array.from(new Set(names));
-  }, [tripsByDate]);
+        return {
+          timeFrom: customTime,
+          timeTo: customTime,
+        };
+
+      default:
+        return {};
+    }
+  }, [timeMode, customTime]);
+
+  const searchParams = useMemo(() => {
+    if (!originCityId || !destinationCityId || !targetDate) {
+      return null;
+    }
+
+    return {
+      originCityId: Number(originCityId),
+      destinationCityId: Number(destinationCityId),
+      date: targetDate,
+      ...(timeRange.timeFrom ? { timeFrom: timeRange.timeFrom } : {}),
+      ...(timeRange.timeTo ? { timeTo: timeRange.timeTo } : {}),
+      ...(vehicleTypeId ? { vehicleTypeId: Number(vehicleTypeId) } : {}),
+    };
+  }, [originCityId, destinationCityId, targetDate, timeRange, vehicleTypeId]);
+  const filterOptions = useAdminOfflineTicketFilterOptions(open);
+  const tripSearch = useAdminOfflineTripSearch(
+    hasSearched ? searchParams : null,
+  );
+
+  /*
+   * ============================================================
+   * PREVIEW CHUYẾN
+   * ============================================================
+   */
+
+  const preview = useAdminOfflineTicketPreview(tripId);
+
+  /*
+   * ============================================================
+   * OPTIONS
+   * ============================================================
+   */
+
+  const cities = filterOptions.data?.cities ?? [];
+
+  const vehicleTypes = filterOptions.data?.vehicleTypes ?? [];
+
+  /*
+   * ============================================================
+   * RESET MODAL
+   * ============================================================
+   */
+
   useEffect(() => {
     if (!open) return;
 
+    setOriginCityId("");
+    setDestinationCityId("");
+
     setTargetDate(getToday());
-    setTripSearch("");
-    setTripId("");
+
+    setTimeMode("ALL");
+    setCustomTime("");
+
+    setVehicleTypeId("");
+
+    setHasSearched(false);
+
+    setTripId(null);
+
     setPassengerName("");
     setPassengerPhone("");
     setPassengerEmail("");
+
     setPickupPointId("");
     setDropoffPointId("");
+
     setPickupSearch("");
     setDropoffSearch("");
+
     setSelectedSeatIds([]);
+
     setPaid(true);
   }, [open]);
 
-  const selectedTrip = useMemo(() => {
-    return (options?.trips ?? []).find(
-      (trip) => String(trip.tripId) === String(tripId),
-    );
-  }, [options?.trips, tripId]);
+  /*
+   * ============================================================
+   * SELECTED TRIP
+   * ============================================================
+   */
 
-  const filteredTrips = useMemo(() => {
-    const keyword = tripSearch.trim().toLowerCase();
+  const selectedTrip = useMemo<AdminOfflineTripSearchItem | null>(() => {
+    const trips = tripSearch.data ?? [];
 
-    return tripsByDate.filter((trip) => {
-      const matchVehicleType =
-        !vehicleTypeFilter || trip.vehicleTypeName === vehicleTypeFilter;
+    return trips.find((trip) => Number(trip.tripId) === Number(tripId)) ?? null;
+  }, [tripSearch.data, tripId]);
 
-      const searchableText = [
-        String(trip.tripId),
-        trip.tripName,
-        trip.departureDatetime,
-        trip.vehicleTypeName,
-        trip.vehicleName,
-        trip.licensePlate,
-        trip.totalSeats ? `${trip.totalSeats}` : "",
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
+  /*
+   * ============================================================
+   * SEATS
+   * ============================================================
+   */
 
-      return matchVehicleType && (!keyword || searchableText.includes(keyword));
-    });
-  }, [tripsByDate, tripSearch, vehicleTypeFilter]);
   const seats = preview.data?.availableSeats ?? [];
+  const adminSeatMapSeats = useMemo<AdminTicketAvailableSeat[]>(() => {
+    return seats.map((seat) => ({
+      seatLayoutDetailId: seat.seatLayoutDetailId,
+      seatNumber: seat.seatNumber,
+      floorNo: seat.floorNo,
+      rowNo: seat.rowNo,
+      columnNo: seat.columnNo,
+      bookingSeatId: null,
+      seatStatus: seat.seatStatus,
+      isCurrentBooking: false,
+      checkinStatus: null,
+    }));
+  }, [seats]);
+  /*
+   * ============================================================
+   * PICKUP POINTS
+   * ============================================================
+   */
 
   const pickupPoints = useMemo(() => {
     const keyword = pickupSearch.trim().toLowerCase();
@@ -138,6 +297,12 @@ export default function OfflineTicketModal({
     });
   }, [preview.data?.pickupPoints, pickupSearch]);
 
+  /*
+   * ============================================================
+   * DROPOFF POINTS
+   * ============================================================
+   */
+
   const dropoffPoints = useMemo(() => {
     const keyword = dropoffSearch.trim().toLowerCase();
 
@@ -156,52 +321,124 @@ export default function OfflineTicketModal({
     });
   }, [preview.data?.dropoffPoints, dropoffSearch]);
 
+  /*
+   * ============================================================
+   * FLOOR
+   * ============================================================
+   */
+
   const floors = useMemo(() => {
     const result: Record<number, AdminOfflineTripSeat[]> = {};
 
     for (const seat of seats) {
-      if (!result[seat.floorNo]) result[seat.floorNo] = [];
+      if (!result[seat.floorNo]) {
+        result[seat.floorNo] = [];
+      }
+
       result[seat.floorNo].push(seat);
     }
 
     return result;
   }, [seats]);
 
+  /*
+   * ============================================================
+   * SELECTED SEATS
+   * ============================================================
+   */
+
   const selectedSeatNames = useMemo(() => {
     return selectedSeatIds
       .map(
         (id) =>
-          seats.find((seat) => seat.seatLayoutDetailId === id)?.seatNumber ||
+          seats.find((seat) => seat.seatLayoutDetailId === id)?.seatNumber ??
           `#${id}`,
       )
       .join(", ");
   }, [selectedSeatIds, seats]);
 
+  /*
+   * ============================================================
+   * TOTAL
+   * ============================================================
+   */
+
   const totalAmount =
     selectedSeatIds.length * Number(preview.data?.ticketPrice ?? 0);
 
-  if (!open) return null;
+  /*
+   * ============================================================
+   * SEARCH
+   * ============================================================
+   */
 
-  const handleBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) onClose();
-  };
+  const handleSearch = () => {
+    if (!originCityId) {
+      toast.error("Vui lòng chọn điểm đi.");
+      return;
+    }
 
-  const handleSelectTrip = (nextTripId: number) => {
-    setTripId(String(nextTripId));
+    if (!destinationCityId) {
+      toast.error("Vui lòng chọn điểm đến.");
+      return;
+    }
+
+    if (Number(originCityId) === Number(destinationCityId)) {
+      toast.error("Điểm đi và điểm đến không được giống nhau.");
+      return;
+    }
+
+    if (!targetDate) {
+      toast.error("Vui lòng chọn ngày khởi hành.");
+      return;
+    }
+
+    if (timeMode === "CUSTOM" && !customTime) {
+      toast.error("Vui lòng nhập thời gian muốn tra cứu.");
+      return;
+    }
+
+    setTripId(null);
+    setSelectedSeatIds([]);
+
     setPickupPointId("");
     setDropoffPointId("");
+
+    setHasSearched(true);
+  };
+
+  /*
+   * ============================================================
+   * CHỌN CHUYẾN
+   * ============================================================
+   */
+
+  const handleSelectTrip = (trip: AdminOfflineTripSearchItem) => {
+    setTripId(trip.tripId);
+
+    setSelectedSeatIds([]);
+
+    setPickupPointId("");
+    setDropoffPointId("");
+
     setPickupSearch("");
     setDropoffSearch("");
-    setSelectedSeatIds([]);
   };
+
+  /*
+   * ============================================================
+   * CHỌN GHẾ
+   * ============================================================
+   */
 
   const toggleSeat = (seat: AdminOfflineTripSeat) => {
     if (seat.seatStatus !== "AVAILABLE") {
-      toast.error(
-        seat.seatStatus === "BOOKED"
-          ? "Ghế này đã bán."
-          : "Ghế này đang được giữ.",
-      );
+      if (seat.seatStatus === "BOOKED") {
+        toast.error("Ghế này đã bán.");
+      } else {
+        toast.error("Ghế này đang được giữ.");
+      }
+
       return;
     }
 
@@ -212,38 +449,75 @@ export default function OfflineTicketModal({
     );
   };
 
+  /*
+   * ============================================================
+   * GRID
+   * ============================================================
+   */
+
   const getGridDimensions = (floorSeats: AdminOfflineTripSeat[]) => {
     let maxRow = 0;
     let maxCol = 0;
 
     floorSeats.forEach((seat) => {
       maxRow = Math.max(maxRow, seat.rowNo);
+
       maxCol = Math.max(maxCol, seat.columnNo);
     });
 
-    return { maxRow, maxCol };
+    return {
+      maxRow,
+      maxCol,
+    };
   };
 
+  /*
+   * ============================================================
+   * VEHICLE LAYOUT NAME
+   * ============================================================
+   */
+
   const getVehicleLayoutName = () => {
-    if (preview.data?.vehicleTypeName) return preview.data.vehicleTypeName;
+    if (preview.data?.vehicleTypeName) {
+      return preview.data.vehicleTypeName;
+    }
 
     const totalSeats = preview.data?.totalSeats ?? seats.length;
-    const maxFloor = Math.max(1, ...seats.map((s) => s.floorNo ?? 1));
 
-    if (totalSeats === 9) return "Limousine 9 chỗ";
-    if (totalSeats === 19) return "Limousine 19 chỗ";
+    const maxFloor = Math.max(1, ...seats.map((seat) => seat.floorNo ?? 1));
+
+    if (totalSeats === 9) {
+      return "Limousine 9 chỗ";
+    }
+
+    if (totalSeats === 19) {
+      return "Limousine 19 chỗ";
+    }
+
     if (totalSeats === 40 || (totalSeats >= 35 && maxFloor === 2)) {
       return "Giường nằm 40 chỗ";
     }
-    if (totalSeats === 22 && maxFloor === 2) return "Cabin VIP 22 phòng";
+
+    if (totalSeats === 22 && maxFloor === 2) {
+      return "Cabin VIP 22 phòng";
+    }
 
     return "Sơ đồ ghế";
   };
 
+  /*
+   * ============================================================
+   * RENDER SEAT
+   * ============================================================
+   */
+
   const renderSeat = (seat: AdminOfflineTripSeat) => {
     const isSelected = selectedSeatIds.includes(seat.seatLayoutDetailId);
+
     const isBooked = seat.seatStatus === "BOOKED";
+
     const isHolding = seat.seatStatus === "HOLDING";
+
     const isDisabled = isBooked || isHolding;
 
     return (
@@ -259,17 +533,30 @@ export default function OfflineTicketModal({
         `}
         onClick={() => toggleSeat(seat)}
       >
-        <div className={styles.seatCap}></div>
+        <div className={styles.seatCap} />
 
         <div className={styles.seatBody}>
           <strong>{seat.seatNumber}</strong>
+
           <small>
-            {isBooked ? "ĐÃ BÁN" : isHolding ? "ĐANG GIỮ" : "TRỐNG"}
+            {isBooked
+              ? "ĐÃ BÁN"
+              : isHolding
+                ? "ĐANG GIỮ"
+                : isSelected
+                  ? "ĐANG CHỌN"
+                  : "TRỐNG"}
           </small>
         </div>
       </button>
     );
   };
+
+  /*
+   * ============================================================
+   * RENDER FLOOR
+   * ============================================================
+   */
 
   const renderFloorSeatGrid = (floorSeats: AdminOfflineTripSeat[]) => {
     const { maxRow, maxCol } = getGridDimensions(floorSeats);
@@ -278,7 +565,6 @@ export default function OfflineTicketModal({
       <div
         className={styles.seatGrid}
         style={{
-          // KHÔI PHỤC: Giữ nguyên trục ban đầu của bạn
           gridTemplateRows: `repeat(${maxRow}, 62px)`,
           gridTemplateColumns: `repeat(${maxCol}, 86px)`,
         }}
@@ -287,7 +573,6 @@ export default function OfflineTicketModal({
           <div
             key={seat.seatLayoutDetailId}
             style={{
-              // KHÔI PHỤC: Row ứng với rowNo, Column ứng với columnNo chuẩn ban đầu
               gridRow: seat.rowNo,
               gridColumn: seat.columnNo,
             }}
@@ -299,12 +584,22 @@ export default function OfflineTicketModal({
       </div>
     );
   };
+
+  /*
+   * ============================================================
+   * VALIDATE CUSTOMER
+   * ============================================================
+   */
+
   const validateCustomer = () => {
     const name = passengerName.trim();
+
     const phone = passengerPhone.trim();
+
     const email = passengerEmail.trim();
 
     const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!name) {
@@ -335,37 +630,84 @@ export default function OfflineTicketModal({
     return true;
   };
 
-  const submit = (e: FormEvent<HTMLFormElement>) => {
+  /*
+   * ============================================================
+   * SUBMIT
+   * ============================================================
+   */
+
+  const submit = (e: FormEvent) => {
     e.preventDefault();
 
-    if (!tripId) return toast.error("Vui lòng chọn chuyến xe.");
-    if (!validateCustomer()) return;
+    if (!tripId) {
+      toast.error("Vui lòng chọn chuyến xe.");
+      return;
+    }
+
+    if (!validateCustomer()) {
+      return;
+    }
 
     if (selectedSeatIds.length === 0) {
-      return toast.error("Vui lòng chọn ít nhất một ghế trên sơ đồ.");
+      toast.error("Vui lòng chọn ít nhất một ghế.");
+      return;
     }
 
     onSubmit({
-      tripId: Number(tripId),
+      tripId,
+
       passengerName: passengerName.trim(),
+
       passengerPhone: passengerPhone.trim(),
+
       passengerEmail: passengerEmail.trim() || null,
+
       pickupPointId: pickupPointId ? Number(pickupPointId) : null,
+
       dropoffPointId: dropoffPointId ? Number(dropoffPointId) : null,
+
       seatLayoutDetailIds: selectedSeatIds,
+
       paid,
     });
   };
 
+  /*
+   * ============================================================
+   * BACKDROP
+   * ============================================================
+   */
+
+  const handleBackdropClick = (e: MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  if (!open) {
+    return null;
+  }
+
+  /*
+   * ============================================================
+   * RENDER
+   * ============================================================
+   */
+
   return (
-    <div className={styles.backdrop} onClick={handleBackdropClick}>
+    <div className={styles.overlay} onClick={handleBackdropClick}>
       <div className={styles.largeModal} onClick={(e) => e.stopPropagation()}>
+        {/* ================================================== */}
+        {/* HEADER */}
+        {/* ================================================== */}
+
         <div className={styles.header}>
           <div>
-            <h2>Lập vé tại quầy</h2>
+            <h2>Tra cứu & lập vé tại quầy</h2>
+
             <p>
-              Chọn chuyến, tự tải sơ đồ ghế, nhập thông tin khách và tạo vé
-              offline.
+              Tra cứu nhanh chuyến xe, kiểm tra số ghế còn lại và lập vé cho
+              khách hàng.
             </p>
           </div>
 
@@ -380,126 +722,468 @@ export default function OfflineTicketModal({
         </div>
 
         <form onSubmit={submit} className={styles.body}>
-          <div className={styles.workflowRowSplit}>
-            <section className={styles.panel}>
-              <div className={styles.panelHeader}>
-                <span className={styles.stepIndicator}>1</span>
-                <h3>Chọn chuyến xe</h3>
-              </div>
+          {/* ================================================== */}
+          {/* STEP 1 - SEARCH */}
+          {/* ================================================== */}
 
-              <div className={styles.filterFieldsGrid}>
-                <label className={styles.formLabel}>
-                  <span>Ngày khởi hành</span>
-                  <input
-                    type="date"
-                    value={targetDate}
-                    onChange={(e) => {
-                      setTargetDate(e.target.value);
-                      setVehicleTypeFilter("");
-                      setTripId("");
-                      setSelectedSeatIds([]);
-                    }}
-                  />
-                </label>
-                <label className={styles.formLabel}>
-                  <span>Loại xe</span>
-                  <select
-                    value={vehicleTypeFilter}
-                    onChange={(e) => {
-                      setVehicleTypeFilter(e.target.value);
-                      setTripId("");
-                      setSelectedSeatIds([]);
-                    }}
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <span className={styles.stepIndicator}>1</span>
+
+              <div>
+                <h3>Tra cứu chuyến xe</h3>
+
+                <p>Tìm chuyến theo tuyến, ngày, thời gian và loại xe.</p>
+              </div>
+            </div>
+
+            <div className={styles.filterFieldsGrid}>
+              {/* ĐIỂM ĐI */}
+
+              <label className={styles.formLabel}>
+                <span>Điểm đi *</span>
+
+                <select
+                  value={originCityId}
+                  onChange={(e) => {
+                    setOriginCityId(e.target.value);
+
+                    setHasSearched(false);
+
+                    setTripId(null);
+                  }}
+                >
+                  <option value="">Chọn điểm đi</option>
+
+                  {cities.map((city) => (
+                    <option key={city.cityId} value={city.cityId}>
+                      {city.cityName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {/* ĐIỂM ĐẾN */}
+
+              <label className={styles.formLabel}>
+                <span>Điểm đến *</span>
+
+                <select
+                  value={destinationCityId}
+                  onChange={(e) => {
+                    setDestinationCityId(e.target.value);
+
+                    setHasSearched(false);
+
+                    setTripId(null);
+                  }}
+                >
+                  <option value="">Chọn điểm đến</option>
+
+                  {cities.map((city) => (
+                    <option key={city.cityId} value={city.cityId}>
+                      {city.cityName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {/* NGÀY */}
+
+              <label className={styles.formLabel}>
+                <span>Ngày khởi hành *</span>
+
+                <input
+                  type="date"
+                  value={targetDate}
+                  min={getToday()}
+                  onChange={(e) => {
+                    setTargetDate(e.target.value);
+
+                    setHasSearched(false);
+
+                    setTripId(null);
+                  }}
+                />
+              </label>
+
+              {/* LOẠI XE */}
+
+              <label className={styles.formLabel}>
+                <span>Loại xe</span>
+
+                <select
+                  value={vehicleTypeId}
+                  onChange={(e) => {
+                    setVehicleTypeId(e.target.value);
+
+                    setHasSearched(false);
+
+                    setTripId(null);
+                  }}
+                >
+                  <option value="">Tất cả loại xe</option>
+
+                  {vehicleTypes.map((type) => (
+                    <option key={type.vehicleTypeId} value={type.vehicleTypeId}>
+                      {type.typeName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            {/* KHUNG GIỜ */}
+
+            <div className={styles.timeSearchSection}>
+              <div className={styles.timeSearchTitle}>Khung giờ khởi hành</div>
+
+              <div className={styles.timeModeGrid}>
+                {[
+                  {
+                    value: "ALL",
+                    label: "Tất cả",
+                  },
+                  {
+                    value: "MORNING",
+                    label: "Buổi sáng",
+                  },
+                  {
+                    value: "NOON",
+                    label: "Buổi trưa",
+                  },
+                  {
+                    value: "AFTERNOON",
+                    label: "Buổi chiều",
+                  },
+                  {
+                    value: "EVENING",
+                    label: "Buổi tối",
+                  },
+                  {
+                    value: "CUSTOM",
+                    label: "Giờ cụ thể",
+                  },
+                ].map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    className={`${styles.timeModeButton}
+                        ${
+                          timeMode === item.value
+                            ? styles.timeModeButtonActive
+                            : ""
+                        }
+                      `}
+                    onClick={() => setTimeMode(item.value as TimeMode)}
                   >
-                    <option value="">Tất cả loại xe</option>
-
-                    {vehicleTypeOptions.map((name) => (
-                      <option key={name} value={name}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className={styles.formLabel}>
-                  <span>Tìm chuyến</span>
-                  <input
-                    value={tripSearch}
-                    onChange={(e) => setTripSearch(e.target.value)}
-                    placeholder="Mã chuyến, tuyến, loại xe, tên xe, biển số..."
-                  />
-                </label>
+                    {item.label}
+                  </button>
+                ))}
               </div>
 
-              <div className={styles.tripList}>
-                {filteredTrips.map((trip) => {
-                  const active = tripId === String(trip.tripId);
+              {timeMode === "CUSTOM" && (
+                <div className={styles.customTimeRow}>
+                  <label className={styles.formLabel}>
+                    <span>Giờ khách muốn đi</span>
 
-                  return (
-                    <button
-                      key={trip.tripId}
-                      type="button"
-                      className={`${styles.tripOption} ${
-                        active ? styles.tripOptionActive : ""
-                      }`}
-                      onClick={() => handleSelectTrip(trip.tripId)}
-                    >
-                      <div className={styles.tripMeta}>
-                        <span className={styles.tripIdTag}>#{trip.tripId}</span>
-                        <span className={styles.vehicleTypeTag}>
-                          {trip.vehicleTypeName || "Chưa gán loại xe"}
-                        </span>
-                      </div>
+                    <input
+                      type="time"
+                      value={customTime}
+                      onChange={(e) => setCustomTime(e.target.value)}
+                    />
+                  </label>
+                </div>
+              )}
+            </div>
 
-                      <div className={styles.tripNameText}>{trip.tripName}</div>
+            {/* SEARCH BUTTON */}
 
-                      <div className={styles.tripVehicleLine}>
-                        <span>{trip.vehicleName || "Chưa gán xe"}</span>
-                        <span>{trip.licensePlate || "Chưa có biển số"}</span>
-                        <span>
-                          {trip.totalSeats
-                            ? `${trip.totalSeats} ghế`
-                            : "Chưa có sơ đồ"}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
+            <div className={styles.searchAction}>
+              <button
+                type="button"
+                className={styles.searchBtn}
+                onClick={handleSearch}
+                disabled={tripSearch.isFetching}
+              >
+                {tripSearch.isFetching
+                  ? "Đang tra cứu..."
+                  : "🔎 Tra cứu chuyến"}
+              </button>
+            </div>
+          </section>
 
-                {filteredTrips.length === 0 && (
-                  <div className={styles.emptyState}>
-                    Không tìm thấy chuyến phù hợp.
-                  </div>
-                )}
-              </div>
-            </section>
+          {/* ================================================== */}
+          {/* STEP 2 - SEARCH RESULT */}
+          {/* ================================================== */}
 
+          {hasSearched && (
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
                 <span className={styles.stepIndicator}>2</span>
-                <h3>Thông tin hành khách</h3>
+
+                <div>
+                  <h3>Danh sách chuyến</h3>
+
+                  <p>
+                    Đây là danh sách chuyến phù hợp để CSKH tư vấn cho khách.
+                  </p>
+                </div>
+              </div>
+
+              {tripSearch.isFetching ? (
+                <div className={styles.loadingState}>
+                  <div className={styles.smallSpinner} />
+                  Đang tìm chuyến phù hợp...
+                </div>
+              ) : tripSearch.isError ? (
+                <div className={styles.emptyState}>
+                  Không thể tải danh sách chuyến.
+                </div>
+              ) : (
+                <>
+                  <div className={styles.searchResultSummary}>
+                    <strong>
+                      {(tripSearch.data ?? []).length} chuyến phù hợp
+                    </strong>
+
+                    <span>{targetDate}</span>
+                  </div>
+
+                  <div className={styles.tripList}>
+                    {(tripSearch.data ?? []).map((trip) => {
+                      const active = trip.tripId === tripId;
+
+                      return (
+                        <button
+                          key={trip.tripId}
+                          type="button"
+                          className={`${styles.tripOption}
+                              ${active ? styles.tripOptionActive : ""}
+                            `}
+                          onClick={() => handleSelectTrip(trip)}
+                        >
+                          <div className={styles.tripResultTop}>
+                            <div>
+                              <span className={styles.tripIdTag}>
+                                #{trip.tripId}
+                              </span>
+
+                              <strong className={styles.tripDeparture}>
+                                {formatDateTimeVN(trip.departureDatetime)}
+                              </strong>
+                            </div>
+
+                            <span
+                              className={`${styles.availabilityBadge}
+                                  ${
+                                    trip.availabilityStatus === "AVAILABLE"
+                                      ? styles.availabilityAvailable
+                                      : trip.availabilityStatus === "LIMITED"
+                                        ? styles.availabilityLimited
+                                        : styles.availabilityFull
+                                  }
+                                `}
+                            >
+                              {trip.availabilityStatus === "AVAILABLE"
+                                ? "Còn nhiều ghế"
+                                : trip.availabilityStatus === "LIMITED"
+                                  ? "Sắp hết ghế"
+                                  : "Hết ghế"}
+                            </span>
+                          </div>
+
+                          <div className={styles.tripRouteText}>
+                            {trip.routeName}
+                          </div>
+
+                          <div className={styles.tripVehicleLine}>
+                            <span>
+                              🚌 {trip.vehicleTypeName ?? "Chưa xác định"}
+                            </span>
+
+                            <span>
+                              ⏱ {formatDuration(trip.durationMinutes)}
+                            </span>
+
+                            <span>
+                              💺 {trip.availableSeatCount}/{trip.totalSeats} ghế
+                              trống
+                            </span>
+
+                            <span>{formatCurrency(trip.ticketPrice)}</span>
+                          </div>
+
+                          <div className={styles.tripSeatStats}>
+                            <span>Đã bán: {trip.bookedSeats}</span>
+
+                            <span>Đang giữ: {trip.holdingSeats}</span>
+
+                            <span>Còn trống: {trip.availableSeatCount}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+
+                    {(tripSearch.data ?? []).length === 0 && (
+                      <div className={styles.emptyState}>
+                        Không tìm thấy chuyến phù hợp với điều kiện tra cứu.
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </section>
+          )}
+
+          {/* ================================================== */}
+          {/* STEP 3 - SELECTED TRIP */}
+          {/* ================================================== */}
+
+          {tripId && (
+            <section className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <span className={styles.stepIndicator}>3</span>
+
+                <div>
+                  <h3>Chuyến khách lựa chọn</h3>
+
+                  <p>Kiểm tra lại thông tin chuyến trước khi tư vấn ghế.</p>
+                </div>
+              </div>
+
+              {selectedTrip && (
+                <div className={styles.selectedTripCard}>
+                  <div className={styles.selectedTripMain}>
+                    <span>Chuyến #{selectedTrip.tripId}</span>
+
+                    <strong>
+                      {formatDateTimeVN(selectedTrip.departureDatetime)}
+                    </strong>
+
+                    <strong>{selectedTrip.routeName}</strong>
+                  </div>
+
+                  <div className={styles.selectedTripStats}>
+                    <div>
+                      <span>Đến nơi</span>
+
+                      <strong>
+                        {formatDateTimeVN(selectedTrip.arrivalDatetime)}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>Thời gian</span>
+
+                      <strong>
+                        {formatDuration(selectedTrip.durationMinutes)}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>Loại xe</span>
+
+                      <strong>{selectedTrip.vehicleTypeName ?? "—"}</strong>
+                    </div>
+
+                    <div>
+                      <span>Ghế còn</span>
+
+                      <strong className={styles.availableSeatNumber}>
+                        {selectedTrip.availableSeatCount} /{" "}
+                        {selectedTrip.totalSeats}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>Giá vé</span>
+
+                      <strong>
+                        {formatCurrency(selectedTrip.ticketPrice)}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {preview.isLoading ? (
+                <div className={styles.loadingState}>
+                  <div className={styles.smallSpinner} />
+                  Đang kiểm tra ghế thực tế...
+                </div>
+              ) : preview.data ? (
+                <div className={styles.seatAvailabilitySummary}>
+                  <div>
+                    <span>Tổng ghế</span>
+
+                    <strong>{preview.data.totalSeats}</strong>
+                  </div>
+
+                  <div>
+                    <span>Còn trống</span>
+
+                    <strong className={styles.availableText}>
+                      {preview.data.availableSeatCount}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Đã bán</span>
+
+                    <strong>{preview.data.bookedSeatCount}</strong>
+                  </div>
+
+                  <div>
+                    <span>Đang giữ</span>
+
+                    <strong>{preview.data.holdingSeatCount}</strong>
+                  </div>
+                </div>
+              ) : null}
+            </section>
+          )}
+
+          {/* ================================================== */}
+          {/* STEP 4 - CUSTOMER */}
+          {/* ================================================== */}
+
+          {tripId && (
+            <section className={styles.panel}>
+              <div className={styles.panelHeader}>
+                <span className={styles.stepIndicator}>4</span>
+
+                <div>
+                  <h3>Thông tin hành khách</h3>
+
+                  <p>Nhập thông tin sau khi khách đã xác nhận chuyến.</p>
+                </div>
               </div>
 
               <div className={styles.formGrid}>
                 <label className={styles.formLabel}>
-                  <span>Họ tên hành khách *</span>
+                  <span>Họ tên *</span>
+
                   <input
                     value={passengerName}
                     onChange={(e) => setPassengerName(e.target.value)}
-                    placeholder="Ví dụ: Nguyễn Văn A"
+                    placeholder="Nguyễn Văn A"
                   />
                 </label>
 
                 <label className={styles.formLabel}>
                   <span>Số điện thoại *</span>
+
                   <input
                     value={passengerPhone}
                     onChange={(e) => setPassengerPhone(e.target.value)}
-                    placeholder="Ví dụ: 0912345678"
+                    placeholder="0912345678"
                   />
                 </label>
 
                 <label className={`${styles.formLabel} ${styles.fullWidth}`}>
                   <span>Email</span>
+
                   <input
                     type="email"
                     value={passengerEmail}
@@ -508,311 +1192,261 @@ export default function OfflineTicketModal({
                   />
                 </label>
               </div>
-
-              {preview.data && (
-                <div className={styles.selectionSummary}>
-                  <span>Giá vé / ghế:</span>
-                  <strong className={styles.priceHighlight}>
-                    {formatCurrency(preview.data.ticketPrice)}
-                  </strong>
-                </div>
-              )}
             </section>
-          </div>
+          )}
+
+          {/* ================================================== */}
+          {/* STEP 5 - PICKUP / DROPOFF */}
+          {/* ================================================== */}
+
+          {tripId && preview.data && (
+            <div className={styles.workflowRowSplit}>
+              {/* PICKUP */}
+
+              <section className={styles.panel}>
+                <div className={styles.panelHeader}>
+                  <span className={styles.stepIndicator}>5A</span>
+
+                  <h3>Điểm đón</h3>
+                </div>
+
+                <input
+                  className={styles.searchInput}
+                  value={pickupSearch}
+                  onChange={(e) => setPickupSearch(e.target.value)}
+                  placeholder="Tìm điểm đón..."
+                />
+
+                <div className={styles.pointList}>
+                  <button
+                    type="button"
+                    className={`${styles.pointOption}
+                        ${!pickupPointId ? styles.pointOptionActive : ""}
+                      `}
+                    onClick={() => setPickupPointId("")}
+                  >
+                    <strong>Điểm đi mặc định</strong>
+
+                    <span>Theo điểm khởi hành của chuyến</span>
+                  </button>
+
+                  {pickupPoints.map((point) => (
+                    <button
+                      key={point.pickupPointId}
+                      type="button"
+                      className={`${styles.pointOption}
+                            ${
+                              pickupPointId === String(point.pickupPointId)
+                                ? styles.pointOptionActive
+                                : ""
+                            }
+                          `}
+                      onClick={() =>
+                        setPickupPointId(String(point.pickupPointId))
+                      }
+                    >
+                      <strong>{point.pointName}</strong>
+
+                      <span>{point.address ?? point.zoneName ?? "—"}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              {/* DROPOFF */}
+
+              <section className={styles.panel}>
+                <div className={styles.panelHeader}>
+                  <span className={styles.stepIndicator}>5B</span>
+
+                  <h3>Điểm trả</h3>
+                </div>
+
+                <input
+                  className={styles.searchInput}
+                  value={dropoffSearch}
+                  onChange={(e) => setDropoffSearch(e.target.value)}
+                  placeholder="Tìm điểm trả..."
+                />
+
+                <div className={styles.pointList}>
+                  <button
+                    type="button"
+                    className={`${styles.pointOption}
+                        ${!dropoffPointId ? styles.pointOptionActive : ""}
+                      `}
+                    onClick={() => setDropoffPointId("")}
+                  >
+                    <strong>Điểm đến mặc định</strong>
+
+                    <span>Theo điểm kết thúc của chuyến</span>
+                  </button>
+
+                  {dropoffPoints.map((point) => (
+                    <button
+                      key={point.pickupPointId}
+                      type="button"
+                      className={`${styles.pointOption}
+                            ${
+                              dropoffPointId === String(point.pickupPointId)
+                                ? styles.pointOptionActive
+                                : ""
+                            }
+                          `}
+                      onClick={() =>
+                        setDropoffPointId(String(point.pickupPointId))
+                      }
+                    >
+                      <strong>{point.pointName}</strong>
+
+                      <span>{point.address ?? point.zoneName ?? "—"}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            </div>
+          )}
+
+          {/* ================================================== */}
+          {/* STEP 6 - SEATS */}
+          {/* ================================================== */}
 
           {tripId && (
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
-                <span className={styles.stepIndicator}>3</span>
-                <h3>Thông tin chuyến đã chọn</h3>
+                <span className={styles.stepIndicator}>6</span>
+
+                <div>
+                  <h3>Chọn ghế</h3>
+
+                  <p>Chọn một hoặc nhiều ghế còn trống cho khách hàng.</p>
+                </div>
+              </div>
+
+              <div className={styles.seatLegendBar}>
+                <div className={styles.legendItem}>
+                  <span
+                    className={`${styles.legendBox} ${styles.bgAvailable}`}
+                  />
+                  Trống
+                </div>
+
+                <div className={styles.legendItem}>
+                  <span
+                    className={`${styles.legendBox} ${styles.bgSelected}`}
+                  />
+                  Đang chọn
+                </div>
+
+                <div className={styles.legendItem}>
+                  <span className={`${styles.legendBox} ${styles.bgBooked}`} />
+                  Đã bán
+                </div>
+
+                <div className={styles.legendItem}>
+                  <span className={`${styles.legendBox} ${styles.bgHolding}`} />
+                  Đang giữ
+                </div>
               </div>
 
               {preview.isLoading ? (
                 <div className={styles.loadingState}>
-                  <div className={styles.smallSpinner}></div> Đang tải thông tin
-                  chuyến...
+                  <div className={styles.smallSpinner} />
+                  Đang tải sơ đồ ghế...
                 </div>
-              ) : preview.data ? (
-                <div className={styles.vehicleSummaryBox}>
-                  <div className={styles.summaryItem}>
-                    <span>Tuyến đường</span>
-                    <strong>{preview.data.routeName}</strong>
-                  </div>
-
-                  <div className={styles.summaryItem}>
-                    <span>Giờ xuất bến</span>
-                    <strong>
-                      {formatDateTimeVN(preview.data.departureDatetime)}
-                    </strong>
-                  </div>
-
-                  <div className={styles.summaryItem}>
-                    <span>Dòng xe</span>
-                    <strong>
-                      {preview.data.vehicleTypeName ||
-                        selectedTrip?.vehicleTypeName ||
-                        "Chưa xác định"}
-                    </strong>
-                  </div>
-
-                  <div className={styles.summaryItem}>
-                    <span>Tên xe / Số hiệu</span>
-                    <strong>
-                      {preview.data.vehicleName ||
-                        selectedTrip?.vehicleName ||
-                        "Chưa gán xe"}
-                    </strong>
-                  </div>
-
-                  <div className={styles.summaryItem}>
-                    <span>Biển kiểm soát</span>
-                    <strong>
-                      {preview.data.licensePlate ||
-                        selectedTrip?.licensePlate ||
-                        "—"}
-                    </strong>
-                  </div>
-
-                  <div className={styles.summaryItem}>
-                    <span>Tổng số chỗ</span>
-                    <strong>
-                      {preview.data.totalSeats ||
-                        selectedTrip?.totalSeats ||
-                        seats.length}{" "}
-                      ghế
-                    </strong>
-                  </div>
+              ) : seats.length === 0 ? (
+                <div className={styles.emptyState}>
+                  Chuyến này không còn ghế trống.
                 </div>
               ) : (
-                <div className={styles.emptyState}>
-                  Không tải được thông tin chi tiết của chuyến này.
+                <div className={styles.adminSeatMapWrapper}>
+                  <SeatMap
+                    seats={adminSeatMapSeats}
+                    layoutName={preview.data?.vehicleTypeName ?? null}
+                    mode="ADD"
+                    selectedSeatIds={selectedSeatIds}
+                    selectedOldBookingSeatIds={[]}
+                    onSelectSeat={(seatId) => {
+                      setSelectedSeatIds((current) =>
+                        current.includes(seatId)
+                          ? current.filter((id) => id !== seatId)
+                          : [...current, seatId],
+                      );
+                    }}
+                  />
                 </div>
               )}
+
+              <div className={styles.selectionSummary}>
+                <span>Ghế đã chọn:</span>
+
+                <strong className={styles.seatsHighlight}>
+                  {selectedSeatNames || "Chưa chọn ghế"}
+                </strong>
+              </div>
             </section>
           )}
 
-          <div className={styles.workflowRowSplit}>
+          {/* ================================================== */}
+          {/* STEP 7 - PAYMENT */}
+          {/* ================================================== */}
+
+          {tripId && (
             <section className={styles.panel}>
               <div className={styles.panelHeader}>
-                <span className={styles.stepIndicator}>4</span>
-                <h3>Điểm đón</h3>
+                <span className={styles.stepIndicator}>7</span>
+
+                <h3>Xác nhận & thu tiền</h3>
               </div>
 
-              <input
-                className={styles.searchInput}
-                value={pickupSearch}
-                onChange={(e) => setPickupSearch(e.target.value)}
-                placeholder="Tìm nhanh điểm đón khách..."
-                disabled={!tripId}
-              />
+              <div className={styles.previewGrid}>
+                <div className={styles.kpiCard}>
+                  <span>Số vé</span>
 
-              <div className={styles.pointList}>
-                <button
-                  type="button"
-                  className={`${styles.pointOption} ${
-                    !pickupPointId ? styles.pointOptionActive : ""
-                  }`}
-                  onClick={() => setPickupPointId("")}
-                  disabled={!tripId}
-                >
-                  <strong>Bến đi mặc định</strong>
-                  <span>Theo điểm khởi hành hệ thống của chuyến</span>
-                </button>
-
-                {pickupPoints.map((point) => (
-                  <button
-                    key={point.pickupPointId}
-                    type="button"
-                    className={`${styles.pointOption} ${
-                      pickupPointId === String(point.pickupPointId)
-                        ? styles.pointOptionActive
-                        : ""
-                    }`}
-                    onClick={() =>
-                      setPickupPointId(String(point.pickupPointId))
-                    }
-                  >
-                    <strong>{point.pointName}</strong>
-                    <span>{point.address || point.zoneName || "—"}</span>
-                  </button>
-                ))}
-
-                {tripId && pickupPoints.length === 0 && (
-                  <div className={styles.emptyState}>
-                    Không tìm thấy điểm đón phù hợp.
-                  </div>
-                )}
-              </div>
-            </section>
-
-            <section className={styles.panel}>
-              <div className={styles.panelHeader}>
-                <span className={styles.stepIndicator}>5</span>
-                <h3>Điểm trả</h3>
-              </div>
-
-              <input
-                className={styles.searchInput}
-                value={dropoffSearch}
-                onChange={(e) => setDropoffSearch(e.target.value)}
-                placeholder="Tìm nhanh điểm trả khách..."
-                disabled={!tripId}
-              />
-
-              <div className={styles.pointList}>
-                <button
-                  type="button"
-                  className={`${styles.pointOption} ${
-                    !dropoffPointId ? styles.pointOptionActive : ""
-                  }`}
-                  onClick={() => setDropoffPointId("")}
-                  disabled={!tripId}
-                >
-                  <strong>Bến đến mặc định</strong>
-                  <span>Theo điểm kết thúc hệ thống của chuyến</span>
-                </button>
-
-                {dropoffPoints.map((point) => (
-                  <button
-                    key={point.pickupPointId}
-                    type="button"
-                    className={`${styles.pointOption} ${
-                      dropoffPointId === String(point.pickupPointId)
-                        ? styles.pointOptionActive
-                        : ""
-                    }`}
-                    onClick={() =>
-                      setDropoffPointId(String(point.pickupPointId))
-                    }
-                  >
-                    <strong>{point.pointName}</strong>
-                    <span>{point.address || point.zoneName || "—"}</span>
-                  </button>
-                ))}
-
-                {tripId && dropoffPoints.length === 0 && (
-                  <div className={styles.emptyState}>
-                    Không tìm thấy điểm trả phù hợp.
-                  </div>
-                )}
-              </div>
-            </section>
-          </div>
-
-          <section className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <span className={styles.stepIndicator}>6</span>
-              <h3>Sơ đồ ghế ngồi & Giường nằm</h3>
-            </div>
-
-            <div className={styles.seatLegendBar}>
-              <div className={styles.legendItem}>
-                <span className={`${styles.legendBox} ${styles.bgAvailable}`} />
-                <span>Trống</span>
-              </div>
-              <div className={styles.legendItem}>
-                <span className={`${styles.legendBox} ${styles.bgSelected}`} />
-                <span>Đang chọn</span>
-              </div>
-              <div className={styles.legendItem}>
-                <span className={`${styles.legendBox} ${styles.bgBooked}`} />
-                <span>Đã bán</span>
-              </div>
-              <div className={styles.legendItem}>
-                <span className={`${styles.legendBox} ${styles.bgHolding}`} />
-                <span>Đang giữ chỗ</span>
-              </div>
-            </div>
-
-            {preview.isLoading ? (
-              <div className={styles.loadingState}>
-                <div className={styles.smallSpinner}></div> Đang dựng sơ đồ
-                ghế...
-              </div>
-            ) : !tripId ? (
-              <div className={styles.emptyState}>
-                Vui lòng chọn chuyến đi tại bước 1 để hiển thị sơ đồ.
-              </div>
-            ) : seats.length === 0 ? (
-              <div className={styles.emptyState}>
-                Chuyến xe này chưa được cấu hình sơ đồ vị trí.
-              </div>
-            ) : (
-              <div className={styles.floorList}>
-                {Object.entries(floors).map(([floorNo, floorSeats]) => (
-                  <div key={floorNo} className={styles.floorCard}>
-                    <div className={styles.floorTitle}>
-                      {getVehicleLayoutName()} — Tầng {floorNo}
-                    </div>
-
-                    <div className={styles.busCabin}>
-                      <div className={styles.busFront}>
-                        <div className={styles.busDoor}>CỬA LÊN ▲</div>
-                        <div className={styles.driverSeat}>
-                          <div className={styles.steeringWheel}></div>
-                          <span>TÀI XẾ</span>
-                        </div>
-                      </div>
-
-                      <div className={styles.gridContainer}>
-                        {renderFloorSeatGrid(floorSeats)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className={styles.selectionSummary}>
-              <span>Danh sách vị trí đã chọn:</span>
-              <strong className={styles.seatsHighlight}>
-                {selectedSeatNames || "Chưa chọn vị trí"}
-              </strong>
-            </div>
-          </section>
-
-          <section className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <span className={styles.stepIndicator}>7</span>
-              <h3>Xác nhận & Thu tiền</h3>
-            </div>
-
-            <div className={styles.previewGrid}>
-              <div className={styles.kpiCard}>
-                <span>Tổng lượng ghế</span>
-                <strong>{selectedSeatIds.length} vé</strong>
-              </div>
-
-              <div className={styles.kpiCard}>
-                <span>Tổng tiền phải thanh toán</span>
-                <strong className={styles.totalPriceHighlight}>
-                  {formatCurrency(totalAmount)}
-                </strong>
-              </div>
-
-              <div className={styles.kpiCard}>
-                <span>Mã chuyến chỉ định</span>
-                <strong>{tripId ? `#${tripId}` : "Chưa chọn"}</strong>
-              </div>
-            </div>
-
-            <div className={styles.statusBox}>
-              <label className={styles.checkLine}>
-                <input
-                  type="checkbox"
-                  checked={paid}
-                  onChange={(e) => setPaid(e.target.checked)}
-                />
-                <div className={styles.checkText}>
-                  <strong>Đã hoàn thành thu tiền khách hàng</strong>
-                  <p>
-                    Đánh dấu nếu khách đã trả tiền mặt hoặc chuyển khoản tại
-                    quầy. Nếu bỏ chọn, vé lưu ở dạng "Chờ thanh toán".
-                  </p>
+                  <strong>{selectedSeatIds.length}</strong>
                 </div>
-              </label>
-            </div>
-          </section>
+
+                <div className={styles.kpiCard}>
+                  <span>Giá / vé</span>
+
+                  <strong>
+                    {formatCurrency(preview.data?.ticketPrice ?? 0)}
+                  </strong>
+                </div>
+
+                <div className={styles.kpiCard}>
+                  <span>Tổng tiền</span>
+
+                  <strong className={styles.totalPriceHighlight}>
+                    {formatCurrency(totalAmount)}
+                  </strong>
+                </div>
+              </div>
+
+              <div className={styles.statusBox}>
+                <label className={styles.checkLine}>
+                  <input
+                    type="checkbox"
+                    checked={paid}
+                    onChange={(e) => setPaid(e.target.checked)}
+                  />
+
+                  <div className={styles.checkText}>
+                    <strong>Đã hoàn thành thu tiền</strong>
+
+                    <p>
+                      Đánh dấu nếu khách đã trả tiền mặt hoặc chuyển khoản tại
+                      quầy.
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </section>
+          )}
+
+          {/* ================================================== */}
+          {/* FOOTER */}
+          {/* ================================================== */}
 
           <div className={styles.footerActions}>
             <button
@@ -827,9 +1461,9 @@ export default function OfflineTicketModal({
             <button
               type="submit"
               className={styles.submitBtn}
-              disabled={loading}
+              disabled={loading || !tripId || selectedSeatIds.length === 0}
             >
-              {loading ? "Đang xử lý xuất vé..." : "Xác nhận tạo vé"}
+              {loading ? "Đang xử lý..." : "Xác nhận tạo vé"}
             </button>
           </div>
         </form>

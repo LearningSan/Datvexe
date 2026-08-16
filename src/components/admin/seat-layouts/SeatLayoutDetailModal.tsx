@@ -1,11 +1,22 @@
 "use client";
 
-import { useMemo } from "react";
-import { useSeatLayoutDetail } from "@/hooks/admin/useSeatLayouts";
+import { useMemo, useState } from "react";
+import toast from "react-hot-toast";
+
+import {
+  useSeatLayoutDetail,
+  useUpdateSeatLayoutDetail,
+} from "@/hooks/admin/useSeatLayouts";
+
 import type {
   SeatLayoutItem,
-  SeatLayoutDetailResponse,
+  SeatType,
 } from "@/types/admin/seat-layouts/seat-layout-management.type";
+
+import type { AdminTicketAvailableSeat } from "@/types/admin/tickets/ticket-management.type";
+
+import SeatMap from "@/components/admin/AdminSeatMap";
+
 import styles from "./SeatLayoutDetailModal.module.css";
 
 interface Props {
@@ -15,8 +26,6 @@ interface Props {
   onDuplicate: (layout: SeatLayoutItem) => void;
 }
 
-type SeatDetail = SeatLayoutDetailResponse["details"][number];
-
 export default function SeatLayoutDetailModal({
   open,
   layout,
@@ -25,72 +34,109 @@ export default function SeatLayoutDetailModal({
 }: Props) {
   const { data, isLoading } = useSeatLayoutDetail(layout?.seatLayoutId);
 
-  const floors = useMemo(() => {
-    const result: Record<number, SeatLayoutDetailResponse["details"]> = {};
-    const details = data?.details ?? [];
+  const updateSeatMutation = useUpdateSeatLayoutDetail();
 
-    for (const seat of details) {
-      if (!result[seat.floorNo]) result[seat.floorNo] = [];
-      result[seat.floorNo].push(seat);
-    }
+  const [editingSeatId, setEditingSeatId] = useState<number | null>(null);
 
-    return result;
+  const [editSeatNumber, setEditSeatNumber] = useState("");
+
+  const [editSeatType, setEditSeatType] = useState<SeatType>("NORMAL");
+
+  const adminSeats = useMemo<AdminTicketAvailableSeat[]>(() => {
+    return (data?.details ?? []).map((seat) => ({
+      seatLayoutDetailId: seat.seatLayoutDetailId,
+      seatNumber: seat.seatNumber,
+
+      floorNo: seat.floorNo,
+      rowNo: seat.rowNo,
+      columnNo: seat.columnNo,
+
+      bookingSeatId: null,
+
+      seatStatus: "AVAILABLE",
+
+      isCurrentBooking: false,
+
+      checkinStatus: null,
+    }));
   }, [data?.details]);
 
-  const getGridDimensions = (seats: SeatLayoutDetailResponse["details"]) => {
-    let maxRow = 0;
-    let maxCol = 0;
+  const handleSelectSeat = (seatId: number) => {
+    if (!data?.details) return;
 
-    seats.forEach((s) => {
-      if (s.rowNo > maxRow) maxRow = s.rowNo;
-      if (s.columnNo > maxCol) maxCol = s.columnNo;
-    });
+    const seat = data.details.find(
+      (item) => item.seatLayoutDetailId === seatId,
+    );
 
-    return { maxRow, maxCol };
+    if (!seat) return;
+
+    // Nếu layout đang được sử dụng thì không cho sửa
+    if (data.layout.isLocked) {
+      toast.error(
+        "Sơ đồ ghế đang được sử dụng, hãy nhân bản trước khi chỉnh sửa",
+      );
+      return;
+    }
+
+    setEditingSeatId(seat.seatLayoutDetailId);
+    setEditSeatNumber(seat.seatNumber);
+    setEditSeatType(seat.seatType);
   };
 
-  const sortSeatByPosition = (seats: SeatLayoutDetailResponse["details"]) => {
-    return [...seats].sort((a, b) => {
-      if (a.rowNo !== b.rowNo) return a.rowNo - b.rowNo;
-      return a.columnNo - b.columnNo;
-    });
+  const handleCancelEdit = () => {
+    setEditingSeatId(null);
+    setEditSeatNumber("");
+    setEditSeatType("NORMAL");
   };
 
-  const renderSeat = (seat: SeatDetail) => {
-    const isWC =
-      seat.seatType?.toUpperCase() === "WC" ||
-      seat.seatNumber?.toUpperCase() === "WC";
+  const handleSaveSeat = () => {
+    if (!layout || !editingSeatId) return;
 
-    return (
-      <div
-        key={seat.seatLayoutDetailId}
-        className={`${styles.seatWrapper} ${
-          isWC
-            ? styles.wcNode
-            : seat.seatType === "VIP"
-              ? styles.vipSeat
-              : styles.normalSeat
-        }`}
-      >
-        <div className={styles.seatCap}></div>
+    const seatNumber = editSeatNumber.trim();
 
-        <div className={styles.seatBody}>
-          <strong>{seat.seatNumber}</strong>
-          <small>{seat.seatType}</small>
-        </div>
-      </div>
+    if (!seatNumber) {
+      toast.error("Vui lòng nhập tên ghế");
+      return;
+    }
+
+    updateSeatMutation.mutate(
+      {
+        seatLayoutId: layout.seatLayoutId,
+
+        seatLayoutDetailId: editingSeatId,
+
+        payload: {
+          seatNumber,
+          seatType: editSeatType,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Cập nhật ghế thành công");
+
+          handleCancelEdit();
+        },
+
+        onError: (error: any) => {
+          toast.error(error.message || "Không thể cập nhật ghế");
+        },
+      },
     );
   };
 
-  if (!open || !layout) return null;
+  if (!open || !layout) {
+    return null;
+  }
 
   return (
-    <div className={styles.overlay}>
+    <div className={styles.modalOverlay}>
       <div className={styles.modal}>
         <div className={styles.header}>
           <div>
-            <span>CHI TIẾT SƠ ĐỒ GHẾ</span>
+            <span className={styles.headerLabel}>CHI TIẾT SƠ ĐỒ GHẾ</span>
+
             <h2>{layout.layoutName}</h2>
+
             <p>{layout.layoutCode}</p>
           </div>
 
@@ -104,40 +150,56 @@ export default function SeatLayoutDetailModal({
         </div>
 
         {isLoading ? (
-          <div className={styles.loading}>Đang tải chi tiết...</div>
+          <div className={styles.loading}>
+            <div className={styles.spinner} />
+
+            <span>Đang tải chi tiết...</span>
+          </div>
         ) : (
           <div className={styles.body}>
             <section className={styles.infoSection}>
-              <h3>Thông tin cấu hình</h3>
+              <div className={styles.sectionHeader}>
+                <div>
+                  <h3>Thông tin cấu hình</h3>
+
+                  <p>Thông tin tổng quan và trạng thái của sơ đồ ghế.</p>
+                </div>
+              </div>
 
               <div className={styles.infoGrid}>
-                <div>
+                <div className={styles.infoItem}>
                   <span>Loại xe</span>
-                  <strong>{data?.layout.vehicleTypeName}</strong>
+
+                  <strong>{data?.layout.vehicleTypeName ?? "—"}</strong>
                 </div>
 
-                <div>
+                <div className={styles.infoItem}>
                   <span>Tổng ghế khai báo</span>
-                  <strong>{data?.layout.totalSeats} ghế</strong>
+
+                  <strong>{data?.layout.totalSeats ?? 0} ghế</strong>
                 </div>
 
-                <div>
+                <div className={styles.infoItem}>
                   <span>Số ghế thực tế</span>
-                  <strong>{data?.layout.actualSeats} ghế</strong>
+
+                  <strong>{data?.layout.actualSeats ?? 0} ghế</strong>
                 </div>
 
-                <div>
+                <div className={styles.infoItem}>
                   <span>Số tầng</span>
-                  <strong>{data?.layout.floorCount} tầng</strong>
+
+                  <strong>{data?.layout.floorCount ?? 0} tầng</strong>
                 </div>
 
-                <div>
+                <div className={styles.infoItem}>
                   <span>Số xe đang dùng</span>
-                  <strong>{data?.layout.vehicleCount} xe</strong>
+
+                  <strong>{data?.layout.vehicleCount ?? 0} xe</strong>
                 </div>
 
-                <div>
+                <div className={styles.infoItem}>
                   <span>Trạng thái khóa</span>
+
                   <strong
                     className={
                       data?.layout.isLocked
@@ -154,114 +216,164 @@ export default function SeatLayoutDetailModal({
 
               {data?.layout.isLocked && (
                 <div className={styles.warningBox}>
-                  ⚠️ Layout này đã được áp dụng vào xe thực tế hoặc có lịch
-                  trình chuyến. Bạn không nên thay đổi kết cấu. Hãy nhấn{" "}
-                  <strong>Nhân bản sơ đồ</strong> để tạo bản copy mới.
+                  <span className={styles.warningIcon}>⚠️</span>
+
+                  <div>
+                    <strong>Layout đã được sử dụng</strong>
+
+                    <p>
+                      Layout này đã được áp dụng vào xe thực tế hoặc có lịch
+                      trình chuyến. Bạn không thể chỉnh sửa ghế trực tiếp. Hãy
+                      nhấn <strong>Nhân bản sơ đồ</strong> để tạo bản copy mới.
+                    </p>
+                  </div>
                 </div>
               )}
             </section>
 
             <section className={styles.previewSection}>
-              <h3>Mô phỏng sơ đồ thực tế</h3>
+              <div className={styles.sectionHeader}>
+                <div>
+                  <h3>Mô phỏng sơ đồ thực tế</h3>
 
-              <div className={styles.floorList}>
-                {Object.entries(floors).map(([floorNo, seats]) => {
-                  const { maxRow, maxCol } = getGridDimensions(seats);
+                  <p>Click vào ghế để chỉnh sửa tên và loại ghế.</p>
+                </div>
 
-                  const isSleeperBus =
-                    maxCol >= 3 &&
-                    (layout.layoutName.includes("40") ||
-                      layout.totalSeats >= 35);
-
-                  const sortedSeats = sortSeatByPosition(seats);
-
-                  const topSeats = sortedSeats.filter(
-                    (seat) => seat.columnNo === 1,
-                  );
-                  const middleSeats = sortedSeats.filter(
-                    (seat) => seat.columnNo === 2,
-                  );
-                  const bottomSeats = sortedSeats.filter(
-                    (seat) => seat.columnNo === 3,
-                  );
-
-                  return (
-                    <div key={floorNo} className={styles.floorCard}>
-                      <h4>Mặt bằng: Tầng {floorNo}</h4>
-
-                      <div className={styles.busCabin}>
-                        <div className={styles.busFront}>
-                          <div className={styles.busDoor}>
-                            CỬA LÊN <span>▼</span>
-                          </div>
-
-                          <div className={styles.driverSeat}>
-                            <div className={styles.steeringWheel}></div>
-                            <span>TÀI XẾ</span>
-                          </div>
-                        </div>
-
-                        {isSleeperBus ? (
-                          <div className={styles.sleeperPreview}>
-                            <div className={styles.sleeperRow}>
-                              {topSeats.map(renderSeat)}
-                            </div>
-
-                            <div
-                              className={`${styles.sleeperRow} ${styles.sleeperMiddleRow}`}
-                            >
-                              {middleSeats.map(renderSeat)}
-                            </div>
-
-                            <div className={styles.sleeperRow}>
-                              {bottomSeats.map(renderSeat)}
-                            </div>
-                          </div>
-                        ) : (
-                          <div
-                            className={styles.seatGrid}
-                            style={{
-                              gridTemplateRows: `repeat(${maxRow}, 1fr)`,
-                              gridTemplateColumns: `repeat(${maxCol}, minmax(90px, 1fr))`,
-                            }}
-                          >
-                            {seats.map((seat) => (
-                              <div
-                                key={seat.seatLayoutDetailId}
-                                style={{
-                                  gridRow: seat.rowNo,
-                                  gridColumn: seat.columnNo,
-                                }}
-                              >
-                                {renderSeat(seat)}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                <div className={styles.seatMapSummary}>
+                  <span>{adminSeats.length} ghế</span>
+                </div>
               </div>
+
+              <div className={styles.seatMapContainer}>
+                {adminSeats.length > 0 ? (
+                  <SeatMap
+                    seats={adminSeats}
+                    layoutName={layout.layoutName}
+                    mode="ADD"
+                    selectedSeatIds={editingSeatId ? [editingSeatId] : []}
+                    selectedOldBookingSeatIds={[]}
+                    onSelectSeat={handleSelectSeat}
+                  />
+                ) : (
+                  <div className={styles.emptySeatMap}>
+                    <span>🪑</span>
+
+                    <strong>Chưa có dữ liệu sơ đồ ghế</strong>
+
+                    <p>Layout này chưa có các vị trí ghế được cấu hình.</p>
+                  </div>
+                )}
+              </div>
+
+              {editingSeatId !== null && (
+                <div className={styles.editSeatPanel}>
+                  <div className={styles.editSeatHeader}>
+                    <div>
+                      <h4>Chỉnh sửa ghế</h4>
+
+                      <p>Cập nhật thông tin ghế đang chọn.</p>
+                    </div>
+
+                    <button type="button" onClick={handleCancelEdit}>
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className={styles.editSeatForm}>
+                    <div className={styles.formGroup}>
+                      <label htmlFor="seatNumber">Tên / mã ghế</label>
+
+                      <input
+                        id="seatNumber"
+                        type="text"
+                        value={editSeatNumber}
+                        onChange={(e) => setEditSeatNumber(e.target.value)}
+                        placeholder="VD: A01"
+                        disabled={updateSeatMutation.isPending}
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label htmlFor="seatType">Loại ghế</label>
+
+                      <select
+                        id="seatType"
+                        value={editSeatType}
+                        onChange={(e) =>
+                          setEditSeatType(e.target.value as SeatType)
+                        }
+                        disabled={updateSeatMutation.isPending}
+                      >
+                        <option value="NORMAL">Ghế thường</option>
+
+                        <option value="VIP">Ghế VIP</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className={styles.editSeatActions}>
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      disabled={updateSeatMutation.isPending}
+                    >
+                      Hủy
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleSaveSeat}
+                      disabled={updateSeatMutation.isPending}
+                    >
+                      {updateSeatMutation.isPending
+                        ? "Đang lưu..."
+                        : "Lưu thay đổi"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </section>
 
             <section className={styles.vehicleSection}>
-              <h3>Danh sách xe đang dùng layout này</h3>
+              <div className={styles.sectionHeader}>
+                <div>
+                  <h3>Danh sách xe đang dùng layout này</h3>
+
+                  <p>Các xe hiện đang sử dụng cấu hình sơ đồ ghế này.</p>
+                </div>
+
+                <span className={styles.vehicleCount}>
+                  {data?.vehicles.length ?? 0} xe
+                </span>
+              </div>
 
               <div className={styles.vehicleList}>
                 {data?.vehicles.map((vehicle) => (
                   <div key={vehicle.vehicleId} className={styles.vehicleItem}>
-                    <strong>{vehicle.licensePlate}</strong>
-                    <span>{vehicle.internalCode || "---"}</span>
-                    <span>{vehicle.vehicleName || "Chưa đặt tên"}</span>
-                    <span className={styles.vStatus}>{vehicle.status}</span>
+                    <div className={styles.vehicleMain}>
+                      <strong>{vehicle.licensePlate}</strong>
+
+                      <span>{vehicle.vehicleName || "Chưa đặt tên"}</span>
+                    </div>
+
+                    <div className={styles.vehicleMeta}>
+                      <span>Mã xe: {vehicle.internalCode || "---"}</span>
+
+                      <span className={styles.vStatus}>{vehicle.status}</span>
+                    </div>
                   </div>
                 ))}
 
                 {data?.vehicles.length === 0 && (
-                  <p className={styles.emptyText}>
-                    Chưa có xe nào vận hành dựa trên layout này.
-                  </p>
+                  <div className={styles.emptyVehicle}>
+                    <span>🚌</span>
+
+                    <div>
+                      <strong>Chưa có xe nào sử dụng layout</strong>
+
+                      <p>Layout này hiện chưa được áp dụng cho xe thực tế.</p>
+                    </div>
+                  </div>
                 )}
               </div>
             </section>

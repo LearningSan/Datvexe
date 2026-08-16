@@ -318,3 +318,50 @@
   background-color: #fef2f2 !important;
   border-color: #fca5a5;
 }
+.datetimeInput {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+
+  border: 1px solid #d9dee7;
+  border-radius: 10px;
+
+  background: #fff;
+  color: #1f2937;
+
+  font-size: 14px;
+  font-family: inherit;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+
+  box-sizing: border-box;
+}
+
+.datetimeInput:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.datetimeInput:hover:not(:disabled) {
+  border-color: #9ca3af;
+}
+
+.datetimeInput:disabled {
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.datetimeInput::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.datetimeInput::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}

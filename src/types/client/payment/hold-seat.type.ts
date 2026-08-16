@@ -5,11 +5,8 @@ export type HoldSeatsPayload = {
 
   sessionId: string;
 };
-
 export type HoldSeatsResponse = {
   tripId: number;
-
   seatCount: number;
-
-  expiresIn: number;
+  expiredAt: string;
 };

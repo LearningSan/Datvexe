@@ -13,8 +13,14 @@ interface Props {
 }
 
 export default function SeatItem({ seat, selected, onSelect }: Props) {
+  const isHeldByMe = Boolean(seat.isHeldByMe);
+
   const getStatusClass = () => {
     if (selected) {
+      return styles.selected;
+    }
+
+    if (isHeldByMe) {
       return styles.selected;
     }
 
@@ -22,7 +28,7 @@ export default function SeatItem({ seat, selected, onSelect }: Props) {
       case "BOOKED":
         return styles.booked;
 
-      case "HELD":
+      case "HOLDING":
         return styles.holding;
 
       default:
@@ -32,12 +38,9 @@ export default function SeatItem({ seat, selected, onSelect }: Props) {
 
   return (
     <button
-      disabled={seat.status !== "AVAILABLE"}
+      disabled={seat.status !== "AVAILABLE" && !isHeldByMe}
       onClick={() => onSelect(seat)}
-      className={`
-        ${styles.seatItem}
-        ${getStatusClass()}
-      `}
+      className={`${styles.seatItem} ${getStatusClass()}`}
     >
       {seat.seatNumber}
     </button>

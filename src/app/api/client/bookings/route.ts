@@ -28,7 +28,6 @@ export async function POST(req: NextRequest) {
         return errorResponse("User not found", null, 404);
       }
     }
-
     const result = await createRoundTripBooking(payload, userId);
     return successResponse(result);
   } catch (error: any) {

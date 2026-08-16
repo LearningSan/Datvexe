@@ -4,12 +4,17 @@ import { getAdminAuthUserId } from "@/lib/server/admin-auth-user";
 import { successResponse, errorResponse } from "@/lib/server/response";
 
 import { getAdminTripOptions } from "@/services/server/admin/admin-trip.service";
+import { adminTripOptionsQuerySchema } from "@/validators/admin/trip.validator";
 
 export async function GET(req: NextRequest) {
   try {
     await getAdminAuthUserId(req);
 
-    const data = await getAdminTripOptions();
+    const searchParams = Object.fromEntries(req.nextUrl.searchParams);
+
+    const parsed = adminTripOptionsQuerySchema.parse(searchParams);
+
+    const data = await getAdminTripOptions(parsed);
 
     return successResponse(data);
   } catch (error: unknown) {
@@ -18,10 +23,14 @@ export async function GET(req: NextRequest) {
     const message =
       error instanceof Error
         ? error.message
-        : "Không thể lấy dữ liệu bộ lọc chuyến xe";
+        : "Không thể lấy dữ liệu chuyến xe";
 
     if (message === "UNAUTHORIZED") {
       return errorResponse("Phiên đăng nhập quản trị không hợp lệ", null, 401);
+    }
+
+    if (error instanceof Error && error.name === "ZodError") {
+      return errorResponse(message, null, 400);
     }
 
     return errorResponse(message, null, 500);

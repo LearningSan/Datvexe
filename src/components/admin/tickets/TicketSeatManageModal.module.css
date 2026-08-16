@@ -1,0 +1,479 @@
+/* ==========================================================================
+   1. OVERLAY & MODAL CONTAINER
+   ========================================================================== */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 95vw;
+  max-width: 1240px; /* Mở rộng tối đa để sơ đồ ghế có không gian dàn trang */
+  max-height: 92vh; /* Tăng chiều cao tối đa */
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   2. HEADER & FOOTER
+   ========================================================================== */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.header p {
+  margin: 4px 0 0 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.closeButton:hover {
+  color: #374151;
+}
+
+.footer {
+  padding: 12px 24px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  background: #f9fafb;
+}
+
+/* ==========================================================================
+   3. LAYOUT SPLIT GRID (CỘT TRÁI - CỘT PHẢI)
+   ========================================================================== */
+.bodyGrid {
+  display: grid;
+  grid-template-columns: 280px 1fr; /* Thu gọn cột trái để nhường diện tích cho sơ đồ ghế */
+  flex: 1;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .bodyGrid {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+}
+
+/* Cột trái */
+.leftColumn {
+  padding: 20px;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  background: #fafafa;
+}
+
+/* Cột phải (Chứa sơ đồ) */
+.rightColumn {
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* ==========================================================================
+   4. CỘT TRÁI: SUMMARY & THAO TÁC
+   ========================================================================== */
+.summary {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.875rem;
+}
+
+.summary div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.summary span {
+  color: #6b7280;
+}
+
+.summary strong {
+  color: #111827;
+  font-weight: 500;
+}
+
+.actionChooser h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.actionCard {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.actionCard:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.actionCard.active {
+  border-color: #2563eb;
+  background: #ebf5ff;
+  color: #1d4ed8;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionHeader h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.sectionHeader p {
+  margin: 4px 0 0 0;
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.currentSeats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.seatRowItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.currentSeat {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.currentSeatSelected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+/* ==========================================================================
+   5. CỘT PHẢI: SEAT MAP CONTAINER (SƠ ĐỒ GHẾ)
+   ========================================================================== */
+.placeholderState {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 0.95rem;
+  text-align: center;
+  padding: 40px;
+}
+
+.actionPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+.changeInfo {
+  display: flex;
+  gap: 16px;
+  background: #f3f4f6;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.changeInfo div {
+  display: flex;
+  gap: 6px;
+}
+
+.changeInfo span {
+  color: #4b5563;
+}
+
+.seatMapHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+/* Vùng chứa Sơ đồ ghế (Khung cuộn linh hoạt) */
+.seatMap {
+  width: 100%;
+  flex: 1;
+  min-height: 420px;
+  max-height: 58vh;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto; /* Chỉ hiện thanh cuộn khi sơ đồ vượt quá màn hình */
+  position: relative;
+}
+
+/* Giữ cho component SeatMap không bị tràn viền hoặc vỡ chiều rộng */
+.seatMap > div {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ==========================================================================
+   6. STYLES TRẠNG THÁI GHẾ (DÙNG CHO SEAT BUTTON TRONG SEATMAP)
+   ========================================================================== */
+.seatButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.seatButton small {
+  font-size: 0.6875rem;
+  opacity: 0.8;
+}
+
+/* AVAILABLE: Ghế trống có thể chọn */
+.seatAvailable {
+  background-color: #ffffff;
+  border-color: #10b981;
+  color: #047857;
+}
+
+.seatAvailable:hover:not(:disabled) {
+  background-color: #ecfdf5;
+  border-color: #059669;
+  transform: translateY(-1px);
+}
+
+/* CURRENT BOOKING: Ghế thuộc vé đang xử lý */
+.seatCurrentBooking {
+  background-color: #dbeafe;
+  border-color: #3b82f6;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+/* BOOKED: Ghế đã có người đặt */
+.seatBooked {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* HOLDING: Ghế đang bị giữ chỗ */
+.seatHeld {
+  background-color: #fef3c7;
+  border-color: #f59e0b;
+  color: #b45309;
+  cursor: not-allowed;
+}
+
+/* DISABLED: Ghế bị vô hiệu hóa */
+.seatDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* SELECTED: Ghế đang được chọn để Đổi/Thêm */
+.seatSelected {
+  background-color: #2563eb !important;
+  border-color: #1d4ed8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4);
+}
+
+/* ==========================================================================
+   7. BUTTONS & ACTIONS
+   ========================================================================== */
+.footerAction,
+.selectionBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.primaryButton {
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.primaryButton:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  background-color: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.dangerButton {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dangerButton:hover:not(:disabled) {
+  background-color: #fecaca;
+}
+
+.dangerPrimaryButton {
+  background-color: #dc2626;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.dangerPrimaryButton:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+/* ==========================================================================
+   8. MODAL XÁC NHẬN GỠ GHẾ
+   ========================================================================== */
+.confirmOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.confirmBox {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  width: 320px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.confirmBox h4 {
+  margin: 0 0 8px 0;
+  color: #111827;
+}
+
+.confirmBox p {
+  margin: 0 0 16px 0;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

@@ -5,6 +5,8 @@ import {
   holdSeats,
   previewBooking,
   saveBookingShuttleApi,
+  releaseSeats,
+  cleanupExpiredSeatHolds,
 } from "@/services/client/booking.service";
 
 import type {
@@ -31,7 +33,11 @@ export function useHoldSeats() {
     mutationFn: holdSeats,
   });
 }
-
+export function useReleaseSeats() {
+  return useMutation<void, Error, HoldSeatsPayload>({
+    mutationFn: releaseSeats,
+  });
+}
 export function useBookingPreview(payload: BookingPreviewPayload) {
   return useQuery({
     queryKey: ["booking-preview", payload],
@@ -43,5 +49,13 @@ export function useBookingPreview(payload: BookingPreviewPayload) {
 export function useSaveBookingShuttle() {
   return useMutation({
     mutationFn: saveBookingShuttleApi,
+  });
+}
+export function useCleanupExpiredSeatHolds() {
+  return useMutation({
+    mutationFn: cleanupExpiredSeatHolds,
+    meta: {
+      globalLoading: false,
+    },
   });
 }

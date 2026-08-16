@@ -11,6 +11,12 @@ import type { SeatLayoutItem } from "@/types/admin/seat-layouts/seat-layout-mana
 import SeatLayoutDetailModal from "./SeatLayoutDetailModal";
 import styles from "./SeatLayoutsContainer.module.css";
 
+interface DuplicateModalData {
+  layout: SeatLayoutItem;
+  layoutCode: string;
+  layoutName: string;
+}
+
 export default function SeatLayoutsContainer() {
   const { data, isLoading, isError } = useSeatLayouts();
   const duplicateMutation = useDuplicateSeatLayout();
@@ -20,17 +26,31 @@ export default function SeatLayoutsContainer() {
     null,
   );
 
-  const handleDuplicate = (layout: SeatLayoutItem) => {
-    const layoutCode = prompt("Nhập mã layout mới:", `${layout.layoutCode}_V2`);
+  // State quản lý Modal nhân bản
+  const [duplicateData, setDuplicateData] = useState<DuplicateModalData | null>(
+    null,
+  );
 
-    if (!layoutCode?.trim()) return;
+  // Mở modal nhân bản và set giá trị mặc định
+  const handleOpenDuplicateModal = (layout: SeatLayoutItem) => {
+    setDuplicateData({
+      layout,
+      layoutCode: `${layout.layoutCode}_V2`,
+      layoutName: `${layout.layoutName} V2`,
+    });
+  };
 
-    const layoutName = prompt(
-      "Nhập tên layout mới:",
-      `${layout.layoutName} V2`,
-    );
+  // Xử lý submit nhân bản
+  const handleConfirmDuplicate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!duplicateData) return;
 
-    if (!layoutName?.trim()) return;
+    const { layout, layoutCode, layoutName } = duplicateData;
+
+    if (!layoutCode.trim() || !layoutName.trim()) {
+      toast.error("Vui lòng điền đầy đủ thông tin");
+      return;
+    }
 
     duplicateMutation.mutate(
       {
@@ -41,8 +61,11 @@ export default function SeatLayoutsContainer() {
         },
       },
       {
-        onSuccess: () => toast.success("Nhân bản sơ đồ ghế thành công"),
-        onError: (error: any) => toast.error(error.message),
+        onSuccess: () => {
+          toast.success("Nhân bản sơ đồ ghế thành công");
+          setDuplicateData(null);
+        },
+        onError: (error: any) => toast.error(error.message || "Có lỗi xảy ra"),
       },
     );
   };
@@ -62,7 +85,7 @@ export default function SeatLayoutsContainer() {
               ? "Đã kích hoạt lại sơ đồ ghế"
               : "Đã tạm ngưng sơ đồ ghế",
           ),
-        onError: (error: any) => toast.error(error.message),
+        onError: (error: any) => toast.error(error.message || "Có lỗi xảy ra"),
       },
     );
   };
@@ -140,7 +163,7 @@ export default function SeatLayoutsContainer() {
                       Chi tiết
                     </button>
 
-                    <button onClick={() => handleDuplicate(layout)}>
+                    <button onClick={() => handleOpenDuplicateModal(layout)}>
                       Nhân bản
                     </button>
 
@@ -163,12 +186,94 @@ export default function SeatLayoutsContainer() {
         </table>
       </div>
 
+      {/* Modal xem chi tiết */}
       <SeatLayoutDetailModal
         layout={selectedLayout}
         open={!!selectedLayout}
         onClose={() => setSelectedLayout(null)}
-        onDuplicate={handleDuplicate}
+        onDuplicate={handleOpenDuplicateModal}
       />
+
+      {/* Modal Nhân bản Sơ đồ ghế (Thay thế prompt) */}
+      {duplicateData && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h3>Nhân bản sơ đồ ghế</h3>
+              <button
+                type="button"
+                className={styles.closeBtn}
+                onClick={() => setDuplicateData(null)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmDuplicate}>
+              <div className={styles.modalBody}>
+                <p className={styles.modalSubtitle}>
+                  Tạo bản sao từ sơ đồ{" "}
+                  <strong>{duplicateData.layout.layoutName}</strong>
+                </p>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="layoutCode">Mã layout mới</label>
+                  <input
+                    id="layoutCode"
+                    type="text"
+                    value={duplicateData.layoutCode}
+                    onChange={(e) =>
+                      setDuplicateData({
+                        ...duplicateData,
+                        layoutCode: e.target.value,
+                      })
+                    }
+                    placeholder="VD: LAYOUT_BUS_45_V2"
+                    required
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="layoutName">Tên layout mới</label>
+                  <input
+                    id="layoutName"
+                    type="text"
+                    value={duplicateData.layoutName}
+                    onChange={(e) =>
+                      setDuplicateData({
+                        ...duplicateData,
+                        layoutName: e.target.value,
+                      })
+                    }
+                    placeholder="VD: Sơ đồ 45 chỗ VIP V2"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className={styles.modalFooter}>
+                <button
+                  type="button"
+                  className={styles.cancelBtn}
+                  onClick={() => setDuplicateData(null)}
+                  disabled={duplicateMutation.isPending}
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  className={styles.submitBtn}
+                  disabled={duplicateMutation.isPending}
+                >
+                  {duplicateMutation.isPending
+                    ? "Đang xử lý..."
+                    : "Xác nhận nhân bản"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

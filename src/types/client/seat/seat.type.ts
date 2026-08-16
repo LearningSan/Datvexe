@@ -1,4 +1,4 @@
-export type SeatStatus = "AVAILABLE" | "BOOKED" | "HELD";
+export type SeatStatus = "AVAILABLE" | "BOOKED" | "HOLDING";
 
 export type SeatType = "NORMAL" | "VIP";
 
@@ -16,4 +16,5 @@ export interface Seat {
   columnNo: number;
 
   status: SeatStatus;
+  isHeldByMe: boolean;
 }

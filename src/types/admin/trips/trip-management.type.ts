@@ -103,21 +103,30 @@ export interface AdminTripListResponse {
 export interface CreateAdminTripPayload {
   routeId: number;
   scheduleTemplateId: number;
+
   vehicleId?: number | null;
   driverId?: number | null;
+
   departureDatetime: string;
   arrivalDatetime: string;
-  availableSeats: number;
+
   ticketPrice?: number | null;
 }
 
 export interface UpdateAdminTripPayload {
-  vehicleId?: number | null;
-  driverId?: number | null;
+  scheduleTemplateId: number;
+
+  vehicleId: number | null;
+
+  driverId: number | null;
+
   departureDatetime: string;
+
   arrivalDatetime: string;
+
   status: TripStatus;
-  ticketPrice?: number | null;
+
+  ticketPrice: number | null;
 }
 
 export interface UpdateTripStatusPayload {
@@ -174,14 +183,49 @@ export interface AdminTripOptionScheduleTemplate {
 }
 export interface CopyTripsPayload {
   sourceDate: string;
+
   targetDateFrom: string;
   targetDateTo: string;
+
   routeId?: number;
+
   keepVehicle: boolean;
+  keepDriver: boolean;
   keepPrice: boolean;
+
   overwriteExisting: boolean;
 }
+export interface CopyTripSource {
+  tripId: number;
 
+  scheduleTemplateId: number;
+
+  routeId: number;
+
+  vehicleId: number | null;
+
+  driverId: number | null;
+
+  departureDatetime: string;
+  arrivalDatetime: string;
+
+  totalSeats: number;
+
+  ticketPrice: number | null;
+
+  status: TripStatus;
+}
+export interface BulkActionSkippedItem {
+  sourceTripId: number;
+
+  routeId: number;
+
+  targetDate: string;
+
+  departureDatetime: string;
+
+  reason: string;
+}
 export interface BulkUpdateTripPricePayload {
   routeId?: number;
   dateFrom: string;
@@ -191,7 +235,18 @@ export interface BulkUpdateTripPricePayload {
 }
 
 export interface BulkActionResult {
-  createdCount?: number;
-  updatedCount?: number;
-  skippedCount?: number;
+  createdCount: number;
+  updatedCount: number;
+  skippedCount: number;
+
+  skippedItems: BulkActionSkippedItem[];
+}
+
+export interface AdminTripOptionsParams {
+  routeId?: number;
+  scheduleTemplateId?: number;
+}
+export interface AdminAvailableTripResourcesResponse {
+  vehicles: AdminTripOptionVehicle[];
+  drivers: AdminTripOptionDriver[];
 }

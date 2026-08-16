@@ -17,7 +17,7 @@ import { useBulkUpdateTripPrice, useCopyTrips } from "@/hooks/admin/useTrips";
 import type { AdminScheduleTemplateItem } from "@/types/admin/schedules/schedule-management.type";
 
 import ScheduleTemplateFormModal from "./ScheduleTemplateFormModal";
-import GenerateTripsFromScheduleModal from "./GenerateTripsFromScheduleModal";
+
 import CopyTripsModal from "./CopyTripsModal";
 import BulkTripPriceModal from "./BulkTripPriceModal";
 
@@ -146,7 +146,6 @@ export default function ScheduleTemplatesContainer() {
 
   return (
     <BlockErrorBoundary fallback={<BlockSkeleton height={500} />}>
-
       <div className={styles.container}>
         {/* Tiêu đề trang chính */}
         <div className={styles.header}>
@@ -206,13 +205,6 @@ export default function ScheduleTemplatesContainer() {
             🛠️ Thao tác hàng loạt cho chuyến xe:
           </span>
           <div className={styles.bulkActionButtons}>
-            <button
-              className={styles.secondaryBtn}
-              onClick={() => setOpenGenerate(true)}
-            >
-              🗓️ Tạo chuyến tự động từ giờ mẫu
-            </button>
-
             <button
               className={styles.secondaryBtn}
               onClick={() => setOpenCopy(true)}
@@ -531,33 +523,6 @@ export default function ScheduleTemplatesContainer() {
             );
           }}
         />
-
-        {/* Cửa sổ biểu mẫu: Tạo chuyến xe tự động */}
-        <GenerateTripsFromScheduleModal
-          open={openGenerate}
-          options={options as any}
-          loading={generateMutation.isPending}
-          onClose={() => setOpenGenerate(false)}
-          onSubmit={(payload) => {
-            generateMutation.mutate(payload, {
-              onSuccess: (result) => {
-                setOpenGenerate(false);
-                toast.success(
-                  `Thành công: Đã tạo tự động ${result.createdCount ?? 0} chuyến xe mới, bỏ qua ${
-                    result.skippedCount ?? 0
-                  } chuyến đã có sẵn (trùng lịch).`,
-                );
-              },
-              onError: (error: any) => {
-                toast.error(
-                  error?.message ||
-                    "Lỗi hệ thống, không thể tự động tạo chuyến.",
-                );
-              },
-            });
-          }}
-        />
-
         {/* Cửa sổ biểu mẫu: Sao chép lịch */}
         <CopyTripsModal
           open={openCopy}

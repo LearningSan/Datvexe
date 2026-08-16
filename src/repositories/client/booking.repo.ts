@@ -300,7 +300,7 @@ export async function checkSeatsAlreadyHeld(
 
   return rows;
 }
-export async function insertSeatHolds(
+export async function deleteSeatHolds(
   conn: PoolConnection,
   data: {
     tripId: number;
@@ -311,6 +311,35 @@ export async function insertSeatHolds(
 ) {
   if (data.seatIds.length === 0) {
     return;
+  }
+
+  const placeholders = data.seatIds.map(() => "?").join(",");
+
+  const params = [data.tripId, data.sessionId, data.userId, ...data.seatIds];
+
+  await connQuery(
+    conn,
+    `
+      DELETE FROM seat_holds
+      WHERE trip_id = ?
+        AND session_id = ?
+        AND user_id <=> ?
+        AND seat_layout_detail_id IN (${placeholders})
+    `,
+    params,
+  );
+}
+export async function insertSeatHolds(
+  conn: PoolConnection,
+  data: {
+    tripId: number;
+    seatIds: number[];
+    sessionId: string;
+    userId: number | null;
+  },
+) {
+  if (data.seatIds.length === 0) {
+    return null;
   }
 
   const values = data.seatIds
@@ -326,29 +355,45 @@ export async function insertSeatHolds(
   await connQuery(
     conn,
     `
-    INSERT INTO seat_holds (
-      trip_id,
-      seat_layout_detail_id,
-      session_id,
-      user_id,
-      expired_at
-    )
-    VALUES ${values}
-
-    ON DUPLICATE KEY UPDATE
-      expired_at = IF(
-        session_id = VALUES(session_id),
-        NOW() + INTERVAL 12 MINUTE,
-        expired_at
-      ),
-      session_id = IF(
-        session_id = VALUES(session_id),
+      INSERT INTO seat_holds (
+        trip_id,
+        seat_layout_detail_id,
         session_id,
-        session_id
+        user_id,
+        expired_at
       )
+      VALUES ${values}
+
+      ON DUPLICATE KEY UPDATE
+        expired_at = IF(
+          session_id = VALUES(session_id),
+          NOW() + INTERVAL 12 MINUTE,
+          expired_at
+        ),
+        session_id = IF(
+          session_id = VALUES(session_id),
+          session_id,
+          session_id
+        )
     `,
     params,
   );
+
+  const rows = await connQuery<{ expiredAt: Date }>(
+    conn,
+    `
+      SELECT expired_at AS expiredAt
+      FROM seat_holds
+      WHERE trip_id = ?
+        AND session_id = ?
+        AND seat_layout_detail_id IN (${data.seatIds.map(() => "?").join(",")})
+      ORDER BY expired_at ASC
+      LIMIT 1
+    `,
+    [data.tripId, data.sessionId, ...data.seatIds],
+  );
+
+  return rows[0]?.expiredAt ?? null;
 }
 export async function updateTripHoldCount(
   conn: PoolConnection,
@@ -366,7 +411,22 @@ export async function updateTripHoldCount(
     [count, tripId, count],
   );
 }
-
+export async function updateTripHoldCountRelease(
+  conn: PoolConnection,
+  tripId: number,
+  count: number,
+) {
+  await connQuery(
+    conn,
+    `
+    UPDATE trips
+    SET available_seats = available_seats + ?
+    WHERE trip_id = ?
+      AND available_seats >= ?
+    `,
+    [count, tripId, count],
+  );
+}
 export async function cancelPendingBooking(
   conn: PoolConnection,
   bookingId: number,

@@ -1,117 +1,108 @@
-/* Tổng quan layout trang quản trị */
+/* ==========================================================================
+   1. TỔNG QUAN CONTAINER DASHBOARD (CHO PHÉP TRANG GIÃN LINH HOẠT HƠN)
+   ========================================================================== */
 .dashboardPage {
-  padding: 24px;
-  background-color: #f8fafc; /* Nền xám xanh Slate nhạt giúp nổi bật các khối màu trắng */
+  padding: 20px 24px;
+  background-color: #f8fafc;
   min-height: 100vh;
-  font-family:
-    system-ui,
-    -apple-system,
-    sans-serif;
+  box-sizing: border-box;
+  margin-top: 22px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 10px;
 }
 
-/* SECTION 1: Tiêu đề & Nút Tạo Vé */
+/* SECTION 1: HEADER & NÚT TẠO VÉ */
 .pageHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
+  flex-shrink: 0;
 }
 
 .headerInfo h1 {
-  font-size: 1.6rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  color: #0f172a; /* Slate 900 siêu đậm */
-  margin: 0 0 6px 0;
+  color: #0f172a;
+  margin: 0;
   letter-spacing: -0.5px;
 }
 
 .headerInfo p {
-  font-size: 0.9rem;
-  color: #475569; /* Chữ phụ đậm nét, rõ ràng */
-  margin: 0;
-  max-width: 800px;
-  line-height: 1.5;
+  display: none;
 }
 
 .createBtn {
-  background-color: #2563eb; /* Royal Blue */
+  background-color: #2563eb;
   color: #ffffff;
-  border: 2px solid #1d4ed8;
-  padding: 12px 20px;
-  border-radius: 8px;
+  border: 1.5px solid #1d4ed8;
+  padding: 6px 14px;
+  border-radius: 6px;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   white-space: nowrap;
-  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
   transition: all 0.1s ease;
 }
 
 .createBtn:hover {
   background-color: #1d4ed8;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 12px -2px rgba(29, 78, 216, 0.3);
 }
 
 .plusIcon {
-  font-size: 1.2rem;
-  line-height: 1;
+  font-size: 1rem;
 }
 
-/* SECTION 2: Chỉ số cảnh báo vận hành (Stats Board) */
+/* ==========================================================================
+   2. THỐNG KÊ NHANH (STATS BOARD) - TỐI ƯU SIÊU GỌN
+   ========================================================================== */
 .dashboardStats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .statCard {
   background: #ffffff;
-  border: 2px solid #cbd5e1;
-  border-radius: 12px;
-  padding: 16px 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 12px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
+  gap: 2px;
   text-align: left;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
   transition: all 0.15s ease-in-out;
 }
 
 .statCard:hover {
   border-color: #475569;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.06);
 }
 
 .statLabel {
-  font-size: 0.85rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  color: #475569;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .statValue {
-  font-size: 1.8rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: #0f172a;
-  line-height: 1;
+  line-height: 1.1;
 }
 
-/* Kích hoạt bộ lọc cảnh báo nhanh */
 .statCardActive {
-  border-color: #dc2626 !important; /* Đỏ rực */
+  border-color: #dc2626 !important;
   background-color: #fef2f2 !important;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
 }
 .statCardActive .statLabel {
   color: #991b1b;
@@ -120,27 +111,30 @@
   color: #dc2626;
 }
 
-/* SECTION 3: Khối Bộ lọc Tìm kiếm nâng cao */
+/* ==========================================================================
+   3. BỘ LỌC TÌM KIẾM (FILTER SECTION) - NÉN GỌN CHIỀU CAO
+   ========================================================================== */
 .filterSection {
   background: #ffffff;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  flex-shrink: 0;
 }
 
 .filterFormGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
   align-items: flex-end;
 }
 
 .fieldGroup {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 0.85rem;
+  gap: 3px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #334155;
 }
@@ -148,119 +142,99 @@
 .fieldGroup input,
 .fieldGroup select {
   width: 100%;
-  padding: 10px 14px;
-  border: 2px solid #cbd5e1; /* Độ dày viền 2px chống mờ tốt */
-  border-radius: 8px;
-  font-size: 0.9rem;
+  padding: 5px 8px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.82rem;
   color: #0f172a;
   font-weight: 500;
   outline: none;
   background-color: #ffffff;
-  transition: all 0.1s ease-in-out;
+  box-sizing: border-box;
 }
 
 .fieldGroup input:focus,
 .fieldGroup select:focus {
   border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-/* Khối checkbox lọc khẩn cấp */
 .filterCheckboxes {
-  grid-column: 1 / -1; /* Trải dài hết hàng */
+  grid-column: 1 / -1;
   display: flex;
-  gap: 24px;
-  padding-top: 8px;
+  gap: 14px;
+  padding-top: 4px;
   border-top: 1px dashed #e2e8f0;
-  margin-top: 8px;
+  margin-top: 2px;
 }
 
 .checkboxItem {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: #1e293b;
 }
 
 .checkboxItem input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: #2563eb; /* Đổi màu tick xanh nổi bật */
+  width: 15px;
+  height: 15px;
+  accent-color: #2563eb;
 }
 
-/* Cụm nút bấm bộ lọc */
 .filterActions {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 2px solid #f1f5f9;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #f1f5f9;
 }
 
 .executeBtn {
   background-color: #0f172a;
   color: #ffffff;
-  border: 2px solid #0f172a;
-  padding: 10px 24px;
-  border-radius: 8px;
+  border: 1px solid #0f172a;
+  padding: 5px 14px;
+  border-radius: 6px;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: all 0.1s ease;
-}
-
-.executeBtn:hover {
-  background-color: #1e293b;
-  border-color: #1e293b;
 }
 
 .resetBtn {
   background-color: #ffffff;
   color: #475569;
-  border: 2px solid #cbd5e1;
-  padding: 10px 20px;
-  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  padding: 5px 12px;
+  border-radius: 6px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  transition: all 0.1s ease;
 }
 
-.resetBtn:hover {
-  background-color: #f8fafc;
-  color: #0f172a;
-  border-color: #94a3b8;
-}
-
-/* SECTION 4: Thanh Tabs Phân Loại Lớn */
+/* ==========================================================================
+   4. TABS PHÂN LOẠI TRẠNG THÁI
+   ========================================================================== */
 .statusTabsBar {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   border-bottom: 2px solid #cbd5e1;
   overflow-x: auto;
-  padding-bottom: 2px;
+  flex-shrink: 0;
 }
 
 .statusTabsBar button {
-  padding: 12px 20px;
+  padding: 6px 12px;
   background: transparent;
   border: none;
   border-bottom: 3px solid transparent;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: #64748b;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
-}
-
-.statusTabsBar button:hover {
-  color: #0f172a;
 }
 
 .tabActive {
@@ -268,100 +242,116 @@
   border-bottom-color: #2563eb !important;
 }
 
-/* SECTION 5: Khối Bảng Dữ Liệu Tập Trung */
+/* ==========================================================================
+   5. BẢNG DỮ LIỆU TĂNG CHIỀU CAO - CHỨA ĐỦ 10 DÒNG VÉ VÀO MÀN HÌNH
+   ========================================================================== */
 .mainTableCard {
+  flex: 1;
+  min-height: 580px; /* Tăng nhẹ chiều cao để chứa đủ 10 dòng trọn vẹn */
   background: #ffffff;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
 .responsiveWrapper {
-  overflow-x: auto; /* Cuộn ngang mượt mà trên màn hình nhỏ */
+  flex: 1;
+  overflow-x: auto; /* Kích hoạt cuộn ngang mượt mà nếu màn hình hẹp */
+  overflow-y: auto;
   width: 100%;
+  height: 100%;
 }
 
 .dataTable {
   width: 100%;
-  border-collapse: collapse;
+  min-width: 1100px; /* Đảm bảo bảng đủ chiều rộng, không bị ép các nút thao tác */
+  border-collapse: separate;
+  border-spacing: 0;
   text-align: left;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
 }
 
 .dataTable th {
-  background-color: #f8fafc;
-  padding: 14px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: #f8fafc !important;
+  color: #475569;
   font-weight: 700;
-  color: #334155;
+  padding: 6px 10px; /* Tiêu đề mỏng hơn */
   border-bottom: 2px solid #cbd5e1;
   text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.5px;
+  font-size: 0.7rem;
+  letter-spacing: 0.3px;
   white-space: nowrap;
 }
 
 .dataTable td {
-  padding: 14px 16px;
+  padding: 4px 10px; /* Giảm chiều cao dòng xuống mức tối đa (khoảng 38px/dòng) */
   border-bottom: 1px solid #e2e8f0;
   vertical-align: middle;
+  background-color: #ffffff;
 }
 
-.dataTable tbody tr:hover {
-  background-color: #f8fafc; /* Hiệu ứng hover dòng cực nhẹ nhàng */
+.dataTable tbody tr:hover td {
+  background-color: #f8fafc;
 }
 
-/* Dòng chứa đơn hàng có cảnh báo khẩn cấp */
-.rowWarningHighlight {
-  background-color: #fffaf0; /* Nền cam nhạt báo động */
+/* Dòng cảnh báo khẩn cấp */
+.rowWarningHighlight td {
+  background-color: #fffaf0 !important;
 }
-.rowWarningHighlight:hover {
+.rowWarningHighlight:hover td {
   background-color: #fff3e0 !important;
 }
 
-/* Định dạng nội dung chi tiết trong từng ô */
+/* Nội dung trong ô */
 .primaryCellText {
   display: block;
   font-weight: 700;
   color: #0f172a;
-  margin-bottom: 3px;
+  margin-bottom: 1px;
+  font-size: 0.82rem;
+  line-height: 1.2;
 }
 
 .secondaryCellText {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #64748b;
   font-weight: 500;
+  line-height: 1.2;
 }
 
 .priceHighlight {
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 800;
-  color: #1e3a8a; /* Xanh Navy đậm siêu tương phản */
+  color: #1e3a8a;
 }
 
-/* Badge số ghế */
+/* Badges */
 .seatBadge {
   display: inline-block;
   background-color: #f1f5f9;
-  border: 2px solid #cbd5e1;
+  border: 1px solid #cbd5e1;
   color: #0f172a;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 6px;
-  margin-bottom: 4px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
 }
 
-/* CHUẨN HÓA BADGES TRẠNG THÁI (ĐẬM - RÕ - KHÔNG MỜ) */
 .statusBadge {
   display: inline-flex;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.68rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
+  letter-spacing: 0.4px;
 }
 
 .status_pending {
@@ -387,17 +377,16 @@
 
 .paymentSubStatus {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: #475569;
 }
 
-/* Badge trạng thái giữ chỗ */
 .holdBadge {
   display: inline-block;
-  padding: 3px 8px;
+  padding: 1px 5px;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
 }
 .hold_none {
@@ -416,58 +405,62 @@
   text-decoration: line-through;
 }
 
-/* Cụm thẻ Cảnh báo vận hành */
-.warningTagsList {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-width: 200px;
+.warningItemTag {
+  background-color: #dc2626;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .safeIndicator {
   color: #16a34a;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
 .warningItemTag {
   background-color: #dc2626;
   color: #ffffff;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 4px;
+  padding: 1px 5px;
+  border-radius: 3px;
   line-height: 1.2;
-  white-space: normal;
-  word-break: break-word;
 }
 
-/* CỤM NÚT THAO TÁC HỆ THỐNG TRÊN DÒNG (DỄ BẤM - KHÔNG RỜI RẠC) */
+/* Cụm Nút Thao Tác */
 .actionsColumnHeader {
   text-align: right !important;
 }
 
 .actionButtonsGroup {
   display: flex;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 6px;
-  min-width: 260px;
+  flex-direction: column; /* Xếp dọc các nút lên nhau */
+  align-items: flex-end; /* Căn lề phải các nút cho đẹp mắt */
+  gap: 3px; /* Khoảng cách nhỏ giữa các nút */
+  min-width: 90px;
 }
 
 .actionButtonsGroup button {
-  padding: 6px 12px;
-  font-size: 0.8rem;
+  width: 100%; /* Giúp các nút bằng chiều rộng nhau */
+  max-width: 110px;
+  padding: 3px 6px;
+  font-size: 0.7rem;
   font-weight: 700;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
-  border: 2px solid transparent;
-  transition: all 0.1s ease;
+  white-space: nowrap;
+  text-align: center;
+  box-sizing: border-box;
 }
 
 .btnView {
   background-color: #ffffff;
-  border-color: #cbd5e1 !important;
+  border: 1px solid #cbd5e1;
   color: #334155;
 }
 .btnView:hover {
@@ -477,6 +470,7 @@
 
 .btnApprove {
   background-color: #16a34a;
+  border: 1px solid #15803d;
   color: #ffffff;
 }
 .btnApprove:hover {
@@ -485,7 +479,7 @@
 
 .btnEditStatus {
   background-color: #f1f5f9;
-  border-color: #e2e8f0 !important;
+  border: 1px solid #cbd5e1;
   color: #334155;
 }
 .btnEditStatus:hover {
@@ -495,7 +489,7 @@
 
 .btnCancel {
   background-color: #ffffff;
-  border-color: #f87171 !important;
+  border: 1px solid #f87171;
   color: #b91c1c;
 }
 .btnCancel:hover {
@@ -504,6 +498,7 @@
 
 .btnCheckin {
   background-color: #2563eb;
+  border: 1px solid #1d4ed8;
   color: #ffffff;
 }
 .btnCheckin:hover {
@@ -512,36 +507,38 @@
 
 .noDataCell {
   text-align: center;
-  padding: 48px !important;
+  padding: 32px !important;
   color: #64748b;
   font-weight: 600;
-  font-size: 0.95rem;
 }
 
-/* SECTION 6: Thanh điều hướng phân trang (Pagination) */
+/* ==========================================================================
+   6. PHÂN TRANG (PAGINATION BAR)
+   ========================================================================== */
 .paginationBar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 8px;
+  padding: 6px 14px;
+  background: #ffffff;
+  border-top: 1.5px solid #e2e8f0;
+  flex-shrink: 0;
 }
 
 .pagiArrowBtn {
   background-color: #ffffff;
-  border: 2px solid #cbd5e1;
+  border: 1px solid #cbd5e1;
   color: #334155;
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 4px 12px;
+  border-radius: 6px;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   cursor: pointer;
-  transition: all 0.1s ease;
 }
 
 .pagiArrowBtn:hover:not(:disabled) {
   background-color: #f1f5f9;
   color: #0f172a;
-  border-color: #94a3b8;
 }
 
 .pagiArrowBtn:disabled {
@@ -552,29 +549,28 @@
 }
 
 .pagiCurrentReport {
-  font-size: 0.875rem;
+  font-size: 0.78rem;
   color: #475569;
 }
-.pagiCurrentReport b {
-  color: #0f172a;
-  font-weight: 700;
-}
 
-/* Trạng thái Loading xương cá & Lỗi kết nối */
+/* ==========================================================================
+   7. MODAL VÀ OVERLAY
+   ========================================================================== */
 .loaderContainer {
-  padding: 24px;
+  padding: 20px;
 }
 
 .errorAlert {
-  margin: 24px;
-  padding: 16px 20px;
+  margin: 12px;
+  padding: 10px 14px;
   background-color: #fef2f2;
-  border: 2px solid #f87171;
-  border-radius: 8px;
+  border: 1px solid #f87171;
+  border-radius: 6px;
   color: #991b1b;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 }
+
 .confirmOverlay {
   position: fixed;
   inset: 0;
@@ -582,109 +578,100 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
   background: rgba(15, 23, 42, 0.58);
   backdrop-filter: blur(3px);
 }
 
 .confirmModal {
-  width: min(100%, 500px);
-  padding: 24px;
+  width: min(100%, 480px);
+  padding: 18px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
   animation: confirmModalAppear 0.18s ease-out;
 }
 
 .confirmIcon {
-  width: 52px;
-  height: 52px;
-  margin-bottom: 16px;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   background: #dcfce7;
   color: #15803d;
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 800;
 }
 
 .confirmContent h2 {
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   color: #0f172a;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 800;
 }
 
 .confirmContent > p {
   margin: 0;
   color: #475569;
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.confirmContent > p strong {
-  color: #0f172a;
+  font-size: 0.85rem;
+  line-height: 1.4;
 }
 
 .confirmTicketInfo {
-  margin-top: 20px;
-  padding: 16px;
+  margin-top: 12px;
+  padding: 10px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 8px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 6px;
 }
 
 .confirmTicketInfo div {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
-
 .confirmTicketInfo span {
   color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.confirmTicketInfo strong {
+  color: #0f172a;
+  font-size: 0.82rem;
+}
+
+.confirmWarning {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: #fffbeb;
+  border: 1px solid #fbbf24;
+  border-radius: 6px;
+  color: #92400e;
   font-size: 0.78rem;
   font-weight: 600;
 }
 
-.confirmTicketInfo strong {
-  color: #0f172a;
-  font-size: 0.9rem;
-  overflow-wrap: anywhere;
-}
-
-.confirmWarning {
-  margin-top: 16px;
-  padding: 12px 14px;
-  background: #fffbeb;
-  border: 1px solid #fbbf24;
-  border-radius: 8px;
-  color: #92400e;
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1.5;
-}
-
 .confirmActions {
-  margin-top: 24px;
+  margin-top: 14px;
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
 }
 
 .confirmActions button {
-  min-height: 42px;
-  padding: 9px 18px;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  min-height: 34px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  transition: 0.15s ease;
 }
 
 .confirmCancelButton {
@@ -692,33 +679,17 @@
   color: #475569;
   border: 1px solid #cbd5e1;
 }
-
-.confirmCancelButton:hover:not(:disabled) {
-  background: #f8fafc;
-  color: #0f172a;
-}
-
 .confirmApproveButton {
   background: #16a34a;
   color: #ffffff;
   border: 1px solid #15803d;
 }
 
-.confirmApproveButton:hover:not(:disabled) {
-  background: #15803d;
-}
-
-.confirmActions button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 @keyframes confirmModalAppear {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: translateY(6px) scale(0.98);
   }
-
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -727,17 +698,14 @@
 
 @media (max-width: 540px) {
   .confirmModal {
-    padding: 20px;
+    padding: 14px;
   }
-
   .confirmTicketInfo {
     grid-template-columns: 1fr;
   }
-
   .confirmActions {
     flex-direction: column-reverse;
   }
-
   .confirmActions button {
     width: 100%;
   }

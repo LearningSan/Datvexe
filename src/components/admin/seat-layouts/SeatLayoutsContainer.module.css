@@ -1,195 +1,406 @@
-/* SeatLayoutsContainer.module.css */
+/* ================================================== */
+/* PAGE LAYOUT & HEADER */
+/* ================================================== */
+
 .page {
-  padding: 32px;
+  padding: 28px;
   max-width: 1400px;
   margin: 0 auto;
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
-  color: #1e293b;
-  background-color: #f1f5f9; /* Nền xám sáng để làm nổi bật các khối trắng */
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-/* Header */
+/* Header trang đậm nét và có điểm nhấn */
 .header {
-  margin-bottom: 32px;
-  border-left: 5px solid #4f46e5; /* Vạch màu tím xanh đậm chất Tech */
-  padding-left: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e2e8f0;
+  position: relative;
+}
+
+.header::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 80px;
+  height: 2px;
+  background-color: #2563eb; /* Đường gạch nhấn màu xanh đậm */
 }
 
 .header h1 {
-  font-size: 32px;
+  font-size: 1.65rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
-  color: #0f172a;
+  color: #0f172a; /* Màu chữ gần đen, rất rõ */
   margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
 }
 
 .header p {
-  font-size: 14px;
-  color: #475569;
-  font-weight: 500;
+  font-size: 0.9rem;
+  color: #475569; /* Xám đậm hơn thay vì nhạt */
   margin: 0;
+  font-weight: 500;
 }
 
-/* Table Card */
+/* ================================================== */
+/* LOADING & ERROR STATES */
+/* ================================================== */
+
+.loading,
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 12px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.loading {
+  color: #1e293b;
+}
+
+.error {
+  color: #dc2626;
+  background-color: #fef2f2;
+  border-color: #fca5a5;
+}
+
+/* ================================================== */
+/* TABLE CONTAINER & TABLE */
+/* ================================================== */
+
 .tableCard {
-  background: #ffffff;
-  border-radius: 16px;
-  border: none;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1; /* Viền rõ nét hơn */
+  border-radius: 12px;
   box-shadow:
-    0 10px 25px -5px rgba(15, 23, 42, 0.08),
-    0 8px 10px -6px rgba(15, 23, 42, 0.08);
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -2px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  overflow-x: auto;
 }
 
 .tableCard table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
+/* Header Bảng: Tối màu, chữ trắng/xám sáng cực kỳ tương phản */
 .tableCard th {
-  background-color: #1e293b; /* Thanh tiêu đề màu tối rất quyền lực */
+  background-color: #0f172a; /* Nền xanh đen cao cấp */
   color: #f8fafc;
   font-weight: 700;
-  padding: 18px 20px;
-  font-size: 13px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #1e293b;
+  white-space: nowrap;
+  font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 .tableCard td {
-  padding: 18px 20px;
+  padding: 16px;
   border-bottom: 1px solid #e2e8f0;
-  color: #334155;
-  font-weight: 500; /* Chữ đậm đà hơn, không bị nhạt nhòa */
+  color: #1e293b; /* Màu chữ đậm, tương phản tốt */
+  font-weight: 500;
   vertical-align: middle;
 }
 
-.tableCard tbody tr {
-  transition: all 0.2s ease;
-}
-
-.tableCard tbody tr:hover {
-  background-color: #f8fafc;
-  transform: scale(1.002); /* Hiệu ứng nổi nhẹ khi di chuột */
-}
-
-.tableCard strong {
-  color: #ffffff;
+.tableCard td strong {
+  color: #0f172a;
   font-weight: 700;
-  font-family: "SF Mono", Monaco, Consolas, monospace;
-  background: #4f46e5; /* Mã layout nổi bần bật với màu tím xanh */
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
 }
 
-/* Warnings Tag List - Sắc nét, rực rỡ */
-.warningList {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+.tableCard tr:last-child td {
+  border-bottom: none;
 }
 
-.warningList span {
-  font-size: 12px;
-  background-color: #fef2f2;
-  color: #ef4444; /* Đỏ rực cảnh báo */
-  border: 1px solid #fca5a5;
-  padding: 4px 10px;
-  border-radius: 6px;
+.tableCard tbody tr:hover td {
+  background-color: #f1f5f9; /* Hover rõ nét hơn */
+}
+
+.empty {
+  text-align: center;
+  padding: 48px 16px !important;
+  color: #64748b;
   font-weight: 600;
 }
 
-/* Trạng thái Ổn định */
-.warningList:not(:has(span)) {
-  color: #10b981; /* Xanh lá tươi tắn */
-  font-weight: 700;
-  font-size: 14px;
-}
+/* ================================================== */
+/* BADGES & STATUS (Tương phản cao) */
+/* ================================================== */
 
-/* Status Badges */
 .status {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
   font-weight: 700;
-  text-transform: uppercase;
+  line-height: 1;
   letter-spacing: 0.02em;
 }
 
+/* Đang dùng: Nền xanh lá tươi, viền nhẹ, chữ đậm */
 .active {
-  background-color: #d1fae5;
-  color: #065f46;
-  border: 1px solid #10b981;
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
 }
 
+/* Tạm ngưng: Tông xám đậm */
 .inactive {
   background-color: #f1f5f9;
-  color: #64748b;
+  color: #475569;
   border: 1px solid #cbd5e1;
 }
 
-/* Actions Button Group */
+/* ================================================== */
+/* WARNING LIST (Tông cam nổi bật) */
+/* ================================================== */
+
+.warningList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.warningList span {
+  display: inline-block;
+  background-color: #fff7ed;
+  color: #c2410c; /* Cam đậm dễ đọc */
+  border: 1px solid #ffedd5;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ================================================== */
+/* ACTIONS BUTTONS */
+/* ================================================== */
+
 .actions {
   display: flex;
+  align-items: center;
   gap: 8px;
 }
 
 .actions button {
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 700;
-  border-radius: 8px;
-  cursor: pointer;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid #94a3b8;
   background-color: #ffffff;
-  border: 2px solid #e2e8f0;
-  color: #475569;
+  color: #0f172a;
+  cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .actions button:hover {
-  background-color: #0f172a;
+  background-color: #2563eb;
+  border-color: #2563eb;
   color: #ffffff;
-  border-color: #0f172a;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
 }
 
-/* Nút Tạm ngưng/Kích hoạt nổi bật */
-.actions button:last-child {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+/* ================================================== */
+/* DUPLICATE MODAL STYLES (Giao diện đậm đà hơn) */
+/* ================================================== */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(15, 23, 42, 0.75); /* Tối hơn chút để nổi modal */
+  backdrop-filter: blur(5px);
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
 }
 
-/* Hệ thống State */
-.loading,
-.error,
-.empty {
-  text-align: center;
-  padding: 60px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 16px;
+.modalContent {
+  width: 100%;
+  max-width: 480px;
+  background-color: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  animation: slideUp 0.2s ease-out;
 }
 
-.loading {
-  color: #4f46e5;
-  background: #ffffff;
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid #1e293b;
+  background-color: #0f172a; /* Header Modal nền tối sang trọng */
+  color: #ffffff;
 }
 
-.error {
-  color: #dc2626;
-  background-color: #fef2f2;
-  border: 2px dashed #fca5a5;
+.modalHeader h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.closeBtn {
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 1.1rem;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.closeBtn:hover {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.modalBody {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background-color: #ffffff;
+}
+
+.modalSubtitle {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #334155;
+  background-color: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border-left: 4px solid #2563eb;
+}
+
+.modalSubtitle strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.formGroup input {
+  padding: 11px 14px;
+  font-size: 0.925rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  color: #0f172a;
+  font-weight: 500;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.formGroup input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.2);
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.cancelBtn,
+.submitBtn {
+  padding: 10px 18px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelBtn {
+  background-color: #ffffff;
+  border: 1px solid #94a3b8;
+  color: #334155;
+}
+
+.cancelBtn:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border-color: #64748b;
+}
+
+.submitBtn {
+  background-color: #2563eb;
+  border: 1px solid #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+}
+
+.submitBtn:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.submitBtn:disabled,
+.cancelBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ================================================== */
+/* ANIMATIONS */
+/* ================================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

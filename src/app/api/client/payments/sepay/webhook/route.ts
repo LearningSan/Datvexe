@@ -91,23 +91,9 @@ export async function POST(req: NextRequest) {
 
     const payload = (await req.json()) as SePayWebhookPayload;
 
-    console.log("[SEPAY WEBHOOK RECEIVED]", {
-      id: payload.id,
-      gateway: payload.gateway,
-      accountNumber: payload.accountNumber,
-      transferType: payload.transferType,
-      transferAmount: payload.transferAmount,
-      code: payload.code ?? null,
-      content: payload.content ?? null,
-      referenceCode: payload.referenceCode ?? null,
-    });
 
     if (payload.transferType !== "in") {
-      console.log("[SEPAY WEBHOOK IGNORED]", {
-        id: payload.id,
-        reason: "Không phải giao dịch tiền vào",
-      });
-
+  
       return NextResponse.json({
         success: true,
         ignored: true,
@@ -137,12 +123,7 @@ export async function POST(req: NextRequest) {
     const transactionCode = extractTransactionCode(payload);
 
     if (!transactionCode) {
-      console.log("[SEPAY WEBHOOK IGNORED]", {
-        id: payload.id,
-        reason: "Không tìm thấy mã PAY trong giao dịch",
-        code: payload.code ?? null,
-        content: payload.content ?? null,
-      });
+
 
       return NextResponse.json({
         success: true,
@@ -162,14 +143,6 @@ export async function POST(req: NextRequest) {
       gatewayTransactionId,
       gatewayResponse: payload,
     });
-
-    console.log("[SEPAY WEBHOOK SUCCESS]", {
-      sepayTransactionId: payload.id,
-      transactionCode,
-      bookingIds: result.bookingIds,
-      alreadyProcessed: result.alreadyProcessed,
-    });
-
     return NextResponse.json({
       success: true,
       data: {

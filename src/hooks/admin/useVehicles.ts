@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import {
   createAdminVehicleApi,
   fetchAdminVehicleOptions,
@@ -6,6 +7,7 @@ import {
   updateAdminVehicleApi,
   updateAdminVehicleStatusApi,
 } from "@/services/admin/vehicle.service";
+
 import type {
   AdminVehicleListParams,
   CreateAdminVehiclePayload,
@@ -13,6 +15,11 @@ import type {
   UpdateVehicleStatusPayload,
 } from "@/types/admin/vehicles/vehicle-management.type";
 
+/**
+ * =========================================================
+ * DANH SÁCH XE
+ * =========================================================
+ */
 export function useVehicles(params: AdminVehicleListParams) {
   return useQuery({
     queryKey: ["admin-vehicles", params],
@@ -20,6 +27,15 @@ export function useVehicles(params: AdminVehicleListParams) {
   });
 }
 
+/**
+ * =========================================================
+ * OPTIONS
+ * =========================================================
+ *
+ * Dùng cho:
+ * - Loại xe
+ * - Sơ đồ ghế
+ */
 export function useVehicleOptions() {
   return useQuery({
     queryKey: ["admin-vehicle-options"],
@@ -27,19 +43,37 @@ export function useVehicleOptions() {
   });
 }
 
+/**
+ * =========================================================
+ * THÊM XE
+ * =========================================================
+ */
 export function useCreateVehicle() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (payload: CreateAdminVehiclePayload) =>
       createAdminVehicleApi(payload),
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-vehicles"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-vehicle-options"] });
+      // Refresh danh sách xe
+      queryClient.invalidateQueries({
+        queryKey: ["admin-vehicles"],
+      });
+
+      // Refresh options nếu cần
+      queryClient.invalidateQueries({
+        queryKey: ["admin-vehicle-options"],
+      });
     },
   });
 }
 
+/**
+ * =========================================================
+ * CẬP NHẬT XE
+ * =========================================================
+ */
 export function useUpdateVehicle() {
   const queryClient = useQueryClient();
 
@@ -51,13 +85,26 @@ export function useUpdateVehicle() {
       vehicleId: number;
       payload: UpdateAdminVehiclePayload;
     }) => updateAdminVehicleApi(vehicleId, payload),
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-vehicles"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-vehicle-options"] });
+      // Refresh danh sách xe
+      queryClient.invalidateQueries({
+        queryKey: ["admin-vehicles"],
+      });
+
+      // Refresh options
+      queryClient.invalidateQueries({
+        queryKey: ["admin-vehicle-options"],
+      });
     },
   });
 }
 
+/**
+ * =========================================================
+ * CẬP NHẬT TRẠNG THÁI XE
+ * =========================================================
+ */
 export function useUpdateVehicleStatus() {
   const queryClient = useQueryClient();
 
@@ -69,8 +116,11 @@ export function useUpdateVehicleStatus() {
       vehicleId: number;
       payload: UpdateVehicleStatusPayload;
     }) => updateAdminVehicleStatusApi(vehicleId, payload),
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-vehicles"] });
+      queryClient.invalidateQueries({
+        queryKey: ["admin-vehicles"],
+      });
     },
   });
 }

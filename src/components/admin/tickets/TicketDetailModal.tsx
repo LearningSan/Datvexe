@@ -30,65 +30,46 @@ export default function TicketDetailModal({ open, ticket, onClose }: Props) {
   const [openSeatManage, setOpenSeatManage] = useState(false);
   const [openChangeTicket, setOpenChangeTicket] = useState(false);
 
+  // States quản lý UI Modal thay thế window.confirm & window.prompt
+  const [seatToRemove, setSeatToRemove] = useState<{
+    bookingSeatId: number;
+    seatNumber: string;
+  } | null>(null);
+
   const bookingId = ticket?.bookingId;
 
   const { data, isLoading } = useAdminTicketDetail(bookingId);
-  const extendHold = useExtendAdminTicketHold();
-  const cancelHold = useCancelAdminTicketHold();
+
   const removeSeat = useRemoveAdminTicketSeat();
   const checkinSeat = useCheckinAdminTicketSeat();
   const syncSeats = useSyncAdminTicketTripSeats();
-  const resendTicket = useResendAdminTicketWithResult();
   const undoSeatCheckin = useUndoCheckinAdminTicketSeat();
   const { data: options } = useAdminTicketOptions();
   if (!open || !ticket) return null;
-
-  const canManageHold = data?.bookingStatus === "PENDING";
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     if (e.target === e.currentTarget) onClose();
   };
 
-  const handleExtendHold = () => {
-    if (!canManageHold) {
-      toast.error("Chỉ vé PENDING mới có thể gia hạn giữ chỗ.");
-      return;
-    }
 
-    const minutes = Number(prompt("Nhập số phút muốn gia hạn giữ chỗ:", "15"));
+  // Thao tác thu hồi ghế khi bấm Xác nhận
+  const handleExecuteRemoveSeat = () => {
+    if (!seatToRemove) return;
 
-    if (!minutes || isNaN(minutes)) {
-      if (minutes !== 0) toast.error("Số phút không hợp lệ");
-      return;
-    }
-
-    extendHold.mutate(
-      { bookingId: ticket.bookingId, payload: { minutes } },
+    removeSeat.mutate(
       {
-        onSuccess: () =>
-          toast.success(`Đã gia hạn giữ chỗ thêm ${minutes} phút`),
+        bookingId: ticket.bookingId,
+        bookingSeatId: seatToRemove.bookingSeatId,
+      },
+      {
+        onSuccess: () => {
+          toast.success(`Đã thu hồi ghế ${seatToRemove.seatNumber}`);
+          setSeatToRemove(null);
+        },
         onError: (e: any) => toast.error(e.message),
       },
     );
-  };
-
-  const handleCancelHold = () => {
-    if (!canManageHold) {
-      toast.error("Chỉ vé PENDING mới có thể giải phóng giữ chỗ.");
-      return;
-    }
-
-    if (
-      confirm(
-        "Bạn có chắc muốn giải phóng giữ chỗ và trả các ghế về trạng thái trống?",
-      )
-    ) {
-      cancelHold.mutate(ticket.bookingId, {
-        onSuccess: () => toast.success("Đã giải phóng giữ chỗ"),
-        onError: (e: any) => toast.error(e.message),
-      });
-    }
   };
 
   const handlePrint = () => {
@@ -253,7 +234,7 @@ export default function TicketDetailModal({ open, ticket, onClose }: Props) {
 
             <section className={styles.section}>
               <div className={styles.sectionHeaderActions}>
-                <h3 className={styles.sectionTitle}>5. Danh sách ghế</h3>
+                <h3 className={styles.sectionTitle}>4. Danh sách ghế</h3>
 
                 <div className={styles.inlineActionGroup}>
                   <button
@@ -374,26 +355,12 @@ export default function TicketDetailModal({ open, ticket, onClose }: Props) {
 
                             <button
                               className={styles.inlineActionRemove}
-                              onClick={() => {
-                                if (
-                                  confirm(
-                                    `Bạn có chắc muốn thu hồi ghế ${seat.seatNumber} khỏi vé này?`,
-                                  )
-                                ) {
-                                  removeSeat.mutate(
-                                    {
-                                      bookingId: ticket.bookingId,
-                                      bookingSeatId: seat.bookingSeatId,
-                                    },
-                                    {
-                                      onSuccess: () =>
-                                        toast.success("Đã thu hồi ghế"),
-                                      onError: (e: any) =>
-                                        toast.error(e.message),
-                                    },
-                                  );
-                                }
-                              }}
+                              onClick={() =>
+                                setSeatToRemove({
+                                  bookingSeatId: seat.bookingSeatId,
+                                  seatNumber: seat.seatNumber,
+                                })
+                              }
                             >
                               Thu hồi ghế
                             </button>
@@ -415,69 +382,7 @@ export default function TicketDetailModal({ open, ticket, onClose }: Props) {
             </section>
 
             <section className={styles.section}>
-              <div className={styles.sectionHeaderActions}>
-                <h3 className={styles.sectionTitle}>6. Giữ chỗ</h3>
-
-                <div className={styles.inlineActionGroup}>
-                  <button
-                    className={styles.actionLinkBtn}
-                    onClick={handleExtendHold}
-                    disabled={!canManageHold}
-                  >
-                    Gia hạn giữ chỗ
-                  </button>
-
-                  <button
-                    className={`${styles.actionLinkBtn} ${styles.dangerLink}`}
-                    onClick={handleCancelHold}
-                    disabled={!canManageHold}
-                  >
-                    Giải phóng giữ chỗ
-                  </button>
-                </div>
-              </div>
-
-              <div className={styles.holdOverviewGrid}>
-                <p>
-                  <span>Trạng thái giữ chỗ:</span>{" "}
-                  <strong className={styles.statusLabelText}>
-                    {data.holdStatus}
-                  </strong>
-                </p>
-
-                <p>
-                  <span>Hết hạn lúc:</span>{" "}
-                  <strong>
-                    {data.holdExpiredAt
-                      ? formatDateTimeVN(data.holdExpiredAt)
-                      : "Không có giữ chỗ"}
-                  </strong>
-                </p>
-              </div>
-
-              {data.holds.length > 0 && (
-                <div className={styles.holdTicketBadgeContainer}>
-                  {data.holds.map((hold) => (
-                    <div
-                      key={hold.seatHoldId}
-                      className={`${styles.holdDetailCard} ${
-                        hold.isExpired ? styles.holdExpired : ""
-                      }`}
-                    >
-                      <strong>Ghế {hold.seatNumber}</strong>
-                      <span>
-                        {hold.isExpired
-                          ? "Đã hết hạn"
-                          : `Còn ${hold.remainingSeconds} giây`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>7. Lịch sử thao tác</h3>
+              <h3 className={styles.sectionTitle}>4. Lịch sử thao tác</h3>
 
               <div className={styles.auditTimeline}>
                 {data.histories.map((h) => (
@@ -514,7 +419,7 @@ export default function TicketDetailModal({ open, ticket, onClose }: Props) {
 
             <section className={`${styles.section} ${styles.actionFooterBox}`}>
               <div>
-                <h3 className={styles.sectionTitle}>8. Tiện ích</h3>
+                <h3 className={styles.sectionTitle}>5. Tiện ích</h3>
                 <p className={styles.sectionSubtitleText}>
                   In vé hoặc gửi lại thông tin vé cho khách hàng.
                 </p>
@@ -525,29 +430,52 @@ export default function TicketDetailModal({ open, ticket, onClose }: Props) {
                   🖨️ In vé
                 </button>
 
-                <button
-                  className={styles.resendActionBtn}
-                  onClick={() =>
-                    resendTicket.mutate(ticket.bookingId, {
-                      onSuccess: () => toast.success("Đã gửi lại vé"),
-                      onError: (e: any) => toast.error(e.message),
-                    })
-                  }
-                >
-                  ✉️ Gửi lại vé
-                </button>
               </div>
             </section>
           </div>
         )}
       </div>
 
+      {seatToRemove && (
+        <div className={styles.confirmOverlay}>
+          <div className={styles.confirmModal}>
+            <div className={styles.confirmHeader}>
+              <h4>Xác nhận thu hồi ghế</h4>
+            </div>
+            <div className={styles.confirmBody}>
+              <p>
+                Bạn có chắc muốn thu hồi ghế{" "}
+                <strong>{seatToRemove.seatNumber}</strong> khỏi vé này?
+              </p>
+              <p className={styles.confirmSubText}>
+                Hành động này không thể hoàn tác sau khi xác nhận.
+              </p>
+            </div>
+            <div className={styles.confirmFooter}>
+              <button
+                className={styles.secondaryBtn}
+                onClick={() => setSeatToRemove(null)}
+                disabled={removeSeat.isPending}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                className={styles.dangerBtn}
+                onClick={handleExecuteRemoveSeat}
+                disabled={removeSeat.isPending}
+              >
+                {removeSeat.isPending ? "Đang xử lý..." : "Xác nhận thu hồi"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <TicketSeatManageModal
         open={openSeatManage}
         detail={data ?? null}
         onClose={() => setOpenSeatManage(false)}
       />
-
       <TicketChangeModal
         open={openChangeTicket}
         detail={data ?? null}

@@ -4,7 +4,10 @@ import type {
   HoldSeatsResponse,
 } from "@/types/client/payment/hold-seat.type";
 import type { CreateBookingInput } from "@/validators/client/booking.validator";
-import type { ActiveSeatHold } from "@/types/client/payment/payment.type";
+import type {
+  ActiveSeatHold,
+  CancelHoldPayload,
+} from "@/types/client/payment/payment.type";
 
 import type { ApiResponse } from "@/types/common/api.type";
 export type CreateBookingPayload = CreateBookingInput & {
@@ -40,18 +43,36 @@ export async function holdSeats(payload: HoldSeatsPayload) {
 
   return response.data.data;
 }
-export async function cancelHold(payload: {
-  bookingId?: number | null;
-  sessionId: string;
-  tripId: number;
-}): Promise<void> {
-  await api.post("/client/bookings/cancel-hold", payload);
+export async function releaseSeats(payload: HoldSeatsPayload) {
+  await api.post("/client/bookings/release_seats", payload);
 }
+
 export function cancelSeatHoldOnExit(payload: ActiveSeatHold) {
-  navigator.sendBeacon(
-    "/api/client/bookings/cancel-hold",
-    new Blob([JSON.stringify(payload)], {
-      type: "application/json",
-    }),
-  );
+  if (!payload.sessionId || !payload.tripIds?.length) {
+    return;
+  }
+
+  payload.tripIds.forEach((tripId) => {
+    navigator.sendBeacon(
+      "/api/client/bookings/cancel-hold",
+      new Blob(
+        [
+          JSON.stringify({
+            bookingId: null,
+            sessionId: payload.sessionId,
+            tripId,
+          }),
+        ],
+        {
+          type: "application/json",
+        },
+      ),
+    );
+  });
+}
+
+export async function cleanupExpiredSeatHolds() {
+  const response = await api.post("/client/bookings/hold_seats/cleanup");
+
+  return response.data.data;
 }

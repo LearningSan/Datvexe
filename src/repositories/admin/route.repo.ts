@@ -176,16 +176,46 @@ export async function findAdminRoutes(params: AdminRouteListParams) {
 
 export async function findAdminRouteOptions() {
   const cities = await query<{ id: number; name: string }>(`
-    SELECT city_id AS id, city_name AS name
+    SELECT
+      city_id AS id,
+      city_name AS name
     FROM cities
     ORDER BY city_name ASC
   `);
 
-  const hubs = await query<{ id: number; name: string; cityId: number }>(`
-    SELECT zone_id AS id, zone_name AS name, city_id AS cityId
-    FROM zones
-    WHERE zone_type = 'HUB'
-    ORDER BY zone_name ASC
+  const hubs = await query<{
+    id: number;
+    name: string;
+    cityId: number;
+  }>(`
+    SELECT
+      z.zone_id AS id,
+      CASE
+        WHEN z.zone_type = 'HUB' AND pp.pickup_point_id IS NOT NULL
+          THEN CONCAT(z.zone_name, ' - ', pp.point_name)
+
+        WHEN z.zone_type = 'HUB'
+          THEN z.zone_name
+
+        ELSE pp.point_name
+      END AS name,
+
+      z.city_id AS cityId
+
+    FROM zones z
+
+    LEFT JOIN pickup_points pp
+      ON pp.zone_id = z.zone_id
+      AND pp.point_category = 'MAIN_HUB'
+      AND pp.is_active = TRUE
+
+    WHERE
+      z.zone_type = 'HUB'
+      OR pp.pickup_point_id IS NOT NULL
+
+    ORDER BY
+      z.zone_name ASC,
+      pp.point_name ASC
   `);
 
   return { cities, hubs };

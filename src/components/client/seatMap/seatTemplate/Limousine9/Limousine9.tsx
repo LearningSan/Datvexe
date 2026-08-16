@@ -34,9 +34,6 @@ export default function Limousine9Seat({
 
   const isSelected = (id: number) => selectedSeats.some((s) => s.seatId === id);
 
-  // =========================
-  // GROUP BY ROW
-  // =========================
   const rows = useMemo(() => {
     const rowNumbers = [...new Set(gridSeats.map((s) => s.rowNo))];
 
@@ -69,9 +66,6 @@ export default function Limousine9Seat({
     );
   };
 
-  // =========================
-  // IMPORTANT: fill missing columns
-  // =========================
   const MAX_COL = 3;
 
   return (

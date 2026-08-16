@@ -82,7 +82,9 @@ export default function TripsContainer() {
   const updateMutation = useUpdateTrip();
   const statusMutation = useUpdateTripStatus();
   const { data: options } = useTripOptions();
-
+  const routeOptions = options?.routes ?? [];
+  const vehicleOptions = options?.vehicles ?? [];
+  const driverOptions = options?.drivers ?? [];
   const { data, isLoading, isError } = useTrips({
     keyword: appliedFilters.keyword,
     date: appliedFilters.date || undefined,
@@ -203,7 +205,6 @@ export default function TripsContainer() {
 
   return (
     <BlockErrorBoundary fallback={<BlockSkeleton height={500} />}>
-
       <div className={styles.dispatchDashboard}>
         {/* TOP BAR */}
         <div className={styles.topControl}>
@@ -311,7 +312,7 @@ export default function TripsContainer() {
               onChange={(e) => setRouteId(e.target.value)}
             >
               <option value="">-- Chọn tuyến đường chạy --</option>
-              {options?.routes.map((route) => (
+              {routeOptions.map((route) => (
                 <option key={route.routeId} value={route.routeId}>
                   {route.routeName}
                 </option>
@@ -324,7 +325,7 @@ export default function TripsContainer() {
               onChange={(e) => setVehicleId(e.target.value)}
             >
               <option value="">-- Chọn xe (Biển số xe) --</option>
-              {options?.vehicles.map((vehicle) => (
+              {vehicleOptions.map((vehicle) => (
                 <option key={vehicle.vehicleId} value={vehicle.vehicleId}>
                   {vehicle.licensePlate} ({vehicle.vehicleTypeName})
                 </option>
@@ -337,7 +338,7 @@ export default function TripsContainer() {
               onChange={(e) => setDriverId(e.target.value)}
             >
               <option value="">-- Chọn tên bác tài --</option>
-              {options?.drivers.map((driver) => (
+              {driverOptions.map((driver) => (
                 <option key={driver.driverId} value={driver.driverId}>
                   {driver.fullName}
                 </option>

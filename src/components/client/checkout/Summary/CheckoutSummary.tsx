@@ -78,22 +78,42 @@ export default function CheckoutSummary() {
 
   const handleCancelBooking = async () => {
     try {
-      if (!selectedTrip) return;
       const sessionId = localStorage.getItem("session_id");
-      if (!sessionId) return;
 
+      if (!sessionId) {
+        setErrorMessage("Không tìm thấy session");
+        return;
+      }
+
+      const tripIds = [outboundTrip?.id, returnTrip?.id].filter(
+        (id): id is number => Number.isFinite(id),
+      );
+
+      if (tripIds.length === 0) {
+        setErrorMessage("Không tìm thấy chuyến cần hủy");
+        return;
+      }
       sessionStorage.setItem("hold_cancelled", "1");
-      await cancelHold({
-        bookingId: null,
-        sessionId,
-        tripId: selectedTrip.id,
-      });
+      await Promise.all(
+        tripIds.map((tripId) =>
+          cancelHold({
+            bookingId: null,
+            sessionId,
+            tripId,
+          }),
+        ),
+      );
 
       clearActiveSeatHold();
-      router.push(`/trips/${selectedTrip.id}`);
+
+      useBookingStore.getState().resetBooking();
+
+      router.replace("/trips");
     } catch (error) {
       console.error(error);
+
       sessionStorage.removeItem("hold_cancelled");
+
       setErrorMessage("Không thể hủy giữ ghế");
     }
   };

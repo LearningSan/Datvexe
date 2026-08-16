@@ -51,13 +51,13 @@
 }
 
 .middleRow {
-  width: auto;
-  padding: 0;
+  justify-content: space-around;
+  width: 100%;
+  padding: 10px 0;
 }
 
-/* Lối đi chạy dọc từ trên xuống */
 .aisleLane {
-  width: 30px; /* Thay vì set height, mobile sẽ set width cho lối đi dọc */
+  width: 30px; 
   height: auto;
   min-height: 200px;
   background-color: #e2e8f0;
@@ -72,19 +72,16 @@
   align-items: center;
 }
 
-/* Xoay dọc chữ "LỐI ĐI" để hiển thị đẹp trên mobile */
 .aisleLane span {
   font-size: 10px;
   color: #a6b8cd;
   font-weight: 800;
   letter-spacing: 14px;
-  writing-mode: vertical-rl; /* Xoay chữ chạy dọc */
+  writing-mode: vertical-rl; 
   text-orientation: mixed;
 }
 
-/* ==========================================================================
-   CHO DESKTOP (MÀN HÌNH RỘNG >= 768px): XOAY NGANG SƠ ĐỒ LẠI NHƯ CŨ
-   ========================================================================== */
+
 @media (min-width: 768px) {
   .busContainer {
     gap: 60px;
@@ -114,8 +111,6 @@
   }
 
   .middleRow {
-    justify-content: space-around;
-    width: 100%;
     padding: 0 20px;
   }
 
@@ -131,7 +126,6 @@
     border-bottom: none;
   }
 
-  /* Trả chữ "LỐI ĐI" về nằm ngang bình thường */
   .aisleLane span {
     writing-mode: horizontal-tb;
     letter-spacing: 14px;
