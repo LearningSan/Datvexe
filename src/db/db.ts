@@ -32,6 +32,7 @@ const pool: Pool =
     namedPlaceholders: true,
 
     timezone: "+07:00",
+    
   });
 
 if (process.env.NODE_ENV !== "production") {
