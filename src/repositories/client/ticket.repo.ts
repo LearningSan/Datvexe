@@ -8,7 +8,23 @@ import {
   SeatAvailabilityRow,
   WalletRow,
 } from "@/types/client/ticket/ticket.type";
+export interface PaymentBookingCancelRow {
+  bookingId: number;
+  bookingCode: string;
+  userId: number;
+  tripId: number;
 
+  bookingStatus: string;
+
+  totalAmount: number | string;
+
+  departureDatetime: string | Date;
+  tripStatus: string;
+
+  paymentId: number;
+
+  seatCount: number;
+}
 // ============================================================
 // BOOKING
 // ============================================================
@@ -461,19 +477,6 @@ export async function deleteBookingSeatsByBooking(
 // DELETE HOLDS
 // ============================================================
 
-export async function deleteSeatHoldsByBooking(
-  conn: PoolConnection,
-  bookingId: number,
-): Promise<ResultSetHeader> {
-  return connExecute(
-    conn,
-    `
-      DELETE FROM seat_holds
-      WHERE booking_id = ?
-    `,
-    [bookingId],
-  );
-}
 
 // ============================================================
 // INCREASE TRIP AVAILABLE SEATS
@@ -1415,4 +1418,66 @@ export async function getChangeHeldSeatsForPreview(
   return query<{
     seatLayoutDetailId: number;
   }>(sql, [tripId, ...seatIds]);
+}
+export async function findPaymentIdByBookingId(
+  conn: PoolConnection,
+  bookingId: number,
+): Promise<number | null> {
+  const sql = `
+    SELECT
+      pb.payment_id AS paymentId
+    FROM payment_bookings pb
+    INNER JOIN payments p
+      ON p.payment_id = pb.payment_id
+    WHERE pb.booking_id = ?
+    ORDER BY p.created_at DESC
+    LIMIT 1
+  `;
+
+  const rows = await connQuery<{ paymentId: number }>(
+    conn,
+    sql,
+    [bookingId],
+  );
+
+  return rows[0]?.paymentId ?? null;
+}
+export async function findRelatedBookingsByBookingId(
+  conn: PoolConnection,
+  bookingId: number,
+): Promise<{
+  paymentId: number | null;
+  bookingIds: number[];
+}> {
+  const sql = `
+    SELECT
+      p.payment_id AS paymentId,
+      pb2.booking_id AS bookingId
+    FROM payment_bookings pb
+    INNER JOIN payments p
+      ON p.payment_id = pb.payment_id
+    INNER JOIN payment_bookings pb2
+      ON pb2.payment_id = pb.payment_id
+    WHERE pb.booking_id = ?
+    ORDER BY p.created_at DESC, pb2.booking_id ASC
+  `;
+
+  const rows = await connQuery<{
+    paymentId: number;
+    bookingId: number;
+  }>(conn, sql, [bookingId]);
+
+  if (rows.length === 0) {
+    return {
+      paymentId: null,
+      bookingIds: [bookingId],
+    };
+  }
+
+  const paymentId = rows[0].paymentId;
+
+  return {
+    paymentId,
+    bookingIds: [...new Set(rows.map((row) => row.bookingId))],
+  };
 }

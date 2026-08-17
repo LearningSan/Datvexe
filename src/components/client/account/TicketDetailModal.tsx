@@ -100,7 +100,19 @@ export default function TicketDetailModal({
       return styles.statusFailed;
     return styles.statusPending;
   };
+  function getApiErrorMessage(error: unknown): string {
+    const err = error as {
+      response?: {
+        data?: {
+          message?: string;
+        };
+      };
+    };
 
+    return (
+      err.response?.data?.message || "Không thể kiểm tra điều kiện hủy vé."
+    );
+  }
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -400,63 +412,42 @@ export default function TicketDetailModal({
                   </a>{" "}
                   {cancelPreview.isLoading ? (
                     <div className={styles.confirmLoading}>
-                      {" "}
-                      Đang tính tiền hoàn...{" "}
+                      Đang kiểm tra điều kiện hủy vé...
                     </div>
                   ) : cancelPreview.isError ? (
                     <div className={styles.confirmError}>
-                      {" "}
-                      Không thể kiểm tra chính sách hoàn tiền.{" "}
+                      Không thể kết nối đến hệ thống. Vui lòng thử lại.
                     </div>
                   ) : cancelPreview.data ? (
                     <div className={styles.previewInfo}>
-                      {" "}
-                      <div className={styles.previewRow}>
-                        {" "}
-                        <span>Phí hủy:</span>{" "}
-                        <strong>
-                          {" "}
-                          {cancelPreview.data.cancelFeePercent}%{" "}
-                        </strong>{" "}
-                      </div>{" "}
-                      <div className={styles.previewRow}>
-                        {" "}
-                        <span>Tiền hoàn:</span>{" "}
-                        <strong className={styles.refundAmount}>
-                          {" "}
-                          {Number(
-                            cancelPreview.data.refundAmount,
-                          ).toLocaleString("vi-VN")}{" "}
-                          đ{" "}
-                        </strong>{" "}
-                      </div>{" "}
-                      {cancelPreview.data.refundAmount > 0 ? (
-                        <div className={styles.policyNotice}>
-                          {" "}
-                          <p>
-                            {" "}
-                            Số tiền hoàn sẽ được chuyển vào{" "}
-                            <strong>ví nội bộ</strong> theo chính sách hủy
-                            vé.{" "}
-                          </p>{" "}
-                          <p>
-                            {" "}
-                            Sau khi hủy thành công, vui lòng kiểm tra ví nội bộ
-                            để xác nhận khoản tiền hoàn.{" "}
-                          </p>{" "}
+                      {!cancelPreview.data.canCancel ? (
+                        <div className={styles.confirmError}>
+                          <p>{cancelPreview.data.message}</p>
                         </div>
                       ) : (
-                        <div className={styles.policyNotice}>
-                          {" "}
-                          <p>
-                            {" "}
-                            Vé đủ điều kiện hủy nhưng không có tiền hoàn theo
-                            chính sách hiện tại.{" "}
-                          </p>{" "}
-                        </div>
-                      )}{" "}
+                        <>
+                          <div className={styles.previewRow}>
+                            <span>Phí hủy:</span>
+                            <strong>{cancelPreview.data.feePercent}%</strong>
+                          </div>
+
+                          <div className={styles.previewRow}>
+                            <span>Tiền hoàn:</span>
+                            <strong className={styles.refundAmount}>
+                              {Number(
+                                cancelPreview.data.refundAmount,
+                              ).toLocaleString("vi-VN")}
+                              đ
+                            </strong>
+                          </div>
+
+                          <div className={styles.policyNotice}>
+                            <p>{cancelPreview.data.message}</p>
+                          </div>
+                        </>
+                      )}
                     </div>
-                  ) : null}{" "}
+                  ) : null}
                   <div className={styles.confirmActions}>
                     {" "}
                     <button
@@ -474,14 +465,14 @@ export default function TicketDetailModal({
                         cancelMutation.isPending ||
                         cancelPreview.isLoading ||
                         cancelPreview.isError ||
-                        !cancelPreview.data
+                        !cancelPreview.data ||
+                        !cancelPreview.data.canCancel
                       }
                       onClick={handleCancelTicket}
                     >
-                      {" "}
                       {cancelMutation.isPending
                         ? "Đang hủy..."
-                        : "Xác nhận hủy"}{" "}
+                        : "Xác nhận hủy"}
                     </button>{" "}
                   </div>{" "}
                 </div>{" "}

@@ -89,16 +89,26 @@ export interface CancelTicketPreview {
   bookingId: number;
   bookingCode: string;
 
-  totalAmount: number;
+  bookingStatus: BookingStatus;
 
+  departureDatetime: string;
   hoursUntilDeparture: number;
 
-  cancelFeePercent: number;
-  cancelFee: number;
+  originalAmount: number;
 
+  feePercent: number;
+  cancelFee: number;
   refundAmount: number;
 
   refundMethod: "INTERNAL_WALLET" | "NONE";
+
+  paymentId: number | null;
+
+  relatedBookingCount: number;
+
+  canCancel: boolean;
+
+  message: string;
 }
 export interface BookingForAction {
   bookingId: number;

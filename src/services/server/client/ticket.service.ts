@@ -7,7 +7,6 @@ import {
   findTripForUpdate,
   cancelBooking,
   deleteBookingSeats,
-  deleteSeatHoldsByBooking,
   increaseTripAvailableSeats,
   markPaymentRefunded,
   createNotification,
@@ -36,6 +35,7 @@ import {
   getChangeBookingSeatsForPreview,
   getChangeHeldSeatsForPreview,
   getChangeTripByIdForPreview,
+  findRelatedBookingsByBookingId,
 } from "@/repositories/client/ticket.repo";
 
 import type {
@@ -43,6 +43,8 @@ import type {
   ChangeTicketPreview,
   ChangeTicketPayload,
   ChangeTicketResponse,
+  BookingForAction,
+  TripForChange,
 } from "@/types/client/ticket/ticket.type";
 import type { PaymentMethodType } from "@/types/client/payment/payment.type";
 const MIN_CANCEL_HOURS = 2;
@@ -53,15 +55,9 @@ const CANCEL_FEE_2H = 10;
 
 const CHANGE_FEE = 0;
 
-/**
- * ============================================================
- * TÍNH THỜI GIAN CÒN LẠI
- * ============================================================
- */
 function calculateHoursUntilDeparture(departureDatetime: string | Date) {
   const departure = new Date(departureDatetime).getTime();
   const now = Date.now();
-
   return (departure - now) / (1000 * 60 * 60);
 }
 
@@ -110,20 +106,6 @@ function calculateRefund(totalAmount: number, hoursUntilDeparture: number) {
   };
 }
 
-/**
- * ============================================================
- * PREVIEW HỦY VÉ
- *
- * Chỉ đọc dữ liệu.
- *
- * Dùng trước khi người dùng xác nhận hủy để hiển thị:
- *
- * - thời gian còn lại
- * - phí hủy
- * - tiền được hoàn
- * - hoàn vào ví nội bộ
- * ============================================================
- */
 export async function previewCancelTicket(userId: number, bookingId: number) {
   const booking = await findBookingForUser(userId, bookingId);
 
@@ -150,38 +132,211 @@ export async function previewCancelTicket(userId: number, bookingId: number) {
     throw new Error("TRIP_NOT_CANCELLABLE");
   }
 
-  const hoursUntilDeparture = calculateHoursUntilDeparture(
-    booking.departureDatetime,
-  );
+  return await withTransaction(async (conn) => {
+    const { paymentId, bookingIds } = await findRelatedBookingsByBookingId(
+      conn,
+      bookingId,
+    );
 
-  const refund = calculateRefund(
-    Number(booking.totalAmount),
-    hoursUntilDeparture,
-  );
+    const relatedBookings: BookingForAction[] = [];
 
-  return {
-    bookingId: booking.bookingId,
+    for (const relatedBookingId of bookingIds) {
+      const relatedBooking = await findBookingForUpdate(
+        conn,
+        userId,
+        relatedBookingId,
+      );
 
-    bookingCode: booking.bookingCode,
+      if (!relatedBooking) {
+        throw new Error("BOOKING_NOT_FOUND");
+      }
 
-    bookingStatus: booking.bookingStatus,
+      relatedBookings.push(relatedBooking);
+    }
 
-    departureDatetime: booking.departureDatetime,
+    for (const relatedBooking of relatedBookings) {
+      if (
+        relatedBooking.bookingStatus === "CANCELLED" ||
+        relatedBooking.bookingStatus === "REFUNDED"
+      ) {
+        throw new Error("BOOKING_ALREADY_CANCELLED");
+      }
 
-    hoursUntilDeparture,
+      if (relatedBooking.bookingStatus !== "CONFIRMED") {
+        throw new Error("BOOKING_NOT_CANCELLABLE");
+      }
 
-    originalAmount: Number(booking.totalAmount),
+      if (
+        relatedBooking.tripStatus === "RUNNING" ||
+        relatedBooking.tripStatus === "COMPLETED" ||
+        relatedBooking.tripStatus === "CANCELLED"
+      ) {
+        throw new Error("TRIP_NOT_CANCELLABLE");
+      }
+    }
+    const refundPreviews = relatedBookings.map((relatedBooking) => {
+      // Thời gian từ HIỆN TẠI đến thời gian KHỞI HÀNH CỦA BOOKING NÀY
+      const hoursUntilDeparture = calculateHoursUntilDeparture(
+        relatedBooking.departureDatetime,
+      );
 
-    feePercent: refund.feePercent,
+      const canCancel = hoursUntilDeparture > 2;
 
-    cancelFee: refund.cancelFee,
+      // Booking này đã quá hạn hủy
+      if (!canCancel) {
+        return {
+          bookingId: relatedBooking.bookingId,
+          bookingCode: relatedBooking.bookingCode,
+          bookingStatus: relatedBooking.bookingStatus,
 
-    refundAmount: refund.refundAmount,
+          departureDatetime: relatedBooking.departureDatetime,
+          hoursUntilDeparture,
 
-    refundMethod: "INTERNAL_WALLET" as const,
+          originalAmount: Number(relatedBooking.totalAmount),
 
-    message: "Số tiền hoàn sẽ được cộng vào ví nội bộ.",
-  };
+          feePercent: 0,
+          cancelFee: 0,
+          refundAmount: 0,
+
+          canCancel: false,
+        };
+      }
+
+      // Booking này vẫn còn đủ thời gian hủy
+      const refund = calculateRefund(
+        Number(relatedBooking.totalAmount),
+        hoursUntilDeparture,
+      );
+
+      return {
+        bookingId: relatedBooking.bookingId,
+        bookingCode: relatedBooking.bookingCode,
+        bookingStatus: relatedBooking.bookingStatus,
+
+        departureDatetime: relatedBooking.departureDatetime,
+        hoursUntilDeparture,
+
+        originalAmount: Number(relatedBooking.totalAmount),
+
+        feePercent: refund.feePercent,
+        cancelFee: refund.cancelFee,
+        refundAmount: refund.refundAmount,
+
+        canCancel: true,
+      };
+    });
+
+    const invalidBooking = refundPreviews.find((item) => !item.canCancel);
+
+    /**
+     * ----------------------------------------------------------
+     * 6. LẤY PREVIEW CỦA BOOKING HIỆN TẠI
+     * ----------------------------------------------------------
+     */
+    const currentBookingPreview = refundPreviews.find(
+      (item) => item.bookingId === bookingId,
+    );
+
+    if (!currentBookingPreview) {
+      throw new Error("BOOKING_NOT_FOUND");
+    }
+
+    /**
+     * ----------------------------------------------------------
+     * 7. CÓ BOOKING QUÁ HẠN HỦY
+     * ----------------------------------------------------------
+     *
+     * Đây KHÔNG phải exception.
+     *
+     * Preview vẫn trả HTTP 200 để FE có thể hiển thị
+     * chính xác lý do không thể hủy.
+     */
+    if (invalidBooking) {
+      const message =
+        bookingIds.length > 1
+          ? `Không thể hủy vé. Vé ${invalidBooking.bookingCode} vì đã quá hạn hủy (còn ${Math.max(
+              0,
+              invalidBooking.hoursUntilDeparture,
+            ).toFixed(
+              1,
+            )} giờ trước khi khởi hành). Vì vậy không thể hủy các vé được đặt cùng payment.`
+          : "Không thể hủy vé vì phải hủy trước ít nhất 2 giờ so với thời gian khởi hành.";
+
+      return {
+        bookingId: currentBookingPreview.bookingId,
+
+        bookingCode: currentBookingPreview.bookingCode,
+
+        bookingStatus: currentBookingPreview.bookingStatus,
+
+        departureDatetime: currentBookingPreview.departureDatetime,
+
+        hoursUntilDeparture: currentBookingPreview.hoursUntilDeparture,
+
+        originalAmount: currentBookingPreview.originalAmount,
+
+        feePercent: currentBookingPreview.feePercent,
+
+        cancelFee: currentBookingPreview.cancelFee,
+
+        refundAmount: 0,
+
+        refundMethod: "NONE" as const,
+
+        paymentId,
+
+        relatedBookingCount: bookingIds.length,
+
+        canCancel: false,
+
+        message,
+      };
+    }
+
+    /**
+     * ----------------------------------------------------------
+     * 8. TẤT CẢ BOOKING ĐỀU CÓ THỂ HỦY
+     * ----------------------------------------------------------
+     */
+    const relatedBooking = relatedBookings.find(
+      (item) => item.bookingId !== bookingId,
+    );
+
+    const message =
+      bookingIds.length > 1 && relatedBooking
+        ? `Nếu hủy vé này thì vé ${relatedBooking.bookingCode} cũng sẽ bị hủy vì 2 vé này được đặt cùng lúc.`
+        : "Số tiền hoàn sẽ được cộng vào ví nội bộ.";
+
+    return {
+      bookingId: currentBookingPreview.bookingId,
+
+      bookingCode: currentBookingPreview.bookingCode,
+
+      bookingStatus: currentBookingPreview.bookingStatus,
+
+      departureDatetime: currentBookingPreview.departureDatetime,
+
+      hoursUntilDeparture: currentBookingPreview.hoursUntilDeparture,
+
+      originalAmount: currentBookingPreview.originalAmount,
+
+      feePercent: currentBookingPreview.feePercent,
+
+      cancelFee: currentBookingPreview.cancelFee,
+
+      refundAmount: currentBookingPreview.refundAmount,
+
+      refundMethod: "INTERNAL_WALLET" as const,
+
+      paymentId,
+
+      relatedBookingCount: bookingIds.length,
+
+      canCancel: true,
+
+      message,
+    };
+  });
 }
 
 /**
@@ -205,143 +360,213 @@ export async function cancelUserTicket(
   userId: number,
   bookingId: number,
 ): Promise<CancelTicketResponse> {
-  /**
-   * ----------------------------------------------------------
-   * KIỂM TRA NHANH
-   * ----------------------------------------------------------
-   */
-  const booking = await findBookingForUser(userId, bookingId);
-
-  if (!booking) {
-    throw new Error("BOOKING_NOT_FOUND");
-  }
-
-  if (
-    booking.bookingStatus === "CANCELLED" ||
-    booking.bookingStatus === "REFUNDED"
-  ) {
-    throw new Error("BOOKING_ALREADY_CANCELLED");
-  }
-
-  if (booking.bookingStatus !== "CONFIRMED") {
-    throw new Error("BOOKING_NOT_CANCELLABLE");
-  }
-
-  if (
-    booking.tripStatus === "RUNNING" ||
-    booking.tripStatus === "COMPLETED" ||
-    booking.tripStatus === "CANCELLED"
-  ) {
-    throw new Error("TRIP_NOT_CANCELLABLE");
-  }
-
-  /**
-   * Kiểm tra trước để trả lỗi CANCEL_TOO_LATE
-   * ngay lập tức nếu đã dưới 2 giờ.
-   */
-  const hoursUntilDeparture = calculateHoursUntilDeparture(
-    booking.departureDatetime,
-  );
-
-  const refund = calculateRefund(
-    Number(booking.totalAmount),
-    hoursUntilDeparture,
-  );
-
-  /**
-   * ----------------------------------------------------------
-   * TRANSACTION
-   * ----------------------------------------------------------
-   */
   return await withTransaction(async (conn) => {
     /**
-     * 1. LOCK BOOKING
+     * ----------------------------------------------------------
+     * 1. LẤY PAYMENT + TẤT CẢ BOOKING LIÊN QUAN
+     * ----------------------------------------------------------
      */
-    const lockedBooking = await findBookingForUpdate(conn, userId, bookingId);
-
-    if (!lockedBooking) {
-      throw new Error("BOOKING_NOT_FOUND");
-    }
-
-    if (
-      lockedBooking.bookingStatus === "CANCELLED" ||
-      lockedBooking.bookingStatus === "REFUNDED"
-    ) {
-      throw new Error("BOOKING_ALREADY_CANCELLED");
-    }
-
-    if (lockedBooking.bookingStatus !== "CONFIRMED") {
-      throw new Error("BOOKING_NOT_CANCELLABLE");
-    }
-
-    /**
-     * 2. LOCK TRIP
-     */
-    const trip = await findTripForUpdate(conn, lockedBooking.tripId);
-
-    if (!trip) {
-      throw new Error("TRIP_NOT_FOUND");
-    }
-
-    if (
-      trip.status === "RUNNING" ||
-      trip.status === "COMPLETED" ||
-      trip.status === "CANCELLED"
-    ) {
-      throw new Error("TRIP_NOT_CANCELLABLE");
-    }
-
-    /**
-     * 3. KIỂM TRA LẠI THỜI GIAN
-     *
-     * Không dùng kết quả preview bên ngoài
-     * transaction vì thời gian có thể đã thay đổi.
-     */
-    const lockedHoursUntilDeparture = calculateHoursUntilDeparture(
-      trip.departureDatetime,
-    );
-
-    const lockedRefund = calculateRefund(
-      Number(lockedBooking.totalAmount),
-      lockedHoursUntilDeparture,
-    );
-
-    /**
-     * 4. LẤY GHẾ
-     */
-    const bookingSeats = await findBookingSeats(conn, bookingId);
-
-    const seatCount = bookingSeats.length;
-
-    /**
-     * 5. HỦY BOOKING
-     */
-    await cancelBooking(
+    const { paymentId, bookingIds } = await findRelatedBookingsByBookingId(
       conn,
       bookingId,
-      `Hủy vé - phí hủy ${lockedRefund.feePercent}%`,
     );
 
     /**
-     * 6. XÓA GHẾ
+     * ----------------------------------------------------------
+     * 2. LOCK TẤT CẢ BOOKING
+     * ----------------------------------------------------------
      */
-    await deleteBookingSeats(conn, bookingId);
+    const sortedBookingIds = [...bookingIds].sort((a, b) => a - b);
 
-    /**
-     * 7. XÓA SEAT HOLD
-     */
-    await deleteSeatHoldsByBooking(conn, bookingId);
+    const lockedBookings: BookingForAction[] = [];
 
-    /**
-     * 8. TRẢ GHẾ VỀ TRIP
-     */
-    if (seatCount > 0) {
-      await increaseTripAvailableSeats(conn, lockedBooking.tripId, seatCount);
+    for (const relatedBookingId of sortedBookingIds) {
+      const booking = await findBookingForUpdate(
+        conn,
+        userId,
+        relatedBookingId,
+      );
+
+      if (!booking) {
+        throw new Error(
+          relatedBookingId === bookingId
+            ? "BOOKING_NOT_FOUND"
+            : "RELATED_BOOKING_NOT_FOUND",
+        );
+      }
+
+      lockedBookings.push(booking);
     }
 
+    /**
+     * ----------------------------------------------------------
+     * 3. VALIDATE TẤT CẢ BOOKING
+     * ----------------------------------------------------------
+     */
+    for (const booking of lockedBookings) {
+      if (
+        booking.bookingStatus === "CANCELLED" ||
+        booking.bookingStatus === "REFUNDED"
+      ) {
+        throw new Error("BOOKING_ALREADY_CANCELLED");
+      }
+
+      if (booking.bookingStatus !== "CONFIRMED") {
+        throw new Error("BOOKING_NOT_CANCELLABLE");
+      }
+    }
+
+    /**
+     * ----------------------------------------------------------
+     * 4. LOCK TẤT CẢ TRIP
+     * ----------------------------------------------------------
+     */
+    const tripIds = [
+      ...new Set(lockedBookings.map((booking) => booking.tripId)),
+    ].sort((a, b) => a - b);
+
+    const lockedTrips = new Map<number, TripForChange>();
+
+    for (const tripId of tripIds) {
+      const trip = await findTripForUpdate(conn, tripId);
+
+      if (!trip) {
+        throw new Error("TRIP_NOT_FOUND");
+      }
+
+      lockedTrips.set(tripId, trip);
+    }
+
+    /**
+     * ----------------------------------------------------------
+     * 5. VALIDATE TẤT CẢ TRIP
+     * ----------------------------------------------------------
+     */
+    for (const trip of lockedTrips.values()) {
+      if (
+        trip.status === "RUNNING" ||
+        trip.status === "COMPLETED" ||
+        trip.status === "CANCELLED"
+      ) {
+        throw new Error("TRIP_NOT_CANCELLABLE");
+      }
+    }
+
+    /**
+     * ----------------------------------------------------------
+     * 6. KIỂM TRA THỜI GIAN TẤT CẢ TRIP
+     *
+     * Chỉ cần 1 trip <= 2 giờ
+     * => không cho hủy toàn bộ.
+     * ----------------------------------------------------------
+     */
+    for (const booking of lockedBookings) {
+      const trip = lockedTrips.get(booking.tripId);
+
+      if (!trip) {
+        throw new Error("TRIP_NOT_FOUND");
+      }
+
+      const hoursUntilDeparture = calculateHoursUntilDeparture(
+        trip.departureDatetime,
+      );
+
+      if (hoursUntilDeparture <= 2) {
+        throw new Error("CANCEL_TOO_LATE");
+      }
+    }
+
+    /**
+     * ----------------------------------------------------------
+     * 7. TÍNH REFUND CHO TỪNG BOOKING
+     * ----------------------------------------------------------
+     */
+    let totalOriginalAmount = 0;
+    let totalCancelFee = 0;
+    let totalRefundAmount = 0;
+
+    const refundResults = new Map<
+      number,
+      {
+        cancelFee: number;
+        refundAmount: number;
+        feePercent: number;
+      }
+    >();
+
+    for (const booking of lockedBookings) {
+      const trip = lockedTrips.get(booking.tripId);
+
+      if (!trip) {
+        throw new Error("TRIP_NOT_FOUND");
+      }
+
+      const hoursUntilDeparture = calculateHoursUntilDeparture(
+        trip.departureDatetime,
+      );
+
+      const refund = calculateRefund(
+        Number(booking.totalAmount),
+        hoursUntilDeparture,
+      );
+
+      refundResults.set(booking.bookingId, refund);
+
+      totalOriginalAmount += Number(booking.totalAmount);
+      totalCancelFee += refund.cancelFee;
+      totalRefundAmount += refund.refundAmount;
+    }
+
+    /**
+     * ----------------------------------------------------------
+     * 8. HỦY TẤT CẢ BOOKING
+     * ----------------------------------------------------------
+     */
+    for (const booking of lockedBookings) {
+      const refund = refundResults.get(booking.bookingId);
+
+      if (!refund) {
+        throw new Error("REFUND_CALCULATION_FAILED");
+      }
+
+      const bookingSeats = await findBookingSeats(conn, booking.bookingId);
+
+      const seatCount = bookingSeats.length;
+
+      /**
+       * Hủy booking
+       */
+      await cancelBooking(
+        conn,
+        booking.bookingId,
+        `Hủy vé - phí hủy ${refund.feePercent}%`,
+      );
+
+      /**
+       * Xóa ghế
+       */
+      await deleteBookingSeats(conn, booking.bookingId);
+
+      /**
+       * Xóa hold
+       */
+
+      /**
+       * Trả ghế
+       */
+      if (seatCount > 0) {
+        await increaseTripAvailableSeats(conn, booking.tripId, seatCount);
+      }
+    }
+
+    /**
+     * ----------------------------------------------------------
+     * 9. HOÀN TIỀN
+     * ----------------------------------------------------------
+     */
     let refundMethod: "INTERNAL_WALLET" | "NONE" = "NONE";
 
-    if (lockedRefund.refundAmount > 0) {
+    if (totalRefundAmount > 0) {
       const wallet = await findWalletForUpdate(conn, userId);
 
       if (!wallet) {
@@ -352,72 +577,91 @@ export async function cancelUserTicket(
         throw new Error("WALLET_LOCKED");
       }
 
-      await refundToWallet(
-        conn,
-        wallet.walletId,
-        bookingId,
-        lockedRefund.refundAmount,
-        `Hoàn tiền hủy vé mã ${lockedBooking.bookingCode}`,
-      );
+      for (const booking of lockedBookings) {
+        const refund = refundResults.get(booking.bookingId);
 
-      if (lockedBooking.paymentId) {
-        await markPaymentRefunded(
+        if (!refund || refund.refundAmount <= 0) {
+          continue;
+        }
+
+        await refundToWallet(
           conn,
-          lockedBooking.paymentId,
-          `Phí hủy ${lockedRefund.feePercent}%, tiền hoàn ${lockedRefund.refundAmount}`,
+          wallet.walletId,
+          booking.bookingId,
+          refund.refundAmount,
+          `Hoàn tiền hủy vé mã ${booking.bookingCode}`,
         );
       }
 
       refundMethod = "INTERNAL_WALLET";
     }
 
-    if (lockedRefund.refundAmount === 0 && lockedBooking.paymentId) {
+    /**
+     * ----------------------------------------------------------
+     * 10. PAYMENT
+     *
+     * Chỉ xử lý 1 payment.
+     * ----------------------------------------------------------
+     */
+    if (paymentId) {
       await markPaymentRefunded(
         conn,
-        lockedBooking.paymentId,
-        `Hủy vé không hoàn tiền - phí hủy ${lockedRefund.feePercent}%`,
+        paymentId,
+        totalRefundAmount > 0
+          ? `Hủy ${lockedBookings.length} vé - phí hủy ${totalCancelFee}`
+          : `Hủy ${lockedBookings.length} vé - không hoàn tiền`,
       );
     }
 
     /**
-     * 10. NOTIFICATION
+     * ----------------------------------------------------------
+     * 11. 1 NOTIFICATION
+     * ----------------------------------------------------------
      */
-    if (lockedBooking.userId !== null) {
-      await createNotification(
-        conn,
-        lockedBooking.userId,
-        "Hủy vé thành công",
-        lockedRefund.refundAmount > 0
-          ? `Vé ${lockedBooking.bookingCode} đã được hủy. Đã hoàn ${lockedRefund.refundAmount.toLocaleString("vi-VN")}đ vào ví nội bộ.`
-          : `Vé ${lockedBooking.bookingCode} đã được hủy. Không có tiền hoàn.`,
-        "BOOKING",
-      );
+    const requestedBooking = lockedBookings.find(
+      (booking) => booking.bookingId === bookingId,
+    );
+
+    if (!requestedBooking) {
+      throw new Error("BOOKING_NOT_FOUND");
     }
 
+    await createNotification(
+      conn,
+      userId,
+      "Hủy vé thành công",
+      totalRefundAmount > 0
+        ? `Vé ${requestedBooking.bookingCode} và các vé liên quan đã được hủy. Đã hoàn ${totalRefundAmount.toLocaleString("vi-VN")}đ vào ví nội bộ.`
+        : `Vé ${requestedBooking.bookingCode} và các vé liên quan đã được hủy. Không có tiền hoàn.`,
+      "BOOKING",
+    );
+
     /**
-     * 11. RESPONSE
+     * ----------------------------------------------------------
+     * 12. 1 RESPONSE DUY NHẤT
+     * ----------------------------------------------------------
      */
     return {
-      bookingId,
+      bookingId: requestedBooking.bookingId,
 
-      bookingCode: lockedBooking.bookingCode,
+      bookingCode: requestedBooking.bookingCode,
 
-      bookingStatus: "CANCELLED" as const,
+      bookingStatus: "CANCELLED",
 
-      originalAmount: Number(lockedBooking.totalAmount),
+      originalAmount: totalOriginalAmount,
 
-      cancelFee: lockedRefund.cancelFee,
+      cancelFee: totalCancelFee,
 
-      refundAmount: lockedRefund.refundAmount,
+      refundAmount: totalRefundAmount,
 
       refundMethod,
 
-      paymentId: lockedBooking.paymentId,
+      paymentId,
 
       message:
-        lockedRefund.refundAmount > 0
-          ? "Hủy vé thành công. Tiền hoàn đã được cộng vào ví nội bộ."
-          : "Hủy vé thành công.",
+        totalRefundAmount > 0
+          ? `Hủy ${lockedBookings.length} vé thành công. Tiền hoàn đã được cộng vào ví nội bộ.`
+          : `Hủy ${lockedBookings.length} vé thành công.`,
     };
   });
 }
