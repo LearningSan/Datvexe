@@ -431,7 +431,6 @@ export const useBookingStore = create<BookingStore>()(
 
       partialize: (state) => ({
         isRoundTrip: state.isRoundTrip,
-        activeJourney: state.activeJourney,
 
         outboundTrip: state.outboundTrip,
         returnTrip: state.returnTrip,

@@ -79,12 +79,13 @@ export async function findTripSeatMeta(
   tripId: number,
 ): Promise<TripSeatMeta | null> {
   const sql = `
-        SELECT
-            t.trip_id AS tripId,
-            v.vehicle_name AS vehicleName,
-            v.license_plate AS licensePlate,
-            sl.floor_count AS floorCount,
-            sl.total_seats AS totalSeats
+      SELECT
+    t.trip_id AS tripId,
+    v.vehicle_name AS vehicleName,
+    v.license_plate AS licensePlate,
+    sl.seat_layout_id AS seatLayoutId,
+    sl.floor_count AS floorCount,
+    sl.total_seats AS totalSeats
         FROM trips t
         JOIN vehicles v
             ON v.vehicle_id = t.vehicle_id

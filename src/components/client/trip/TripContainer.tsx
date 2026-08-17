@@ -20,8 +20,7 @@ import { useBookingStore } from "@/store/booking.store";
 import { useSearchStore } from "@/store/search.store";
 
 import { useTripSearch, useTripFilterOptions } from "@/hooks/client/useTrip";
-import { useReleaseSeats } from "@/hooks/client/useBooking";
-
+import { formatDateTimeVN } from "@/lib/client/helpers";
 import type { Trip } from "@/types/client/trip/trip.type";
 
 import type {
@@ -34,9 +33,8 @@ export default function TripContainer() {
   const { filters, setFilters } = useTripFilterStore();
 
   const currentSearch = useSearchStore((state) => state.currentSearch);
-
+  const isRoundTripSearch = currentSearch?.isRoundTrip === true;
   const {
-    isRoundTrip,
     activeJourney,
 
     outboundTrip,
@@ -47,68 +45,19 @@ export default function TripContainer() {
     setIsRoundTrip,
     setActiveJourney,
     setSelectedTrip,
-
-    resetBooking,
   } = useBookingStore();
 
   const [openSort, setOpenSort] = useState<"price" | "departure" | null>(null);
-  const { mutateAsync: releaseSeats } = useReleaseSeats();
 
   /* =========================
      ĐỒNG BỘ KHỨ HỒI
   ========================= */
-  useEffect(() => {
-    const initializeTripsPage = async () => {
-      const sessionId = localStorage.getItem("session_id");
-      const bookingState = useBookingStore.getState();
-      const requests: Promise<unknown>[] = [];
-      if (
-        sessionId &&
-        bookingState.outboundTrip &&
-        bookingState.outboundSeats.length > 0
-      ) {
-        requests.push(
-          releaseSeats({
-            tripId: bookingState.outboundTrip.id,
-            seatLayoutDetailIds: bookingState.outboundSeats.map(
-              (seat) => seat.seatId,
-            ),
-            sessionId,
-          }),
-        );
-      }
-      if (
-        sessionId &&
-        bookingState.returnTrip &&
-        bookingState.returnSeats.length > 0
-      ) {
-        requests.push(
-          releaseSeats({
-            tripId: bookingState.returnTrip.id,
-            seatLayoutDetailIds: bookingState.returnSeats.map(
-              (seat) => seat.seatId,
-            ),
-            sessionId,
-          }),
-        );
-      }
 
-      if (requests.length > 0) {
-        await Promise.allSettled(requests);
-      }
-      useBookingStore.getState().resetBooking();
-    };
-
-    void initializeTripsPage();
-  }, [releaseSeats]);
   useEffect(() => {
     const roundTrip = currentSearch?.isRoundTrip === true;
 
     setIsRoundTrip(roundTrip);
-
-    if (!roundTrip) {
-      setActiveJourney("OUTBOUND");
-    }
+    setActiveJourney("OUTBOUND");
   }, [currentSearch?.isRoundTrip, setIsRoundTrip, setActiveJourney]);
 
   const outboundFilters = useMemo<TripSearchFilters>(
@@ -253,7 +202,7 @@ export default function TripContainer() {
   const handleChooseTrip = (trip: Trip) => {
     setSelectedTrip(trip);
 
-    if (!isRoundTrip) {
+    if (!isRoundTripSearch) {
       router.push("/seats");
       return;
     }
@@ -272,7 +221,7 @@ export default function TripContainer() {
   const handleContinue = () => {
     if (!outboundTrip) return;
 
-    if (isRoundTrip && !returnTrip) {
+    if (isRoundTripSearch && !returnTrip) {
       return;
     }
 
@@ -342,7 +291,7 @@ export default function TripContainer() {
       {/* MAIN */}
       <main className={styles.main}>
         {/* TAB KHỨ HỒI */}
-        {isRoundTrip && (
+        {isRoundTripSearch && (
           <div className={styles.journeyTabs}>
             <button
               type="button"
@@ -375,16 +324,52 @@ export default function TripContainer() {
         )}
 
         {/* THÔNG TIN CHUYẾN ĐÃ CHỌN */}
-        {isRoundTrip && (outboundTrip || returnTrip) && (
+        {isRoundTripSearch && (outboundTrip || returnTrip) && (
           <div className={styles.selectedTrips}>
-            <div>
-              <strong>Chuyến đi:</strong>{" "}
-              {outboundTrip ? `${outboundTrip.id}` : "Chưa chọn"}
+            <div className={styles.selectedTripRow}>
+              <div className={styles.tripLabel}>
+                <span className={styles.tripDot} />
+                <span>Chuyến đi</span>
+              </div>
+
+              {outboundTrip ? (
+                <div className={styles.tripInfo}>
+                  <strong>
+                    {formatDateTimeVN(outboundTrip.departureDateTime)}
+                  </strong>
+
+                  <span className={styles.tripRoute}>
+                    {outboundTrip.originCity}
+                    <span className={styles.arrow}>→</span>
+                    {outboundTrip.destinationCity}
+                  </span>
+                </div>
+              ) : (
+                <span className={styles.notSelected}>Chưa chọn</span>
+              )}
             </div>
 
-            <div>
-              <strong>Chuyến về:</strong>{" "}
-              {returnTrip ? `${returnTrip.id}` : "Chưa chọn"}
+            <div className={styles.selectedTripRow}>
+              <div className={styles.tripLabel}>
+                <span className={`${styles.tripDot} ${styles.returnDot}`} />
+                <span>Chuyến về</span>
+              </div>
+
+              {returnTrip ? (
+                <div className={styles.tripInfo}>
+                  <strong>
+                    {formatDateTimeVN(returnTrip.departureDateTime)}
+                  </strong>
+
+                  <span className={styles.tripRoute}>
+                    {returnTrip.originCity}
+                    <span className={styles.arrow}>→</span>
+                    {returnTrip.destinationCity}
+                  </span>
+                </div>
+              ) : (
+                <span className={styles.notSelected}>Chưa chọn</span>
+              )}
             </div>
 
             <button

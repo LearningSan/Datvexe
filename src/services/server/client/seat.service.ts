@@ -3,8 +3,6 @@ import {
   findTripSeatMeta,
 } from "@/repositories/client/seat.repo";
 
-import { TripSeatResponse } from "@/types/client/seat/seat-response.type";
-
 export async function getTripSeats(tripId: number, sessionId: string) {
   const meta = await findTripSeatMeta(tripId);
 
@@ -16,6 +14,7 @@ export async function getTripSeats(tripId: number, sessionId: string) {
 
   return {
     tripId: meta.tripId,
+    seatLayoutId: meta.seatLayoutId,
     vehicleName: meta.vehicleName,
     licensePlate: meta.licensePlate,
     floorCount: meta.floorCount,

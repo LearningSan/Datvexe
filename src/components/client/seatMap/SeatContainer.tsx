@@ -21,7 +21,7 @@ import BlockSkeleton from "@/components/common/BlockSkeleton";
 
 import ErrorRenderer from "@/lib/error/error.renderer";
 import { useHoldSeats, useReleaseSeats } from "@/hooks/client/useBooking";
-
+import { useSearchStore } from "@/store/search.store";
 import styles from "./SeatContainer.module.css";
 function generateSessionId() {
   if (
@@ -40,12 +40,13 @@ export default function SeatContainer() {
     outboundTrip,
     returnTrip,
     activeJourney,
-    isRoundTrip,
     setActiveJourney,
     toggleSeat,
     setHoldExpiredAt,
   } = useBookingStore();
   const router = useRouter();
+  const currentSearch = useSearchStore((state) => state.currentSearch);
+  const isRoundTripSearch = currentSearch?.isRoundTrip === true;
   const currentTrip = activeJourney === "OUTBOUND" ? outboundTrip : returnTrip;
 
   const { mutateAsync: holdSeats } = useHoldSeats();
@@ -127,13 +128,23 @@ export default function SeatContainer() {
 
     // BỎ CHỌN
     if (isSelected || seat.isHeldByMe) {
+      // UI bỏ chọn ngay
+      if (isSelected) {
+        toggleSeat({
+          seatId: seat.seatId,
+          seatNumber: seat.seatNumber,
+          price: currentTrip.price,
+        });
+      }
+
       try {
         await releaseSeats({
           tripId: currentTrip.id,
           seatLayoutDetailIds: [seat.seatId],
           sessionId,
         });
-
+      } catch (error: any) {
+        // API thất bại → rollback
         if (isSelected) {
           toggleSeat({
             seatId: seat.seatId,
@@ -142,7 +153,6 @@ export default function SeatContainer() {
           });
         }
 
-      } catch (error: any) {
         toast.error(error?.response?.data?.message || "Không thể bỏ chọn ghế");
       }
 
@@ -161,22 +171,31 @@ export default function SeatContainer() {
     }
 
     // GIỮ GHẾ
+    // GIỮ GHẾ
     try {
-      const result = await holdSeats({
-        tripId: currentTrip.id,
-        seatLayoutDetailIds: [seat.seatId],
-        sessionId,
-      });
-      console.log("Time luu trong db:",result.expiredAt)
-      setHoldExpiredAt(result.expiredAt);
-
+      // Đổi UI ngay lập tức
       toggleSeat({
         seatId: seat.seatId,
         seatNumber: seat.seatNumber,
         price: currentTrip.price,
       });
 
+      // Sau đó mới gọi API
+      const result = await holdSeats({
+        tripId: currentTrip.id,
+        seatLayoutDetailIds: [seat.seatId],
+        sessionId,
+      });
+
+      setHoldExpiredAt(result.expiredAt);
     } catch (error: any) {
+      // API thất bại → rollback UI
+      toggleSeat({
+        seatId: seat.seatId,
+        seatNumber: seat.seatNumber,
+        price: currentTrip.price,
+      });
+
       toast.error(error?.response?.data?.message || "Không thể giữ ghế");
     }
   };
@@ -242,21 +261,21 @@ export default function SeatContainer() {
   };
 
   const renderLayout = () => {
-    const vehicleName = data.vehicleName?.toLowerCase();
+    const seatLayoutId = Number(data.seatLayoutId);
 
-    if (vehicleName?.includes("limousine") && data.totalSeats === 19) {
-      return <Limousine19 {...commonProps} />;
-    }
-
-    if (vehicleName?.includes("cabin") || data.totalSeats === 24) {
-      return <CabinVip22 {...commonProps} />;
-    }
-
-    if (data.totalSeats === 40) {
+    if (seatLayoutId === 3) {
       return <Sleeper40 {...commonProps} />;
     }
 
-    if (data.totalSeats === 9) {
+    if (seatLayoutId === 2) {
+      return <Limousine19 {...commonProps} />;
+    }
+
+    if (seatLayoutId === 4) {
+      return <CabinVip22 {...commonProps} />;
+    }
+
+    if (seatLayoutId === 1) {
       return <Limousine9 {...commonProps} />;
     }
 
@@ -268,7 +287,6 @@ export default function SeatContainer() {
       </div>
     );
   };
-
   return (
     <div className={styles.wrapper}>
       <div className={styles.main}>
@@ -293,7 +311,7 @@ export default function SeatContainer() {
             ← Chọn chuyến khác
           </button>
         </div>
-        {isRoundTrip && (
+        {isRoundTripSearch && (
           <div className={styles.journeyTabs}>
             <button
               className={

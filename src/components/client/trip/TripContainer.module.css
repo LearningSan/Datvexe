@@ -231,3 +231,123 @@
     margin-left: 0;
   }
 }
+.selectedTrips {
+  margin-bottom: 20px;
+  padding: 16px 18px;
+
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+.selectedTripRow {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+
+  align-items: center;
+
+  min-height: 52px;
+}
+
+.selectedTripRow + .selectedTripRow {
+  border-top: 1px dashed #e5e7eb;
+}
+
+.tripLabel {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tripDot {
+  width: 9px;
+  height: 9px;
+
+  border-radius: 50%;
+  background: #2563eb;
+
+  box-shadow: 0 0 0 4px #dbeafe;
+}
+
+.returnDot {
+  background: #f97316;
+  box-shadow: 0 0 0 4px #ffedd5;
+}
+
+.tripInfo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  min-width: 0;
+}
+
+.tripInfo strong {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tripRoute {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: #64748b;
+  font-size: 14px;
+}
+
+.arrow {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.notSelected {
+  color: #94a3b8;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.continueButton {
+  width: 100%;
+  margin-top: 14px;
+  padding: 11px 18px;
+
+  border: none;
+  border-radius: 9px;
+
+  background: #2563eb;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease,
+    opacity 0.2s ease;
+}
+
+.continueButton:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.continueButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.continueButton:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+}

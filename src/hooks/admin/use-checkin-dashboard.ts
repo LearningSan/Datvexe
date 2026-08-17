@@ -39,6 +39,9 @@ export function useCheckinDashboardSummary(
     queryKey: checkinDashboardKeys.summary(),
 
     queryFn: getCheckinDashboardSummary,
+    meta: {
+      globalLoading: false,
+    },
 
     staleTime: 5_000,
     gcTime: 5 * 60_000,
@@ -62,7 +65,9 @@ export function useCheckinDashboardTrips(
 
     queryFn: () => getCheckinDashboardTrips(params),
 
-    // Giữ danh sách chuyến cũ trong lúc lấy dữ liệu theo filter mới.
+    meta: {
+      globalLoading: false,
+    },
     placeholderData: keepPreviousData,
 
     staleTime: 5_000,
@@ -89,7 +94,9 @@ export function useCheckinDashboardPassengers(
 
     enabled: params.tripId > 0,
 
-    // Giữ danh sách hành khách cũ trong lúc lọc hoặc chuyển trang.
+    meta: {
+      globalLoading: false,
+    },
     placeholderData: keepPreviousData,
 
     staleTime: 5_000,

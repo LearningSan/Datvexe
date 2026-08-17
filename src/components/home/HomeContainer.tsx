@@ -10,6 +10,9 @@ import { usePromotions } from "@/hooks/client/usePromotion";
 import { useCleanupExpiredSeatHolds } from "@/hooks/client/useBooking";
 import { useSearchStore, RecentSearch } from "@/store/search.store";
 import { useTripFilterStore } from "@/store/filter.store";
+import { useBookingStore } from "@/store/booking.store";
+import { useReleaseSeats } from "@/hooks/client/useBooking";
+
 import BlockQueryState from "@/components/common/BlockQueryState";
 import BlockErrorState from "@/components/common/BlockErrorState";
 import { SelectedLocation } from "@/types/client/route/location-search.type";
@@ -40,6 +43,10 @@ function getCityId(location: SelectedLocation | null) {
 export default function HomeContainer() {
   const router = useRouter();
   const { mutate: cleanupExpiredSeatHolds } = useCleanupExpiredSeatHolds();
+  const { outboundTrip, returnTrip, outboundSeats, returnSeats, resetBooking } =
+    useBookingStore();
+
+  const { mutateAsync: releaseSeats } = useReleaseSeats();
   const searchParams = useSearchParams();
 
   const { setFilters } = useTripFilterStore();
@@ -52,6 +59,47 @@ export default function HomeContainer() {
 
   const [origin, setOrigin] = useState<SelectedLocation | null>(null);
   const [destination, setDestination] = useState<SelectedLocation | null>(null);
+  useEffect(() => {
+    const resetBookingFlow = async () => {
+      const sessionId = localStorage.getItem("session_id");
+
+      if (!sessionId) {
+        resetBooking();
+        return;
+      }
+
+      try {
+        if (outboundTrip && outboundSeats.length > 0) {
+          await releaseSeats({
+            tripId: outboundTrip.id,
+            seatLayoutDetailIds: outboundSeats.map((seat) => seat.seatId),
+            sessionId,
+          });
+        }
+
+        if (returnTrip && returnSeats.length > 0) {
+          await releaseSeats({
+            tripId: returnTrip.id,
+            seatLayoutDetailIds: returnSeats.map((seat) => seat.seatId),
+            sessionId,
+          });
+        }
+      } catch (error) {
+        console.error("Không thể release seat:", error);
+      }
+
+      resetBooking();
+    };
+
+    void resetBookingFlow();
+  }, [
+    outboundTrip,
+    returnTrip,
+    outboundSeats,
+    returnSeats,
+    releaseSeats,
+    resetBooking,
+  ]);
   useEffect(() => {
     const originId = Number(searchParams.get("origin"));
     const destinationId = Number(searchParams.get("destination"));

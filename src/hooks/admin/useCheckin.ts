@@ -16,6 +16,9 @@ export function useLookupCheckinQr() {
 
     mutationFn: (payload: LookupCheckinQrPayload) =>
       lookupCheckinQrApi(payload),
+    meta: {
+      globalLoading: false,
+    },
 
     retry: false,
     throwOnError: false,
@@ -32,6 +35,9 @@ export function useConfirmCheckin() {
 
     retry: false,
     throwOnError: false,
+    meta: {
+      globalLoading: false,
+    },
 
     onSuccess: async () => {
       await Promise.all([
