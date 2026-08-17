@@ -33,6 +33,8 @@ function formatPaymentMethod(method?: string | null) {
   if (method === "VNPAY") return "VNPay";
   if (method === "VIETQR") return "VietQR";
   if (method === "CASH") return "Thanh toán tại quầy";
+  if (method === "PAYOS") return "PayOS";
+  if (method === "INTERNAL_WALLET") return "Ví nội bộ";
   return "—";
 }
 

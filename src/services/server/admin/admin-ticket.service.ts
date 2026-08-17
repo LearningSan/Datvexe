@@ -34,7 +34,8 @@ import {
   searchAdminOfflineTripsRepo,
   getAdminOfflineTicketFilterOptionsRepo,
 } from "@/repositories/admin/ticket.repo";
-
+import { findBookingsByIdsForNotification } from "@/repositories/client/payment-webhook.repo";
+import { sendPaymentSuccessEmail } from "@/lib/server/mail";
 import type {
   AdminTicketListParams,
   UpdateTicketStatusPayload,
@@ -106,12 +107,82 @@ export async function updateAdminTicketStatus(
           : "Admin duyệt và xác nhận đơn vé",
     });
 
-    if (booking.status !== "CONFIRMED") {
-      await createNotificationForBookingUser(
+    if (payload.status === "CONFIRMED") {
+      const result = await confirmAdminTicketRepo(bookingId, {
+        markPaymentPaid: Boolean(payload.markPaymentPaid),
+      });
+
+      await createTicketHistory({
         bookingId,
-        "Vé đã được xác nhận",
-        "Đơn vé của bạn đã được duyệt và xác nhận thành công.",
-      );
+        actionType: "UPDATE_STATUS",
+        oldValue: {
+          status: booking.status,
+          holdExpiredAt: booking.hold_expired_at,
+        },
+        newValue: {
+          ...payload,
+          status: "CONFIRMED",
+          holdExpiredAt: null,
+          seatCount: result.seatCount,
+        },
+        reason:
+          booking.status === "CONFIRMED"
+            ? "Admin đồng bộ lại dữ liệu booking đã xác nhận"
+            : "Admin duyệt và xác nhận đơn vé",
+      });
+
+      // ============================================================
+      // CHỈ GỬI THÔNG BÁO + EMAIL KHI BOOKING THỰC SỰ ĐƯỢC DUYỆT
+      // ============================================================
+
+      if (booking.status !== "CONFIRMED") {
+        // 1. Notification cho user
+        await createNotificationForBookingUser(
+          bookingId,
+          "Vé đã được xác nhận",
+          "Đơn vé của bạn đã được duyệt và xác nhận thành công.",
+        );
+
+        // 2. Lấy đầy đủ dữ liệu booking để gửi email
+        const emailBookings = await findBookingsByIdsForNotification([
+          bookingId,
+        ]);
+
+        const emailBooking = emailBookings[0];
+
+        if (emailBooking?.contactEmail) {
+          await sendPaymentSuccessEmail({
+            to: emailBooking.contactEmail,
+            customerName: emailBooking.contactName,
+            customerPhone: emailBooking.contactPhone,
+
+            bookings: [
+              {
+                bookingId: emailBooking.bookingId,
+                bookingCode: emailBooking.bookingCode,
+                amount: Number(emailBooking.totalAmount),
+
+                routeName: emailBooking.routeName,
+                departureDatetime: emailBooking.departureDatetime,
+                arrivalDatetime: emailBooking.arrivalDatetime,
+
+                pickupPointName: emailBooking.pickupPointName,
+                pickupPointAddress: emailBooking.pickupPointAddress,
+
+                dropoffPointName: emailBooking.dropoffPointName,
+                dropoffPointAddress: emailBooking.dropoffPointAddress,
+
+                vehicleName: emailBooking.vehicleName,
+                licensePlate: emailBooking.licensePlate,
+
+                seatNumbers: emailBooking.seatNumbers,
+              },
+            ],
+          });
+        }
+      }
+
+      return result;
     }
 
     return result;
