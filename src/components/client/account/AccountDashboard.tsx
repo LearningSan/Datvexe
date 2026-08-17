@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 import { logout } from "@/services/client/auth.service";
 import { useAuthStore } from "@/store/auth.store";
@@ -103,7 +103,6 @@ export default function AccountDashboard({ initialTab = "profile" }: Props) {
 
   return (
     <div className={styles.dashboardContainer}>
-      <Toaster />
 
       <aside className={styles.sidebar}>
         <div className={styles.menuList}>

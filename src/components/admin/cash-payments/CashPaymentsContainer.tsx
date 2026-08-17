@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 import {
   Banknote,
@@ -226,7 +226,6 @@ export default function CashPaymentsContainer() {
 
   return (
     <BlockErrorBoundary fallback={<BlockSkeleton height={500} />}>
-      <Toaster position="top-right" />
 
       <div className={styles.dashboard}>
         {/* Header */}

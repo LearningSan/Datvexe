@@ -490,3 +490,30 @@ GROUP BY
     scheduleTemplates,
   };
 }
+export async function findDuplicateScheduleTemplate(
+  routeId: number,
+  departureTime: string,
+  excludeScheduleTemplateId?: number,
+) {
+  const sql = `
+    SELECT schedule_template_id
+    FROM schedule_templates
+    WHERE route_id = ?
+      AND departure_time = ?
+      ${
+        excludeScheduleTemplateId !== undefined
+          ? "AND schedule_template_id <> ?"
+          : ""
+      }
+    LIMIT 1
+  `;
+
+  const params =
+    excludeScheduleTemplateId !== undefined
+      ? [routeId, departureTime, excludeScheduleTemplateId]
+      : [routeId, departureTime];
+
+  const rows: any[] = await query(sql, params);
+
+  return rows[0] ?? null;
+}

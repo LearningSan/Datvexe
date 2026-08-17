@@ -7,7 +7,7 @@ import {
 } from "@zxing/browser";
 import { Camera, CameraOff, RefreshCw, Power } from "lucide-react";
 import styles from "./CashQrScanner.module.css";
-
+import toast from "react-hot-toast";
 interface CashQrScannerProps {
   enabled: boolean;
   onDetected: (value: string) => void;
@@ -96,6 +96,8 @@ export default function CashQrScanner({
       value,
       detectedAt: now,
     };
+
+    toast.success("Đã quét mã QR thành công");
 
     onDetectedRef.current(value);
   }, []);

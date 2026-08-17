@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import styles from "./DriverFormModal.module.css";
 import type { AdminDriverItem } from "@/types/admin/drivers/driver-management.type";
-
+import toast from "react-hot-toast";
 interface Props {
   open: boolean;
   mode: "CREATE" | "EDIT";
@@ -95,14 +95,18 @@ export default function DriverFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+
+    if (!validateForm()) {
+      toast.error("Vui lòng kiểm tra lại thông tin tài xế.");
+      return;
+    }
 
     const payload: any = {
       fullName: fullName.trim(),
       email: email.trim() || null,
       phone: phone.trim() || null,
       driverType,
-      roleId:3,
+      roleId: 3,
       licenseNumber: licenseNumber.trim(),
       hiredDate: hiredDate || null,
     };

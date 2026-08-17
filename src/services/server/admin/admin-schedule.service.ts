@@ -6,6 +6,7 @@ import {
   updateScheduleTemplateRepo,
   updateScheduleTemplateStatusRepo,
   generateTripsFromScheduleRepo,
+  findDuplicateScheduleTemplate,
 } from "@/repositories/admin/schedule.repo";
 
 import type {
@@ -37,6 +38,15 @@ export async function getAdminScheduleOptions() {
 export async function createAdminScheduleTemplate(
   data: CreateAdminScheduleTemplatePayload,
 ) {
+  const duplicate = await findDuplicateScheduleTemplate(
+    data.routeId,
+    data.departureTime,
+  );
+
+  if (duplicate) {
+    throw new Error(`Tuyến này đã có lịch chạy lúc ${data.departureTime}`);
+  }
+
   return await createScheduleTemplateRepo(data);
 }
 
@@ -54,6 +64,16 @@ export async function updateAdminScheduleTemplate(
     throw new Error(
       "Lịch chạy đã được dùng để tạo chuyến. Không nên sửa giờ chạy trực tiếp, hãy tạm ngưng lịch cũ và tạo lịch mới",
     );
+  }
+
+  const duplicate = await findDuplicateScheduleTemplate(
+    Number(existing.routeId),
+    data.departureTime,
+    scheduleTemplateId,
+  );
+
+  if (duplicate) {
+    throw new Error(`Tuyến này đã có lịch chạy lúc ${data.departureTime}`);
   }
 
   return await updateScheduleTemplateRepo(scheduleTemplateId, data);

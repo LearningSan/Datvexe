@@ -422,7 +422,11 @@ export async function updatePickupPointSafeRepo(
     WHERE pickup_point_id = ?
   `;
 
-  await query(sql, [data.pointName, data.address || null, pickupPointId]);
+  await query(sql, [
+    data.pointName.trim(),
+    data.address?.trim() || null,
+    pickupPointId,
+  ]);
 
   return { pickupPointId };
 }
@@ -509,4 +513,29 @@ export async function findLinkedRoutesByPickupPoint(
   `;
 
   return await query<AdminPickupPointLinkedRoute>(sql, [pickupPointId]);
+}
+export async function findDuplicatePickupPoint(
+  cityId: number,
+  zoneId: number,
+  pointName: string,
+  excludePickupPointId?: number,
+) {
+  const sql = `
+    SELECT pickup_point_id
+    FROM pickup_points
+    WHERE city_id = ?
+      AND zone_id = ?
+      AND TRIM(point_name) = TRIM(?)
+      ${excludePickupPointId !== undefined ? "AND pickup_point_id <> ?" : ""}
+    LIMIT 1
+  `;
+
+  const params =
+    excludePickupPointId !== undefined
+      ? [cityId, zoneId, pointName.trim(), excludePickupPointId]
+      : [cityId, zoneId, pointName.trim()];
+
+  const rows: any[] = await query(sql, params);
+
+  return rows[0] ?? null;
 }

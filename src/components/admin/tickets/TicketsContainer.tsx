@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
   useAdminTickets,
   useAdminTicketOptions,
@@ -222,7 +222,6 @@ export default function TicketsContainer() {
         </div>
       }
     >
-      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
 
       <div className={styles.dashboardPage}>
         {/* SECTION 1: Tiêu đề & Hành động chính */}

@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { usePickupPointLocationOptions } from "@/hooks/admin/usePickupPoints";
-
 import type {
   AdminPickupPointItem,
   CreateAdminPickupPointPayload,
@@ -69,7 +68,7 @@ export default function PickupPointFormModal({
 
   const cityOptions = locationOptions?.cities ?? [];
   const zoneOptions = locationOptions?.zones ?? [];
-
+  const [validationError, setValidationError] = useState("");
   const isUsedPoint =
     mode === "EDIT" &&
     !!point &&
@@ -94,14 +93,16 @@ export default function PickupPointFormModal({
   useEffect(() => {
     if (!open) return;
 
+    setValidationError("");
+
     if (mode === "EDIT" && point) {
       setPointName(point.pointName);
       setAddress(point.address ?? "");
       setCityId(String(point.cityId));
       setZoneId(String(point.zoneId));
       setPointCategory(point.pointCategory);
-      setLatitude(point.latitude ? String(point.latitude) : "");
-      setLongitude(point.longitude ? String(point.longitude) : "");
+      setLatitude(point.latitude != null ? String(point.latitude) : "");
+      setLongitude(point.longitude != null ? String(point.longitude) : "");
       return;
     }
 
@@ -119,17 +120,118 @@ export default function PickupPointFormModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!cityId) return;
-    if (!zoneId) return;
+    // Xóa lỗi cũ
+    setValidationError("");
 
+    // =========================
+    // TÊN ĐIỂM
+    // =========================
+    const trimmedPointName = pointName.trim();
+
+    if (!trimmedPointName) {
+      setValidationError("Vui lòng nhập tên điểm đón trả.");
+      return;
+    }
+
+    // =========================
+    // THÀNH PHỐ
+    // =========================
+    if (!cityId) {
+      setValidationError("Vui lòng chọn thành phố.");
+      return;
+    }
+
+    const parsedCityId = Number(cityId);
+
+    if (!Number.isInteger(parsedCityId) || parsedCityId <= 0) {
+      setValidationError("Thành phố không hợp lệ.");
+      return;
+    }
+
+    // =========================
+    // KHU VỰC
+    // =========================
+    if (!zoneId) {
+      setValidationError("Vui lòng chọn khu vực.");
+      return;
+    }
+
+    const parsedZoneId = Number(zoneId);
+
+    if (!Number.isInteger(parsedZoneId) || parsedZoneId <= 0) {
+      setValidationError("Khu vực không hợp lệ.");
+      return;
+    }
+
+    // =========================
+    // LOẠI ĐIỂM
+    // =========================
+    const validCategories: PickupPointCategory[] = [
+      "MAIN_HUB",
+      "OFFICE",
+      "SHUTTLE_AREA",
+      "REST_STOP",
+    ];
+
+    if (!validCategories.includes(pointCategory)) {
+      setValidationError("Loại điểm đón trả không hợp lệ.");
+      return;
+    }
+
+    // =========================
+    // VĨ ĐỘ
+    // =========================
+    let parsedLatitude: number | null = null;
+
+    if (latitude.trim() !== "") {
+      parsedLatitude = Number(latitude);
+
+      if (!Number.isFinite(parsedLatitude)) {
+        setValidationError("Vĩ độ phải là một số hợp lệ.");
+        return;
+      }
+
+      if (parsedLatitude < -90 || parsedLatitude > 90) {
+        setValidationError("Vĩ độ phải nằm trong khoảng từ -90 đến 90.");
+        return;
+      }
+    }
+
+    // =========================
+    // KINH ĐỘ
+    // =========================
+    let parsedLongitude: number | null = null;
+
+    if (longitude.trim() !== "") {
+      parsedLongitude = Number(longitude);
+
+      if (!Number.isFinite(parsedLongitude)) {
+        setValidationError("Kinh độ phải là một số hợp lệ.");
+        return;
+      }
+
+      if (parsedLongitude < -180 || parsedLongitude > 180) {
+        setValidationError("Kinh độ phải nằm trong khoảng từ -180 đến 180.");
+        return;
+      }
+    }
+
+    // =========================
+    // ĐỊA CHỈ
+    // =========================
+    const trimmedAddress = address.trim();
+
+    // =========================
+    // TẤT CẢ HỢP LỆ → GỬI BE
+    // =========================
     onSubmit({
-      pointName,
-      address: address || null,
-      cityId: Number(cityId),
-      zoneId: Number(zoneId),
+      pointName: trimmedPointName,
+      address: trimmedAddress || null,
+      cityId: parsedCityId,
+      zoneId: parsedZoneId,
       pointCategory,
-      latitude: latitude ? Number(latitude) : null,
-      longitude: longitude ? Number(longitude) : null,
+      latitude: parsedLatitude,
+      longitude: parsedLongitude,
     });
   };
 
@@ -297,7 +399,9 @@ export default function PickupPointFormModal({
               hành. Bạn chỉ nên sửa tên hiển thị và địa chỉ.
             </div>
           ) : null}
-
+          {validationError && (
+            <div className={styles.validationError}>⚠ {validationError}</div>
+          )}
           <div className={styles.actions}>
             <button
               type="button"

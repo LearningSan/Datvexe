@@ -70,12 +70,14 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
-
 .formGroup {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .formGroup label {
@@ -86,7 +88,10 @@
 
 .formGroup input,
 .formGroup select {
+  width: 100%;
+  max-width: 100%;
   padding: 10px 14px;
+  box-sizing: border-box;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 14px;
@@ -96,6 +101,9 @@
   transition:
     border-color 0.15s,
     box-shadow 0.15s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .formGroup input:focus,

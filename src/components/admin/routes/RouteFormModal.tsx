@@ -7,7 +7,7 @@ import type {
   AdminRoutePayload,
 } from "@/types/admin/routes/route-management.type";
 import styles from "./RouteFormModal.module.css";
-
+import toast from "react-hot-toast";
 interface Props {
   open: boolean;
   mode: "CREATE" | "EDIT";
@@ -90,10 +90,13 @@ export default function RouteFormModal({
   const handleValidateAndSubmit = () => {
     const newErrors: FormErrors = {};
 
-    if (!originCityId)
+    if (!originCityId) {
       newErrors.originCityId = "Vui lòng chọn Tỉnh/Thành phố đi.";
-    if (!destinationCityId)
+    }
+
+    if (!destinationCityId) {
       newErrors.destinationCityId = "Vui lòng chọn Tỉnh/Thành phố đến.";
+    }
 
     if (
       originCityId &&
@@ -103,17 +106,22 @@ export default function RouteFormModal({
       newErrors.destinationCityId = "Điểm đến không được trùng với điểm đi.";
     }
 
-    if (!originHubId)
+    if (!originHubId) {
       newErrors.originHubId = "Vui lòng chọn bến/hub xuất phát.";
-    if (!destinationHubId)
+    }
+
+    if (!destinationHubId) {
       newErrors.destinationHubId = "Vui lòng chọn bến/hub kết thúc.";
+    }
 
     if (!distanceKm || Number(distanceKm) <= 0) {
       newErrors.distanceKm = "Khoảng cách phải lớn hơn 0 km.";
     }
+
     if (!estimatedDuration || Number(estimatedDuration) <= 0) {
       newErrors.estimatedDuration = "Thời gian di chuyển phải lớn hơn 0 phút.";
     }
+
     if (!basePrice || Number(basePrice) < 10000) {
       newErrors.basePrice = "Giá vé cơ bản tối thiểu là 10.000đ.";
     }
@@ -122,12 +130,16 @@ export default function RouteFormModal({
       newErrors.reason = "Vui lòng cung cấp lý do cập nhật thông tin tuyến xe.";
     }
 
+    // Có lỗi validation
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      return; // Dừng lại nếu có lỗi
+
+      toast.error("Vui lòng kiểm tra lại thông tin nhập vào.");
+
+      return;
     }
 
-    // Nếu hợp lệ thì trigger onSubmit gửi dữ liệu lên Server
+    // Hợp lệ
     onSubmit({
       originCityId: Number(originCityId),
       destinationCityId: Number(destinationCityId),

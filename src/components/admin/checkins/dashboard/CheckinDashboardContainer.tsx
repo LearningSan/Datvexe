@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
-import { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import PassengerActionModal from "./PassengerActionModal";
 import CheckinDashboardCharts from "./CheckinDashboardCharts";
 import type { CheckinDashboardPassengerItem } from "@/types/admin/checkin/checkin-dashboard-passenger.type";
@@ -259,13 +259,18 @@ export default function CheckinDashboardContainer() {
     }
   }, [trips, selectedTripId, tripsQuery.isFetching]);
 
-  function refreshDashboard() {
-    void Promise.all([
-      summaryQuery.refetch(),
-      tripsQuery.refetch(),
+  async function refreshDashboard() {
+    try {
+      await Promise.all([
+        summaryQuery.refetch(),
+        tripsQuery.refetch(),
+        selectedTripId > 0 ? passengersQuery.refetch() : Promise.resolve(),
+      ]);
 
-      selectedTripId > 0 ? passengersQuery.refetch() : Promise.resolve(),
-    ]);
+      toast.success("🔄 Đã cập nhật dữ liệu dashboard");
+    } catch {
+      toast.error("❌ Không thể cập nhật dữ liệu dashboard");
+    }
   }
 
   const isRefreshing =
@@ -297,19 +302,6 @@ export default function CheckinDashboardContainer() {
 
   return (
     <>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3500,
-          style: {
-            fontFamily: "system-ui, sans-serif",
-            fontSize: "14.5px",
-            fontWeight: 500,
-            borderRadius: "8px",
-            padding: "12px 18px",
-          },
-        }}
-      />
       <section className={styles.dashboard}>
         <header className={styles.header}>
           <div>

@@ -123,7 +123,11 @@ export default function RoutesContainer() {
   const handleConfirmToggleStatus = () => {
     if (!routeToToggle) return;
     if (!toggleReason.trim()) {
-      setToggleError("Vui lòng nhập lý do để lưu lại lịch sử hệ thống.");
+      const message = "Vui lòng nhập lý do để lưu lại lịch sử hệ thống.";
+
+      setToggleError(message);
+      toast.error(message);
+
       return;
     }
 
@@ -168,7 +172,6 @@ export default function RoutesContainer() {
 
   return (
     <BlockErrorBoundary fallback={<BlockSkeleton height={500} />}>
-
       <div className={styles.container}>
         {/* TIÊU ĐỀ TRANG */}
         <div className={styles.header}>
