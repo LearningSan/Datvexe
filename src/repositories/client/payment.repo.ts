@@ -633,15 +633,14 @@ export async function findPaymentForConfirm(
 
     FROM payments p
 
-INNER JOIN payment_bookings pb
-  ON pb.payment_id = p.payment_id
+    INNER JOIN payment_bookings pb
+      ON pb.payment_id = p.payment_id
 
-INNER JOIN bookings b
-  ON b.booking_id = pb.booking_id
+    INNER JOIN bookings b
+      ON b.booking_id = pb.booking_id
 
     WHERE p.payment_id = ?
 
-    LIMIT 1
     FOR UPDATE
     `,
     [paymentId],
@@ -653,17 +652,19 @@ INNER JOIN bookings b
 
   const payment = rows[0];
 
+  const bookings = rows.map((row) => ({
+    bookingId: Number(row.bookingId),
+    bookingCode: row.bookingCode,
+  }));
+
+  const bookingIds = bookings.map((booking) => booking.bookingId);
+
   return {
     paymentId: Number(payment.paymentId),
 
-    bookings: [
-      {
-        bookingId: Number(payment.bookingId),
-        bookingCode: payment.bookingCode,
-      },
-    ],
+    bookings,
 
-    bookingIds: [Number(payment.bookingId)],
+    bookingIds,
 
     bookingUserId: payment.bookingUserId,
 
